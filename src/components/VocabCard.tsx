@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { VocabItem } from '../data/vocabTypes'
 import { useApp } from '../context/AppContext'
 import StrokeDemoModal from './StrokeDemoModal'
+import PracticeWritingModal from './PracticeWritingModal'
 
 interface VocabCardProps {
   item: VocabItem
@@ -47,6 +48,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [speaking, setSpeaking] = useState(false)
   const [showStrokeModal, setShowStrokeModal] = useState(false)
+  const [showQuizModal, setShowQuizModal] = useState(false)
   const { favourites, addFavourite, removeFavourite, addToErrorBank } = useApp()
   const isFav = favourites.includes(item.id)
 
@@ -247,7 +249,8 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
             </div>
           </div>
 
-          {/* Stroke order demo button */}
+          {/* Two-button row: stroke demo + practice writing */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button
             onClick={(e) => { e.stopPropagation(); setShowStrokeModal(true) }}
             style={{
@@ -268,6 +271,28 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               </span>
             </span>
           </button>
+
+          {/* Practice writing button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowQuizModal(true) }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 16px', borderRadius: 12,
+              border: '1px solid #A5D6A7',
+              background: '#F0FFF4', color: '#2E7D32',
+              fontSize: 14, cursor: 'pointer',
+              minHeight: 48,
+            }}
+          >
+            <i className="fa-solid fa-pen" style={{ fontSize: 18 }} />
+            <span>
+              练习书写
+              <span style={{ display: 'block', fontSize: 11, color: '#66BB6A', fontWeight: 400 }}>
+                Practice Writing
+              </span>
+            </span>
+          </button>
+          </div>{/* end two-button row */}
 
           {/* Add to error bank */}
           <button
@@ -292,6 +317,14 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
         <StrokeDemoModal
           char={item.char}
           onClose={() => setShowStrokeModal(false)}
+        />
+      )}
+
+      {/* Practice writing modal */}
+      {showQuizModal && (
+        <PracticeWritingModal
+          char={item.char}
+          onClose={() => setShowQuizModal(false)}
         />
       )}
     </div>
