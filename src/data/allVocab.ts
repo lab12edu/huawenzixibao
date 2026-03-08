@@ -17,6 +17,7 @@ import { P6B } from './vocab_P6B'
 import { P1newA } from './vocab_P1newA'
 import { P1newB } from './vocab_P1newB'
 import { P2newA } from './vocab_P2newA'
+import { P2newB } from './vocab_P2newB'
 
 // All levels in display order
 export const ALL_VOCAB_LEVELS: Record<string, VocabItem[]> = {
@@ -27,7 +28,7 @@ export const ALL_VOCAB_LEVELS: Record<string, VocabItem[]> = {
   P5A, P5B,
   P6A, P6B,
   P1newA, P1newB,
-  P2newA,
+  P2newA, P2newB,
 }
 
 // All vocab items as a flat array
@@ -39,7 +40,7 @@ export const ALL_VOCAB: VocabItem[] = [
   ...P5A, ...P5B,
   ...P6A, ...P6B,
   ...P1newA, ...P1newB,
-  ...P2newA,
+  ...P2newA, ...P2newB,
 ]
 
 // Levels grouped by grade
@@ -51,7 +52,7 @@ export const GRADE_LEVELS: Record<string, string[]> = {
   'P5': ['P5A', 'P5B'],
   'P6': ['P6A', 'P6B'],
   'P1new': ['P1newA', 'P1newB'],
-  'P2new': ['P2newA'],
+  'P2new': ['P2newA', 'P2newB'],
 }
 
 // Lookup map by item ID for O(1) access
