@@ -5,10 +5,24 @@ import { getVocabForLevel, getChaptersForLevel, searchVocab, getLevelStats, GRAD
 import { VocabItem } from '../data/vocabTypes'
 
 // ── Constants ────────────────────────────────────────────────
-const GRADES = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6']
+// Display order: K1 → K2 → P1 → P1new → P2 → P2new → P3 → P4 → P5 → P6
+const GRADES = ['K1', 'K2', 'P1', 'P1new', 'P2', 'P2new', 'P3', 'P4', 'P5', 'P6']
+// Grades that have A/B semesters
+const SEMESTER_GRADES = new Set(['P1', 'P2', 'P3', 'P4', 'P5', 'P6'])
+// Grades that are "new curriculum" full levels (no A/B split)
+const NEW_GRADES = new Set(['K1', 'K2', 'P1new', 'P2new'])
 const GRADE_COLORS: Record<string, string> = {
-  P1: '#E53935', P2: '#E91E63', P3: '#9C27B0',
+  K1: '#43A047', K2: '#00897B',
+  P1: '#E53935', 'P1new': '#C62828',
+  P2: '#E91E63', 'P2new': '#AD1457',
+  P3: '#9C27B0',
   P4: '#1565C0', P5: '#00695C', P6: '#E65100',
+}
+const GRADE_LABELS: Record<string, string> = {
+  K1: 'K1', K2: 'K2',
+  P1: 'P1', P1new: 'P1 新',
+  P2: 'P2', P2new: 'P2 新',
+  P3: 'P3', P4: 'P4', P5: 'P5', P6: 'P6',
 }
 const SEMESTER_LABELS: Record<string, string> = {
   A: '上学期', B: '下学期',
@@ -16,14 +30,37 @@ const SEMESTER_LABELS: Record<string, string> = {
 
 type LabelFilter = 'all' | '识读' | '识写'
 
+// Derive the grade key and semester from a full level string
+// e.g. 'P1A' → { grade:'P1', semester:'A' }
+// e.g. 'P1new' → { grade:'P1new', semester:null }
+// e.g. 'P1newA' → { grade:'P1new', semester:'A' }  (future-proof)
+function parseLevelString(lv: string): { grade: string; semester: 'A' | 'B' | null } {
+  // Try exact match against known grades first (longest first to avoid P1 matching P1new)
+  const sortedGrades = [...GRADES].sort((a, b) => b.length - a.length)
+  for (const g of sortedGrades) {
+    if (lv === g) return { grade: g, semester: null }
+    if (lv === `${g}A`) return { grade: g, semester: 'A' }
+    if (lv === `${g}B`) return { grade: g, semester: 'B' }
+  }
+  // Fallback: strip trailing A/B
+  if (lv.endsWith('A') || lv.endsWith('B')) {
+    const sem = lv.slice(-1) as 'A' | 'B'
+    const g = lv.slice(0, -1)
+    if (GRADES.includes(g)) return { grade: g, semester: sem }
+  }
+  return { grade: 'P1', semester: 'A' }
+}
+
 // ── Main VocabPage ────────────────────────────────────────────
 export default function VocabPage() {
-  const { selectedLevel } = useApp()
+  const { selectedLevel, setSelectedLevel } = useApp()
 
-  // Derive initial grade (P1 from "P1", "P1A", "P1new")
-  const initGrade = GRADES.find(g => selectedLevel.startsWith(g)) ?? 'P1'
-  const [grade, setGrade] = useState(initGrade)
-  const [semester, setSemester] = useState<'A' | 'B'>('A')
+  // Initialise grade and semester from the global selected level
+  const parsed = parseLevelString(selectedLevel)
+  const [grade, setGradeState] = useState<string>(parsed.grade)
+  const [semester, setSemester] = useState<'A' | 'B'>(
+    parsed.semester ?? (NEW_GRADES.has(parsed.grade) ? 'A' : 'A')
+  )
   const [chapter, setChapter] = useState<number | 'all'>('all')
   const [labelFilter, setLabelFilter] = useState<LabelFilter>('all')
   const [search, setSearch] = useState('')
@@ -31,7 +68,28 @@ export default function VocabPage() {
   const PAGE_SIZE = 30
   const searchRef = useRef<HTMLInputElement>(null)
 
-  const level = `${grade}${semester}`  // e.g. "P1A"
+  // BUG 2 FIX — sync grade/semester whenever the global selectedLevel changes
+  // (covers: homepage selection → navigate to vocab page)
+  useEffect(() => {
+    const p = parseLevelString(selectedLevel)
+    setGradeState(p.grade)
+    setSemester(p.semester ?? 'A')
+  }, [selectedLevel])
+
+  // When user changes grade inside VocabPage, also update global context
+  // so the homepage level indicator stays in sync (test scenario 3)
+  function setGrade(g: string) {
+    setGradeState(g)
+    setSemester('A')
+    // Write back to global context: new-curriculum grades store as plain id,
+    // standard grades store as "P1A" style — just store the grade root for now
+    const contextLevel = (g + (NEW_GRADES.has(g) ? '' : 'A')) as import('../context/AppContext').Level
+    setSelectedLevel(contextLevel)
+  }
+
+  // For new-curriculum grades, level IS the grade itself (no A/B)
+  const isNewGrade = NEW_GRADES.has(grade)
+  const level = isNewGrade ? grade : `${grade}${semester}`  // e.g. "P1A" or "P1new"
   const color = GRADE_COLORS[grade] ?? '#E53935'
   const stats = getLevelStats(level)
   const chapters = getChaptersForLevel(level)
@@ -42,13 +100,16 @@ export default function VocabPage() {
 
   // Filtered vocab
   const filtered: VocabItem[] = useMemo(() => {
+    // For new-curriculum grades, search within the full grade level
+    // For standard grades, search across both semesters of the same grade
+    const searchScope = isNewGrade ? grade : grade
     let items = search.trim()
-      ? searchVocab(search, grade)   // search whole grade when query active
+      ? searchVocab(search, searchScope)  // search whole grade when query active
       : getVocabForLevel(level)
     if (chapter !== 'all') items = items.filter(v => v.chapter === chapter)
     if (labelFilter !== 'all') items = items.filter(v => v.label === labelFilter)
     return items
-  }, [search, grade, level, chapter, labelFilter])
+  }, [search, grade, level, chapter, labelFilter, isNewGrade])
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -60,26 +121,41 @@ export default function VocabPage() {
         display: 'flex', gap: 6, padding: '14px 14px 8px',
         overflowX: 'auto', scrollbarWidth: 'none',
       }}>
-        {GRADES.map(g => (
-          <button
-            key={g}
-            onClick={() => { setGrade(g); setSemester('A') }}
-            style={{
-              flexShrink: 0,
-              padding: '6px 14px', borderRadius: 20,
-              border: `1.5px solid ${grade === g ? GRADE_COLORS[g] : '#E0E0E0'}`,
-              background: grade === g ? GRADE_COLORS[g] : '#fff',
-              color: grade === g ? '#fff' : '#555',
-              fontSize: 13, fontWeight: grade === g ? 700 : 400,
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
-          >
-            {g}
-          </button>
-        ))}
+        {GRADES.map(g => {
+          const isNew = NEW_GRADES.has(g) && (g === 'P1new' || g === 'P2new')
+          return (
+            <button
+              key={g}
+              onClick={() => setGrade(g)}
+              style={{
+                flexShrink: 0,
+                padding: '6px 14px', borderRadius: 20,
+                border: `1.5px solid ${grade === g ? GRADE_COLORS[g] : '#E0E0E0'}`,
+                background: grade === g ? GRADE_COLORS[g] : '#fff',
+                color: grade === g ? '#fff' : '#555',
+                fontSize: 13, fontWeight: grade === g ? 700 : 400,
+                cursor: 'pointer', transition: 'all 0.2s',
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+              }}
+            >
+              {GRADE_LABELS[g] ?? g}
+              {isNew && (
+                <span style={{
+                  display: 'inline-block',
+                  background: grade === g ? 'rgba(255,255,255,0.35)' : '#E53935',
+                  color: '#fff',
+                  fontSize: 9, fontWeight: 800,
+                  padding: '1px 4px', borderRadius: 4,
+                  lineHeight: 1.4, letterSpacing: 0.3,
+                }}>新</span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
-      {/* ── Semester toggle ── */}
+      {/* ── Semester toggle — hidden for new-curriculum grades (no A/B split) ── */}
+      {!isNewGrade && (
       <div style={{ display: 'flex', gap: 8, padding: '0 14px 10px' }}>
         {(['A', 'B'] as const).map(s => (
           <button
@@ -99,6 +175,7 @@ export default function VocabPage() {
           </button>
         ))}
       </div>
+      )}
 
       {/* ── Stats bar ── */}
       <div style={{
