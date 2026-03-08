@@ -48,6 +48,8 @@ function parseLevelString(lv: string): { grade: string; semester: 'A' | 'B' | nu
     const g = lv.slice(0, -1)
     if (GRADES.includes(g)) return { grade: g, semester: sem }
   }
+  // If the raw value is itself a known grade, return it directly
+  if (GRADES.includes(lv)) return { grade: lv, semester: null }
   return { grade: 'P1', semester: 'A' }
 }
 
