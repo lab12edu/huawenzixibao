@@ -55,27 +55,30 @@ const DEFAULT_STATE: AppState = {
 const AppContext = createContext<AppContextValue | undefined>(undefined)
 
 // ============================================================
-// LocalStorage helpers
+// LocalStorage helpers — per-key storage
 // ============================================================
 
-const LS_KEY = 'huawen_app_state'
+// Legacy single-blob key (read once for migration, never written again)
+const LS_KEY_LEGACY = 'huawen_app_state'
 
-function loadFromStorage(): Partial<AppState> {
+function readLegacy(): Partial<AppState> {
   try {
-    const raw = localStorage.getItem(LS_KEY)
+    const raw = localStorage.getItem(LS_KEY_LEGACY)
     if (raw) return JSON.parse(raw)
-  } catch {
-    // ignore
-  }
+  } catch { /* ignore */ }
   return {}
 }
 
-function saveToStorage(state: AppState) {
+function lsGet<T>(key: string, fallback: T): T {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(state))
-  } catch {
-    // ignore
-  }
+    const raw = localStorage.getItem(key)
+    if (raw !== null) return JSON.parse(raw) as T
+  } catch { /* ignore */ }
+  return fallback
+}
+
+function lsSet(key: string, value: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* ignore */ }
 }
 
 // ============================================================
@@ -83,28 +86,34 @@ function saveToStorage(state: AppState) {
 // ============================================================
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const saved = loadFromStorage()
+  // One-time migration: if new keys are absent, seed from legacy blob
+  const legacy = readLegacy()
 
-  const [selectedLevel, setSelectedLevelState] = useState<Level>(
-    saved.selectedLevel ?? DEFAULT_STATE.selectedLevel
+  const [selectedLevel, setSelectedLevelState] = useState<Level>(() =>
+    lsGet<Level>('hwzxb_selected_level',
+      legacy.selectedLevel ?? DEFAULT_STATE.selectedLevel)
   )
-  const [studentName, setStudentNameState] = useState<string>(
-    saved.studentName ?? DEFAULT_STATE.studentName
+  const [studentName, setStudentNameState] = useState<string>(() =>
+    lsGet<string>('hwzxb_student_name',
+      legacy.studentName ?? DEFAULT_STATE.studentName)
   )
-  const [favourites, setFavourites] = useState<string[]>(
-    saved.favourites ?? DEFAULT_STATE.favourites
+  const [favourites, setFavourites] = useState<string[]>(() =>
+    lsGet<string[]>('hwzxb_favourites',
+      legacy.favourites ?? DEFAULT_STATE.favourites)
   )
-  const [errorBank, setErrorBank] = useState<string[]>(
-    saved.errorBank ?? DEFAULT_STATE.errorBank
+  const [errorBank, setErrorBank] = useState<string[]>(() =>
+    lsGet<string[]>('hwzxb_error_bank',
+      legacy.errorBank ?? DEFAULT_STATE.errorBank)
   )
   const [activeTab, setActiveTabState] = useState<Tab>(
     DEFAULT_STATE.activeTab  // always start on home
   )
 
-  // Persist to localStorage whenever state changes
-  useEffect(() => {
-    saveToStorage({ selectedLevel, studentName, favourites, errorBank, activeTab })
-  }, [selectedLevel, studentName, favourites, errorBank, activeTab])
+  // Persist each item independently to its own key
+  useEffect(() => { lsSet('hwzxb_selected_level', selectedLevel) }, [selectedLevel])
+  useEffect(() => { lsSet('hwzxb_student_name',   studentName)   }, [studentName])
+  useEffect(() => { lsSet('hwzxb_favourites',     favourites)    }, [favourites])
+  useEffect(() => { lsSet('hwzxb_error_bank',     errorBank)     }, [errorBank])
 
   const setSelectedLevel = (level: Level) => setSelectedLevelState(level)
   const setStudentName = (name: string) => setStudentNameState(name)
