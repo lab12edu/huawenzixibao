@@ -45,7 +45,7 @@
 
 /* AUDIT 7 — no horizontal scroll on any screen */
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   overflow-y: auto;
   height: auto;
   max-width: 100vw;
