@@ -30,9 +30,9 @@
   --shadow-sm: 0 2px 8px rgba(229, 57, 53, 0.08);
   --shadow-md: 0 4px 20px rgba(229, 57, 53, 0.12);
   --shadow-nav: 0 -2px 16px rgba(0, 0, 0, 0.08);
-  --font-cn: 'Klee One', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
-  --font-en: 'Klee One', 'Nunito', 'Segoe UI', sans-serif;
-  --font-ms-zheng: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  --font-cn: 'LXGW WenKai', 'Klee One', 'KaiTi', 'STKaiti', cursive;
+  --font-en: 'LXGW WenKai', 'Klee One', 'KaiTi', 'STKaiti', cursive;
+  --font-ms-zheng: 'LXGW WenKai', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
   /* Mobile defaults */
   --nav-height: 64px;
   --sidebar-width: 0px;
@@ -55,7 +55,7 @@ html, body {
 }
 
 body {
-  font-family: 'Klee One', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-family: 'LXGW WenKai', 'Klee One', 'KaiTi', 'STKaiti', cursive;
   background-color: var(--color-bg);
   color: var(--color-text);
   min-height: 100dvh;
@@ -64,7 +64,7 @@ body {
 }
 
 :lang(zh), .cn, .zh {
-  font-family: 'Klee One', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-family: 'LXGW WenKai', 'Klee One', 'KaiTi', 'STKaiti', cursive;
 }
 
 #root {
@@ -377,7 +377,7 @@ body {
 
 /* Large study character */
 .char-display {
-  font-family: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-family: 'LXGW WenKai', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
   font-size: 56px;
   line-height: 1.1;
 }
@@ -1146,7 +1146,7 @@ button:active {
 
 /* Large character tile on vocab card (mobile default) */
 .char-study {
-  font-family: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-family: 'LXGW WenKai', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
   font-size: 52px;
   font-weight: 400;
 }
@@ -1168,12 +1168,12 @@ button:active {
 /* 华 logo circle in hero banner and sidebar */
 .app-logo-circle,
 .sidebar-logo {
-  font-family: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-family: 'LXGW WenKai', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
 }
 
 /* Chinese-only section headings */
 .section-title-cn {
-  font-family: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-family: 'LXGW WenKai', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
 }
 
 @media (min-width: 1280px) {
