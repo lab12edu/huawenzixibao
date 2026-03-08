@@ -1062,6 +1062,13 @@ button:active {
 .stagger > *:nth-child(4) { animation: fadeInUp 0.35s 0.26s ease forwards; }
 .stagger > *:nth-child(5) { animation: fadeInUp 0.35s 0.33s ease forwards; }
 .stagger > *:nth-child(6) { animation: fadeInUp 0.35s 0.40s ease forwards; }
+.stagger > *:nth-child(7) { animation: fadeInUp 0.35s 0.47s ease forwards; }
+
+/* Safety net: no quick-card can be stuck at opacity 0 */
+.quick-grid .quick-card {
+  opacity: 1 !important;
+  animation-fill-mode: both;
+}
 
 /* ============================================
    MODAL (AUDIT ITEM 6)
