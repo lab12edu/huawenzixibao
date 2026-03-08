@@ -7,10 +7,10 @@ import { VocabItem } from '../data/vocabTypes'
 // ── Constants ────────────────────────────────────────────────
 // Display order: K1 → K2 → P1 → P1new → P2 → P2new → P3 → P4 → P5 → P6
 const GRADES = ['K1', 'K2', 'P1', 'P1new', 'P2', 'P2new', 'P3', 'P4', 'P5', 'P6']
-// Grades that have A/B semesters
-const SEMESTER_GRADES = new Set(['P1', 'P2', 'P3', 'P4', 'P5', 'P6'])
-// Grades that are "new curriculum" full levels (no A/B split)
-const NEW_GRADES = new Set(['K1', 'K2', 'P1new', 'P2new'])
+// Grades that have A/B semesters (includes new-curriculum P1new & P2new)
+const SEMESTER_GRADES = new Set(['P1', 'P1new', 'P2', 'P2new', 'P3', 'P4', 'P5', 'P6'])
+// Grades that have NO A/B semester split (K1 and K2 only)
+const NEW_GRADES = new Set(['K1', 'K2'])  // P1new/P2new DO have A/B semesters
 const GRADE_COLORS: Record<string, string> = {
   K1: '#43A047', K2: '#00897B',
   P1: '#E53935', 'P1new': '#C62828',
@@ -87,9 +87,9 @@ export default function VocabPage() {
     setSelectedLevel(contextLevel)
   }
 
-  // For new-curriculum grades, level IS the grade itself (no A/B)
-  const isNewGrade = NEW_GRADES.has(grade)
-  const level = isNewGrade ? grade : `${grade}${semester}`  // e.g. "P1A" or "P1new"
+  // K1/K2 have no semester split; all other grades (including P1new/P2new) use A/B
+  const isNewGrade = NEW_GRADES.has(grade)  // true only for K1, K2
+  const level = isNewGrade ? grade : `${grade}${semester}`  // e.g. "P1A", "P1newA", "K1"
   const color = GRADE_COLORS[grade] ?? '#E53935'
   const stats = getLevelStats(level)
   const chapters = getChaptersForLevel(level)
@@ -122,7 +122,7 @@ export default function VocabPage() {
         overflowX: 'auto', scrollbarWidth: 'none',
       }}>
         {GRADES.map(g => {
-          const isNew = NEW_GRADES.has(g) && (g === 'P1new' || g === 'P2new')
+          const isNew = g === 'P1new' || g === 'P2new'
           return (
             <button
               key={g}
@@ -154,7 +154,7 @@ export default function VocabPage() {
         })}
       </div>
 
-      {/* ── Semester toggle — hidden for new-curriculum grades (no A/B split) ── */}
+      {/* ── Semester toggle — hidden only for K1/K2 which have no semester split ── */}
       {!isNewGrade && (
       <div style={{ display: 'flex', gap: 8, padding: '0 14px 10px' }}>
         {(['A', 'B'] as const).map(s => (
@@ -225,21 +225,12 @@ export default function VocabPage() {
 
       {/* ── Chapter filter ── */}
       {!search && (
-        <div style={{
-          display: 'flex', gap: 6, padding: '0 14px 10px',
-          overflowX: 'auto', scrollbarWidth: 'none',
-        }}>
-          <ChapterChip
-            label="全部" active={chapter === 'all'}
-            color={color} onClick={() => setChapter('all')}
-          />
-          {chapters.map(ch => (
-            <ChapterChip
-              key={ch} label={`第${ch}课`} active={chapter === ch}
-              color={color} onClick={() => setChapter(ch)}
-            />
-          ))}
-        </div>
+        <ChapterRow
+          chapters={chapters}
+          chapter={chapter}
+          color={color}
+          onSelect={setChapter}
+        />
       )}
 
       {/* ── Label filter ── */}
@@ -304,6 +295,81 @@ export default function VocabPage() {
 }
 
 // ── Sub-components ────────────────────────────────────────────
+
+// Chapter row with right-fade gradient and scroll-hint chevron
+function ChapterRow({ chapters, chapter, color, onSelect }: {
+  chapters: number[]
+  chapter: number | 'all'
+  color: string
+  onSelect: (ch: number | 'all') => void
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [atEnd, setAtEnd] = useState(false)
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    function check() {
+      if (!el) return
+      // atEnd when within 4px of the scroll limit
+      setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4)
+    }
+    check()
+    el.addEventListener('scroll', check, { passive: true })
+    // re-check if chapters list changes
+    const ro = new ResizeObserver(check)
+    ro.observe(el)
+    return () => { el.removeEventListener('scroll', check); ro.disconnect() }
+  }, [chapters])
+
+  return (
+    <div style={{ position: 'relative', padding: '0 0 10px' }}>
+      {/* Scrollable chip row */}
+      <div
+        ref={scrollRef}
+        style={{
+          display: 'flex', gap: 6, padding: '0 14px',
+          overflowX: 'auto', scrollbarWidth: 'none',
+        }}
+      >
+        <ChapterChip
+          label="全部" active={chapter === 'all'}
+          color={color} onClick={() => onSelect('all')}
+        />
+        {chapters.map(ch => (
+          <ChapterChip
+            key={ch} label={`第${ch}课`} active={chapter === ch}
+            color={color} onClick={() => onSelect(ch)}
+          />
+        ))}
+      </div>
+
+      {/* Right-edge fade gradient — always visible when not at end */}
+      {!atEnd && (
+        <div style={{
+          position: 'absolute', right: 0, top: 0,
+          height: 'calc(100% - 10px)',   // match row height, exclude bottom padding
+          width: 48,
+          background: 'linear-gradient(to right, transparent, #ffffff)',
+          pointerEvents: 'none',
+          borderRadius: '0 8px 8px 0',
+        }} />
+      )}
+
+      {/* Scroll-hint chevron — shown when not at end */}
+      {!atEnd && (
+        <div style={{
+          position: 'absolute', right: 16, top: '50%',
+          transform: 'translateY(-60%)',  // offset for bottom padding
+          pointerEvents: 'none',
+          color: '#999999', display: 'flex', alignItems: 'center',
+        }}>
+          <i className="fa-solid fa-chevron-right" style={{ fontSize: 12 }} />
+        </div>
+      )}
+    </div>
+  )
+}
 
 function StatChip({ color, icon, label }: { color: string; icon: string; label: string }) {
   return (
