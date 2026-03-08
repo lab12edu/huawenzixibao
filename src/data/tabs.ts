@@ -23,6 +23,14 @@ export const TABS: TabDef[] = [
     colorLight: '#FFEBEE',
   },
   {
+    id: 'flashcard',
+    labelCn: '闪卡',
+    labelEn: 'Flashcard',
+    icon: 'fa-solid fa-clone',
+    color: '#D81B60',
+    colorLight: '#FCE4EC',
+  },
+  {
     id: 'games',
     labelCn: '游戏',
     labelEn: 'Games',

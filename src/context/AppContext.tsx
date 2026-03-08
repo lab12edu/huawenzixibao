@@ -12,6 +12,7 @@ export type Level =
 export type Tab =
   | 'home'
   | 'vocab'
+  | 'flashcard'
   | 'games'
   | 'composition'
   | 'oral'

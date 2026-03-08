@@ -1,8 +1,10 @@
 import React from 'react'
 import { AppProvider, useApp } from './context/AppContext'
 import BottomNav from './components/BottomNav'
+import DesktopSidebar from './components/DesktopSidebar'
 import HomeScreen from './pages/HomeScreen'
 import VocabPage from './pages/VocabPage'
+import FlashcardPage from './components/Flashcard/FlashcardPage'
 import GamesPage from './pages/GamesPage'
 import CompositionPage from './pages/CompositionPage'
 import OralPage from './pages/OralPage'
@@ -48,6 +50,9 @@ function TabContent() {
           <VocabPage />
         </>
       )
+
+    case 'flashcard':
+      return <FlashcardPage />
 
     case 'games':
       return (
@@ -121,17 +126,24 @@ function TabContent() {
 
 // Inner shell — uses context
 function AppShell() {
-  const { activeTab, setActiveTab } = useApp()
-
   return (
-    <div className="app-wrapper">
-      {/* Main scrollable content */}
-      <main className="main-content" id="main-content">
-        <TabContent />
-      </main>
+    <div className="app-shell">
+      {/* Desktop sidebar — hidden on mobile/tablet via CSS */}
+      <DesktopSidebar />
 
-      {/* Fixed bottom navigation */}
-      <BottomNav />
+      {/* Main area */}
+      <div className="app-main">
+        {/* Scrollable content */}
+        <main className="main-content" id="main-content">
+          {/* Inner content wrapper — constrains max-width */}
+          <div className="content-inner">
+            <TabContent />
+          </div>
+        </main>
+
+        {/* Bottom nav — hidden on desktop via CSS */}
+        <BottomNav />
+      </div>
     </div>
   )
 }
