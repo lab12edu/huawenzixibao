@@ -89,7 +89,7 @@ body {
 /* AUDIT 2 — content width control */
 .main-content {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: visible;
   overflow-x: visible;
   height: auto;
   -webkit-overflow-scrolling: touch;
