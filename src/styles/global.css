@@ -46,6 +46,8 @@
 /* AUDIT 7 — no horizontal scroll on any screen */
 html, body {
   overflow-x: hidden;
+  overflow-y: auto;
+  height: auto;
   max-width: 100vw;
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
@@ -86,6 +88,8 @@ body {
 .main-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: visible;
+  height: auto;
   -webkit-overflow-scrolling: touch;
   /* Mobile: padded bottom for bottom nav */
   padding-bottom: var(--nav-height);
@@ -613,6 +617,8 @@ button:active {
 
 .home-screen {
   min-height: 100%;
+  height: auto !important;
+  overflow: visible !important;
   display: flex;
   flex-direction: column;
 }
@@ -753,6 +759,10 @@ button:active {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   padding: 0 16px;
+  height: auto !important;
+  min-height: unset !important;
+  overflow: visible !important;
+  padding-bottom: 16px;
 }
 
 .quick-card {
