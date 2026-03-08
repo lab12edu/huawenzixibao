@@ -13,6 +13,14 @@ const QUICK_CARDS = [
     en: 'Vocab List',
   },
   {
+    tab: 'flashcard' as const,
+    icon: '🃏',
+    color: '#D81B60',
+    colorLight: '#FCE4EC',
+    cn: '闪卡',
+    en: 'Flashcard',
+  },
+  {
     tab: 'games' as const,
     icon: '🎮',
     color: '#7B1FA2',
