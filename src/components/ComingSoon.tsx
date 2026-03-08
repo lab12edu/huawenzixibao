@@ -62,7 +62,6 @@ export default function ComingSoon({
         borderRadius: '99px',
         padding: '4px 12px',
         marginBottom: '14px',
-        fontFamily: 'var(--font-en)',
         fontSize: '12px',
         color: '#666',
         fontWeight: 600,

@@ -222,7 +222,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
                 <div style={{
                   flex: 1, fontSize: 14.5, lineHeight: 1.6,
-                  fontFamily: "'Klee One', sans-serif", color: '#212121',
+                  color: '#212121',
                 }}>
                   {item.example_sentence_cn}
                 </div>
@@ -300,7 +300,6 @@ function CollocationChip({ text }: { text: string }) {
         padding: '4px 10px', borderRadius: 8,
         background: '#fff', border: '1.5px solid #E0E0E0',
         fontSize: 14, color: '#212121', cursor: 'pointer',
-        fontFamily: "'Klee One', sans-serif",
         transition: 'border-color 0.15s',
       }}
     >

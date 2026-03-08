@@ -200,7 +200,6 @@ export default function VocabPage() {
             padding: '10px 40px 10px 14px',
             borderRadius: 12, border: `1.5px solid ${search ? color : '#E0E0E0'}`,
             fontSize: 14, outline: 'none', background: '#fff',
-            fontFamily: "'Klee One', sans-serif",
             transition: 'border-color 0.2s',
           }}
         />

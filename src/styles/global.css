@@ -30,9 +30,6 @@
   --shadow-sm: 0 2px 8px rgba(229, 57, 53, 0.08);
   --shadow-md: 0 4px 20px rgba(229, 57, 53, 0.12);
   --shadow-nav: 0 -2px 16px rgba(0, 0, 0, 0.08);
-  --font-cn: 'Klee One', sans-serif;
-  --font-en: 'Klee One', sans-serif;
-  --font-ms-zheng: 'Klee One', sans-serif;
   /* Mobile defaults */
   --nav-height: 64px;
   --sidebar-width: 0px;
@@ -44,6 +41,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: 'Klee One', sans-serif;
 }
 
 /* AUDIT 7 — no horizontal scroll on any screen */
@@ -61,10 +59,6 @@ body {
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-:lang(zh), .cn, .zh {
-  font-family: 'Klee One', sans-serif;
 }
 
 #root {
@@ -184,7 +178,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-cn);
   font-size: 22px;
   font-weight: 900;
   color: #fff;
@@ -192,7 +185,6 @@ body {
 }
 
 .sidebar-brand-cn {
-  font-family: var(--font-cn);
   font-size: 15px;
   font-weight: 800;
   color: var(--color-text);
@@ -200,7 +192,6 @@ body {
 }
 
 .sidebar-brand-en {
-  font-family: var(--font-en);
   font-size: 11px;
   color: var(--color-text-secondary);
   margin-top: 2px;
@@ -257,14 +248,12 @@ body {
 }
 
 .sidebar-nav-label-cn {
-  font-family: var(--font-cn);
   font-size: 14px;
   font-weight: inherit;
   flex: 1;
 }
 
 .sidebar-nav-label-en {
-  font-family: var(--font-en);
   font-size: 10px;
   color: var(--color-text-hint);
   font-weight: 500;
@@ -276,7 +265,6 @@ body {
 }
 
 .sidebar-footer-text {
-  font-family: var(--font-en);
   font-size: 11px;
   color: var(--color-text-hint);
 }
@@ -356,14 +344,12 @@ body {
 }
 
 .nav-item .nav-label-cn {
-  font-family: var(--font-cn);
   font-size: 10px;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .nav-item .nav-label-en {
-  font-family: var(--font-en);
   font-size: 8px;
   font-weight: 600;
   line-height: 1;
@@ -377,7 +363,6 @@ body {
 
 /* Large study character */
 .char-display {
-  font-family: 'Klee One', sans-serif;
   font-size: 56px;
   line-height: 1.1;
 }
@@ -497,7 +482,6 @@ button {
   cursor: pointer;
   border: none;
   outline: none;
-  font-family: inherit;
   transition: all 0.18s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -557,7 +541,6 @@ button:active {
   border-radius: var(--radius-full);
   font-size: 14px;
   font-weight: 700;
-  font-family: var(--font-en);
   border: 2px solid transparent;
   background: var(--color-surface);
   color: var(--color-text-secondary);
@@ -586,7 +569,6 @@ button:active {
   border-radius: var(--radius-full);
   margin-left: 4px;
   vertical-align: middle;
-  font-family: var(--font-en);
 }
 
 /* ============================================
@@ -614,7 +596,6 @@ button:active {
 }
 
 .page-header-title .cn {
-  font-family: var(--font-cn);
   font-size: 22px;
   font-weight: 900;
   color: #fff;
@@ -622,7 +603,6 @@ button:active {
 }
 
 .page-header-title .en {
-  font-family: var(--font-en);
   font-size: 12px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.8);
@@ -681,7 +661,6 @@ button:active {
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-  font-family: var(--font-cn);
   font-size: 32px;
   font-weight: 900;
   color: #fff;
@@ -689,7 +668,6 @@ button:active {
 }
 
 .app-title {
-  font-family: var(--font-cn);
   font-size: 32px;
   font-weight: 900;
   color: #FFFFFF;
@@ -700,7 +678,6 @@ button:active {
 }
 
 .app-title-en {
-  font-family: var(--font-en);
   font-size: 13px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
@@ -709,7 +686,6 @@ button:active {
 }
 
 .app-tagline {
-  font-family: var(--font-cn);
   font-size: 13px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.92);
@@ -735,14 +711,12 @@ button:active {
 }
 
 .section-title-cn {
-  font-family: var(--font-cn);
   font-size: 16px;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .section-title-en {
-  font-family: var(--font-en);
   font-size: 11px;
   font-weight: 600;
   color: var(--color-text-secondary);
@@ -759,7 +733,6 @@ button:active {
 }
 
 .new-curriculum-notice .notice-cn {
-  font-family: var(--font-cn);
   font-size: 12px;
   font-weight: 500;
   color: #6D4C00;
@@ -767,7 +740,6 @@ button:active {
 }
 
 .new-curriculum-notice .notice-en {
-  font-family: var(--font-en);
   font-size: 11px;
   color: #8D6E00;
   margin-top: 2px;
@@ -817,14 +789,12 @@ button:active {
 }
 
 .quick-card .card-title-cn {
-  font-family: var(--font-cn);
   font-size: 15px;
   font-weight: 800;
   color: var(--color-text);
 }
 
 .quick-card .card-title-en {
-  font-family: var(--font-en);
   font-size: 10px;
   font-weight: 600;
   color: var(--color-text-secondary);
@@ -858,14 +828,12 @@ button:active {
 }
 
 .welcome-text .cn {
-  font-family: var(--font-cn);
   font-size: 15px;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .welcome-text .en {
-  font-family: var(--font-en);
   font-size: 11px;
   color: var(--color-text-secondary);
   margin-top: 1px;
@@ -877,7 +845,6 @@ button:active {
   color: #fff;
   border-radius: var(--radius-full);
   padding: 4px 12px;
-  font-family: var(--font-en);
   font-size: 13px;
   font-weight: 800;
   flex-shrink: 0;
@@ -908,14 +875,12 @@ button:active {
 }
 
 .promo-banner .promo-cn {
-  font-family: var(--font-cn);
   font-size: 15px;
   font-weight: 900;
   margin-bottom: 4px;
 }
 
 .promo-banner .promo-en {
-  font-family: var(--font-en);
   font-size: 11px;
   opacity: 0.9;
   margin-bottom: 10px;
@@ -928,7 +893,6 @@ button:active {
   padding: 6px 16px;
   font-size: 12px;
   font-weight: 800;
-  font-family: var(--font-en);
   display: inline-block;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -963,7 +927,6 @@ button:active {
 }
 
 .coming-soon-title-cn {
-  font-family: var(--font-cn);
   font-size: 26px;
   font-weight: 900;
   color: var(--color-primary);
@@ -971,7 +934,6 @@ button:active {
 }
 
 .coming-soon-title-en {
-  font-family: var(--font-en);
   font-size: 15px;
   font-weight: 700;
   color: var(--color-text-secondary);
@@ -988,12 +950,10 @@ button:active {
   padding: 6px 16px;
   font-size: 13px;
   font-weight: 700;
-  font-family: var(--font-cn);
   margin-bottom: 12px;
 }
 
 .coming-soon-desc-cn {
-  font-family: var(--font-cn);
   font-size: 14px;
   color: var(--color-text-secondary);
   line-height: 1.7;
@@ -1002,7 +962,6 @@ button:active {
 }
 
 .coming-soon-desc-en {
-  font-family: var(--font-en);
   font-size: 12px;
   color: var(--color-text-hint);
   line-height: 1.6;
@@ -1044,7 +1003,6 @@ button:active {
 }
 
 .feature-teaser-text .title-cn {
-  font-family: var(--font-cn);
   font-size: 14px;
   font-weight: 700;
   color: var(--color-text);
@@ -1052,7 +1010,6 @@ button:active {
 }
 
 .feature-teaser-text .title-en {
-  font-family: var(--font-en);
   font-size: 11px;
   color: var(--color-text-secondary);
 }
@@ -1146,7 +1103,6 @@ button:active {
 
 /* Large character tile on vocab card (mobile default) */
 .char-study {
-  font-family: 'Klee One', sans-serif;
   font-size: 52px;
   font-weight: 400;
 }
@@ -1168,12 +1124,10 @@ button:active {
 /* 华 logo circle in hero banner and sidebar */
 .app-logo-circle,
 .sidebar-logo {
-  font-family: 'Klee One', sans-serif;
 }
 
 /* Chinese-only section headings */
 .section-title-cn {
-  font-family: 'Klee One', sans-serif;
 }
 
 @media (min-width: 1280px) {
