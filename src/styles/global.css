@@ -32,7 +32,7 @@
   --shadow-nav: 0 -2px 16px rgba(0, 0, 0, 0.08);
   --font-cn: 'Klee One', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
   --font-en: 'Klee One', 'Nunito', 'Segoe UI', sans-serif;
-  --font-ms-zheng: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  --font-ms-zheng: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
   /* Mobile defaults */
   --nav-height: 64px;
   --sidebar-width: 0px;
@@ -377,7 +377,7 @@ body {
 
 /* Large study character */
 .char-display {
-  font-family: 'Ma Shan Zheng', var(--font-cn);
+  font-family: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
   font-size: 56px;
   line-height: 1.1;
 }
@@ -1146,26 +1146,34 @@ button:active {
 
 /* Large character tile on vocab card (mobile default) */
 .char-study {
-  font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
-  font-size: 48px;
+  font-family: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-size: 52px;
+  font-weight: 400;
+}
+
+/* Tablet: medium study character */
+@media (min-width: 768px) {
+  .char-study {
+    font-size: 60px;
+  }
 }
 
 /* Desktop: bigger study character */
 @media (min-width: 1280px) {
   .char-study {
-    font-size: 64px;
+    font-size: 68px;
   }
 }
 
 /* 华 logo circle in hero banner and sidebar */
 .app-logo-circle,
 .sidebar-logo {
-  font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-family: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
 }
 
 /* Chinese-only section headings */
 .section-title-cn {
-  font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-family: 'LXGW WenKai', 'LXGW WenKai Lite', 'Noto Serif SC', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
 }
 
 @media (min-width: 1280px) {
