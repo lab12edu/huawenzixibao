@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { VocabItem } from '../data/vocabTypes'
 import { useApp } from '../context/AppContext'
+import StrokeDemoModal from './StrokeDemoModal'
 
 interface VocabCardProps {
   item: VocabItem
@@ -45,6 +46,7 @@ function speakChinese(text: string) {
 export default function VocabCard({ item, index = 0 }: VocabCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [speaking, setSpeaking] = useState(false)
+  const [showStrokeModal, setShowStrokeModal] = useState(false)
   const { favourites, addFavourite, removeFavourite, addToErrorBank } = useApp()
   const isFav = favourites.includes(item.id)
 
@@ -245,6 +247,28 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
             </div>
           </div>
 
+          {/* Stroke order demo button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowStrokeModal(true) }}
+            style={{
+              alignSelf: 'flex-start',
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 16px', borderRadius: 12,
+              border: '1px solid #FFCDD2',
+              background: '#FFF0F0', color: '#E53935',
+              fontSize: 14, cursor: 'pointer',
+              minHeight: 48,
+            }}
+          >
+            <i className="fa-solid fa-play-circle" style={{ fontSize: 18 }} />
+            <span>
+              笔顺演示
+              <span style={{ display: 'block', fontSize: 11, color: '#E57373', fontWeight: 400 }}>
+                Stroke Order
+              </span>
+            </span>
+          </button>
+
           {/* Add to error bank */}
           <button
             onClick={(e) => { e.stopPropagation(); addToErrorBank(item.id) }}
@@ -261,6 +285,14 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
             加入错题本
           </button>
         </div>
+      )}
+
+      {/* Stroke demo modal — rendered outside card flow via portal-like placement */}
+      {showStrokeModal && (
+        <StrokeDemoModal
+          char={item.char}
+          onClose={() => setShowStrokeModal(false)}
+        />
       )}
     </div>
   )
