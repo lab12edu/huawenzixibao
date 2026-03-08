@@ -447,7 +447,8 @@ function SelectorScreen({
                     cursor: 'pointer',
                   }}>
                   <i className={s === 'A' ? 'fa-regular fa-sun' : 'fa-regular fa-moon'} style={{ marginRight: 4 }} />
-                  {s === 'A' ? '上学期' : '下学期'}
+                  <span style={{ display: 'block', fontSize: 13, fontWeight: semester === s ? 700 : 400 }}>{s === 'A' ? '上学期' : '下学期'}</span>
+                  <span style={{ display: 'block', fontSize: 11, color: '#999999', marginTop: 2, fontWeight: 400 }}>{s === 'A' ? 'Semester 1' : 'Semester 2'}</span>
                 </button>
               ))}
             </div>
@@ -514,12 +515,22 @@ function SelectorScreen({
           ) : (
             <>
               <div style={{ fontWeight: 600, marginBottom: 6 }}>
-                共 {filteredItems.length} 张卡片 / {filteredItems.length} cards
+                <span style={{ display: 'block' }}>共 {filteredItems.length} 张卡片</span>
+                <span style={{ display: 'block', fontSize: 11, color: '#999999', marginTop: 2, fontWeight: 400 }}>{filteredItems.length} cards</span>
               </div>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span>📦 Box 1: {srsCounts.b1}</span>
-                <span>Box 2: {srsCounts.b2}</span>
-                <span>Box 3: {srsCounts.b3}</span>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                <span style={{ padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: '#FFEBEE', color: '#C62828', border: '1px solid #FFCDD2', display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span>🔴 需要加油 {srsCounts.b1}</span>
+                  <span style={{ fontSize: 11, color: '#C62828', fontWeight: 400, marginTop: 2 }}>Keep Practising</span>
+                </span>
+                <span style={{ padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: '#FFF8E1', color: '#F57F17', border: '1px solid #FFE082', display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span>🟡 快记住了 {srsCounts.b2}</span>
+                  <span style={{ fontSize: 11, color: '#F57F17', fontWeight: 400, marginTop: 2 }}>Almost There</span>
+                </span>
+                <span style={{ padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: '#E8F5E9', color: '#2E7D32', border: '1px solid #A5D6A7', display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span>🟢 已掌握 {srsCounts.b3}</span>
+                  <span style={{ fontSize: 11, color: '#2E7D32', fontWeight: 400, marginTop: 2 }}>Mastered</span>
+                </span>
               </div>
               {errorBankCount > 0 && (
                 <div style={{ color: '#E53935', marginTop: 4, fontWeight: 600 }}>
@@ -1117,8 +1128,8 @@ function CompleteScreen({ results, accuracy, elapsed, missedItems, onRetryMissed
 
       {/* SRS summary */}
       <div style={{ fontSize: 13, color: '#999', textAlign: 'center', lineHeight: 1.8 }}>
-        {results.promoted > 0 && <div>⬆ {results.promoted} 张升级 / {results.promoted} cards promoted</div>}
-        {results.demoted > 0 && <div>⬇ {results.demoted} 张回到Box 1 / {results.demoted} cards back to Box 1</div>}
+        {results.promoted > 0 && <div>⬆ {results.promoted} 张卡片升级了！/ {results.promoted} cards levelled up!</div>}
+        {results.demoted > 0 && <div>⬇ {results.demoted} 张需要再练习 / {results.demoted} cards need more practice</div>}
       </div>
 
       {/* Buttons */}
@@ -1176,8 +1187,8 @@ function ErrorBadge() {
 function SectionTitle({ cn, en }: { cn: string; en: string }) {
   return (
     <div style={{ marginBottom: 8, marginTop: 4 }}>
-      <span style={{ fontSize: 15, fontWeight: 700, color: '#333' }}>{cn}</span>
-      <span style={{ fontSize: 12, color: '#999', marginLeft: 6 }}>{en}</span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: '#333', display: 'block' }}>{cn}</span>
+      <span style={{ fontSize: 11, color: '#999999', display: 'block', marginTop: 2 }}>{en}</span>
     </div>
   )
 }
