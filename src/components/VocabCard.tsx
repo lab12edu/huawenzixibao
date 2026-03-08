@@ -104,9 +104,8 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
           background: isShixie ? '#FFF3E0' : '#E8EAF6',
           border: `2px solid ${labelColor}40`,
         }}>
-          <span style={{
-            fontSize: 30, lineHeight: 1,
-            fontFamily: '"Noto Sans SC", sans-serif',
+          <span className="char-study" style={{
+            lineHeight: 1,
             color: '#212121',
           }}>
             {item.char}

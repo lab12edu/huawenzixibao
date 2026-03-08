@@ -30,8 +30,9 @@
   --shadow-sm: 0 2px 8px rgba(229, 57, 53, 0.08);
   --shadow-md: 0 4px 20px rgba(229, 57, 53, 0.12);
   --shadow-nav: 0 -2px 16px rgba(0, 0, 0, 0.08);
-  --font-cn: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  --font-en: 'Nunito', 'Segoe UI', sans-serif;
+  --font-cn: 'Klee One', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  --font-en: 'Klee One', 'Nunito', 'Segoe UI', sans-serif;
+  --font-ms-zheng: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
   /* Mobile defaults */
   --nav-height: 64px;
   --sidebar-width: 0px;
@@ -54,7 +55,7 @@ html, body {
 }
 
 body {
-  font-family: var(--font-en);
+  font-family: 'Klee One', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
   background-color: var(--color-bg);
   color: var(--color-text);
   min-height: 100dvh;
@@ -63,7 +64,7 @@ body {
 }
 
 :lang(zh), .cn, .zh {
-  font-family: var(--font-cn);
+  font-family: 'Klee One', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
 }
 
 #root {
@@ -1139,9 +1140,33 @@ button:active {
 }
 
 /* ============================================
-   DESKTOP TYPOGRAPHY & SPACING SCALING
-   (≥ 1280px ONLY — mobile/tablet untouched)
+   MA SHAN ZHENG — large study characters,
+   logo 华 circle, Chinese section headings
    ============================================ */
+
+/* Large character tile on vocab card (mobile default) */
+.char-study {
+  font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+  font-size: 48px;
+}
+
+/* Desktop: bigger study character */
+@media (min-width: 1280px) {
+  .char-study {
+    font-size: 64px;
+  }
+}
+
+/* 华 logo circle in hero banner and sidebar */
+.app-logo-circle,
+.sidebar-logo {
+  font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+}
+
+/* Chinese-only section headings */
+.section-title-cn {
+  font-family: 'Ma Shan Zheng', 'KaiTi', 'STKaiti', 'DFKai-SB', cursive;
+}
 
 @media (min-width: 1280px) {
 
