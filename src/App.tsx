@@ -7,7 +7,7 @@ import VocabPage from './pages/VocabPage'
 import FlashcardPage from './components/Flashcard/FlashcardPage'
 import GamesPage from './pages/GamesPage'
 import CompositionPage from './pages/CompositionPage'
-import OralPage from './pages/OralPage'
+import OralPracticePage from './pages/OralPracticePage'
 import ToolsPage from './pages/ToolsPage'
 import ProfilePage from './pages/ProfilePage'
 
@@ -81,17 +81,7 @@ function TabContent() {
       )
 
     case 'oral':
-      return (
-        <>
-          <PageHeader
-            icon="fa-solid fa-microphone"
-            cn="口试"
-            en="Oral Practice"
-            color="#00695C"
-          />
-          <OralPage />
-        </>
-      )
+      return <OralPracticePage />
 
     case 'tools':
       return (
