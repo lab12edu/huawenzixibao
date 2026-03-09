@@ -182,7 +182,7 @@ function buildQueue(items: VocabItem[], errorBankIds: string[], srs: SRSData): V
 type Mode = 'recognition' | 'dictation' | 'fill' | 'pinyin'
 const MODES: { id: Mode; cn: string; en: string; icon: string; color: string }[] = [
   { id: 'recognition', cn: '认读', en: 'Recognition',     icon: 'fa-solid fa-eye',         color: '#E53935' },
-  { id: 'dictation',   cn: '默写', en: 'Write from Memory',icon: 'fa-solid fa-pen-nib',     color: '#1565C0' },
+  { id: 'dictation',   cn: '听写', en: 'Dictation',icon: 'fa-solid fa-pen-nib',     color: '#1565C0' },
   { id: 'fill',        cn: '填空', en: 'Fill in the Blank',icon: 'fa-solid fa-align-left',  color: '#6A1B9A' },
   { id: 'pinyin',      cn: '拼音', en: 'Tone Challenge',   icon: 'fa-solid fa-music',       color: '#00695C' },
 ]
@@ -516,7 +516,7 @@ function SelectorScreen({
         {needsMin4 && (
           <div style={{ fontSize: 12, color: '#F57F17', marginBottom: 12 }}>
             <i className="fa-solid fa-circle-info" style={{ marginRight: 4 }} />
-            需至少4个字 / Needs 4+ characters to enable 默写 and 填空
+            需至少4个字 / Needs 4+ characters to enable 听写 and 填空
           </div>
         )}
 
@@ -831,7 +831,7 @@ function RecognitionCard({ item, isError, onKnow, onReview }: {
 }
 
 // ═══════════════════════════════════════════════
-// MODE 2 — DICTATION  (默写)
+// MODE 2 — DICTATION  (听写)
 // ═══════════════════════════════════════════════
 function DictationCard({ item, isError, onKnow, onReview }: {
   item: VocabItem; isError: boolean; onKnow: () => void; onReview: () => void
@@ -850,21 +850,19 @@ function DictationCard({ item, isError, onKnow, onReview }: {
     try { const m = require('hanzi-writer'); return m.default ?? m } catch { return (window as any).HanziWriter ?? null }
   }
 
-  // Auto-play TTS on card load: collocations[0] if available, else char
+  // Auto-play TTS on card load: "词 的 字" format
   useEffect(() => {
-    speakChinese(
-      (item.collocations && item.collocations.length > 0)
-        ? item.collocations[0]
-        : item.char
-    )
+    const word = (item.collocations && item.collocations.length > 0)
+      ? item.collocations[0] : ''
+    const phrase = word ? `${word} 的 ${item.char}` : item.char
+    speakChinese(phrase)
   }, [item.id])
 
   function playSound() {
-    speakChinese(
-      (item.collocations && item.collocations.length > 0)
-        ? item.collocations[0]
-        : item.char
-    )
+    const word = (item.collocations && item.collocations.length > 0)
+      ? item.collocations[0] : ''
+    const phrase = word ? `${word} 的 ${item.char}` : item.char
+    speakChinese(phrase)
   }
 
   function startQuiz() {
@@ -885,7 +883,7 @@ function DictationCard({ item, isError, onKnow, onReview }: {
       showOutline: false,
       strokeColor: '#E53935', outlineColor: '#CCCCCC',
       drawingColor: '#E53935',
-      drawingWidth: 4,
+      drawingWidth: 6,
       showHintAfterMisses: false,
     })
     writerRef.current.quiz({
@@ -939,24 +937,23 @@ function DictationCard({ item, isError, onKnow, onReview }: {
         >
           <i className="fa-solid fa-volume-high" />
         </button>
-        <div style={{ textAlign: 'left' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#E65100' }}>
-            {(item.collocations && item.collocations.length > 0)
-              ? item.collocations[0]
-              : item.char}
+        <div style={{ textAlign: 'left', flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700,
+            color: '#E65100', marginBottom: 2 }}>
+            {item.meaning_en}
           </div>
-          <div style={{ fontSize: 11, color: '#999' }}>
-            {(item.collocations && item.collocations.length > 0)
-              ? '点击重听 · Tap to replay'
-              : '单字 · Single character'}
+          {item.example_sentence_en && (
+            <div style={{ fontSize: 11, color: '#888',
+              fontStyle: 'italic', lineHeight: 1.4 }}>
+              {item.example_sentence_en}
+            </div>
+          )}
+          <div style={{ fontSize: 10, color: '#bbb', marginTop: 3 }}>
+            点击重听 · Tap to replay
           </div>
         </div>
       </div>
 
-      {/* Stroke count + instruction */}
-      <div style={{ fontSize: 13, color: '#999', textAlign: 'center' }}>
-        {item.stroke_count} 笔 · 请写出这个字 / Write this character
-      </div>
       <div style={{ fontSize: 13, color: mistakes > 0 ? '#E53935' : '#999' }}>
         错误 {mistakes} 次 / Mistakes: {mistakes}
       </div>
@@ -982,6 +979,11 @@ function DictationCard({ item, isError, onKnow, onReview }: {
           }}>
             <div style={{ fontSize: 72, lineHeight: 1, color: '#1A1A1A' }}>
               {item.char}
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700,
+              color: '#E65100', letterSpacing: 2 }}>
+              {(item.collocations && item.collocations.length > 0)
+                ? item.collocations[0] : ''}
             </div>
             <div style={{ fontSize: 18, fontWeight: 700,
               color: mistakes === 0 ? '#2E7D32' : '#E65100' }}>
