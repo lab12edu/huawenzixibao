@@ -4,6 +4,7 @@ import {
   getVocabForLevel, getChaptersForLevel, getLevelStats,
 } from '../../data/allVocab'
 import { VocabItem } from '../../data/vocabTypes'
+import StrokeDemoModal from '../StrokeDemoModal'
 
 // ─────────────────────────────────────────────
 // AUDIO  (exact copy from VocabCard.tsx)
@@ -310,7 +311,23 @@ export default function FlashcardPage() {
   // ── Exit confirm ──
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
+  // ── Stroke demo ──
+  const [strokeDemoChar, setStrokeDemoChar] = useState<string | null>(null)
+
+  useEffect(() => {
+    function onStrokeDemo(e: Event) {
+      const char = (e as CustomEvent<string>).detail
+      if (char) setStrokeDemoChar(char)
+    }
+    window.addEventListener('hwzxb-stroke-demo', onStrokeDemo)
+    return () => window.removeEventListener('hwzxb-stroke-demo', onStrokeDemo)
+  }, [])
+
   // ─── RENDER ───────────────────────────────
+  if (strokeDemoChar) {
+    return <StrokeDemoModal char={strokeDemoChar} onClose={() => setStrokeDemoChar(null)} />
+  }
+
   if (screen === 'selector') {
     return <SelectorScreen
       grade={grade} setGrade={setGrade}
@@ -703,6 +720,22 @@ function RecognitionCard({ item, isError, onKnow, onReview }: {
               fontSize: 'clamp(64px,12vw,88px)', color: '#1A1A1A', lineHeight: 1,
             }}>{item.char}</div>
             <ToneLabel tone={item.tone} />
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                window.dispatchEvent(new CustomEvent('hwzxb-stroke-demo', { detail: item.char }))
+              }}
+              style={{
+                marginTop: 4,
+                padding: '4px 14px', borderRadius: 20,
+                border: '1.5px solid #E53935', background: '#FFF0F0',
+                color: '#E53935', fontSize: 13, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}
+            >
+              <i className="fa-solid fa-pen-nib" />
+              笔顺演示
+            </button>
             <div style={{ fontSize: 12, color: '#CCCCCC', marginTop: 4 }}>点击翻转 / Tap to flip</div>
           </div>
 

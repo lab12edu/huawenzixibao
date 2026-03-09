@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { OralSet } from '../../data/oralData';
+import StrokeDemoModal from '../StrokeDemoModal';
 
 // ─── Speech helpers ───────────────────────────────────────────────────────────
 function speakChinese(text: string) {
@@ -94,6 +95,9 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   // Rating state
   const [ratings, setRatings] = useState<Ratings>({ q1: 0, q2: 0, q3: 0, q4: 0 });
   const [showToast, setShowToast] = useState(false);
+
+  // Stroke demo state
+  const [strokeDemoChar, setStrokeDemoChar] = useState<string | null>(null);
 
   // Check SpeechRecognition support
   const SpeechRecognition =
@@ -217,22 +221,34 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
         <div className="oral-passage-text">
           {set.passage.paragraphs.map((para, pi) => (
             <p key={pi} style={{ marginBottom: '0.75rem' }}>
-              {para.split('').map((char, ci) => (
-                <span
-                  key={ci}
-                  className="oral-char"
-                  onClick={() => {
-                    if (char.trim()) {
-                      const u = new SpeechSynthesisUtterance(char);
-                      u.lang = 'zh-CN';
-                      window.speechSynthesis.cancel();
-                      window.speechSynthesis.speak(u);
-                    }
-                  }}
-                >
-                  {char}
-                </span>
-              ))}
+              {para.split('').map((char, ci) => {
+                const isChinese = /[\u4e00-\u9fff]/.test(char);
+                if (!isChinese) {
+                  return <span key={ci}>{char}</span>;
+                }
+                return (
+                  <span key={ci} className="oral-char-wrap">
+                    <span
+                      className="oral-char"
+                      onClick={() => {
+                        const u = new SpeechSynthesisUtterance(char);
+                        u.lang = 'zh-CN';
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(u);
+                      }}
+                    >
+                      {char}
+                    </span>
+                    <button
+                      className="oral-char-stroke-btn"
+                      title="笔顺演示"
+                      onClick={(e) => { e.stopPropagation(); setStrokeDemoChar(char); }}
+                    >
+                      <i className="fa-solid fa-pen-nib" />
+                    </button>
+                  </span>
+                );
+              })}
             </p>
           ))}
         </div>
@@ -361,6 +377,11 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
       {/* Toast */}
       {showToast && (
         <div className="oral-toast">评分已保存！/ Rating saved ✓</div>
+      )}
+
+      {/* Stroke Demo Modal */}
+      {strokeDemoChar && (
+        <StrokeDemoModal char={strokeDemoChar} onClose={() => setStrokeDemoChar(null)} />
       )}
     </div>
   );

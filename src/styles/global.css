@@ -1528,3 +1528,61 @@ button:active {
 .oral-vocab-theme-title { font-size: 1.1rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.2rem; }
 .oral-vocab-theme-en { font-size: 0.8rem; color: #666; margin: 0 0 0.6rem; }
 .oral-vocab-moral-pill { color: #fff; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 99px; }
+
+/* ═══════════════════════════════════════════════════
+   笔顺演示 — oral passage char wrapper
+   (appended for feat: 笔顺演示 button in ReadingAloudPanel)
+═══════════════════════════════════════════════════ */
+.oral-char-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: bottom;
+  margin: 0 1px;
+}
+
+.oral-char-stroke-btn {
+  display: none;
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #E53935;
+  background: #FFF0F0;
+  color: #E53935;
+  font-size: 9px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 0;
+  line-height: 1;
+}
+
+.oral-char-wrap:hover .oral-char-stroke-btn,
+.oral-char-wrap:focus-within .oral-char-stroke-btn {
+  display: flex;
+}
+
+/* ── Flashcard RecognitionCard 笔顺 button ── */
+.fc-stroke-btn {
+  margin-top: 6px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #E53935;
+  background: #FFF0F0;
+  color: #E53935;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+.fc-stroke-btn:hover {
+  background: #FFCDD2;
+}
