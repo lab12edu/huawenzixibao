@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import OralSetSelector from '../components/Oral/OralSetSelector';
 import ReadingAloudPanel from '../components/Oral/ReadingAloudPanel';
+import PictureStoryPanel from '../components/Oral/PictureStoryPanel';
 import { OralSet } from '../data/oralData';
 
 type OralView = 'selector' | 'set';
@@ -80,10 +81,7 @@ const OralPracticePage: React.FC = () => {
           )}
 
           {oralTab === 'conversation' && (
-            <div className="oral-placeholder">
-              <i className="fa-solid fa-image" style={{ fontSize: '2rem', color: '#ccc' }} />
-              <p>看图会话 · 即将推出 / Picture Conversation — Coming in Part D</p>
-            </div>
+            <PictureStoryPanel set={selectedSet} />
           )}
 
           {oralTab === 'vocab' && (
