@@ -54,7 +54,7 @@ html, body {
 }
 
 body {
-  font-family: 'Klee One', sans-serif;
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   background-color: var(--color-bg);
   color: var(--color-text);
   min-height: 100dvh;
