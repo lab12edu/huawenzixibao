@@ -1,5 +1,5 @@
 import React from 'react';
-import { oralSets, OralSet, THEME_COLOURS } from '../../data/oralData';
+import { oralSets, OralSet } from '../../data/oralData';
 
 interface Props {
   onSelectSet: (set: OralSet) => void;
@@ -59,8 +59,8 @@ const OralSetSelector: React.FC<Props> = ({ onSelectSet }) => {
       <div className="oral-set-grid">
         {visibleSets.map(set => {
           const progress = getProgress(set.id);
-          const accentColor = THEME_COLOURS[set.moralValue] || '#2E7D32';
-          const moralColor = MORAL_COLOURS[set.moralValue] || '#2E7D32';
+          const accentColor = set.accentColour || '#2E7D32';
+          const moralColor = MORAL_COLOURS[set.moralChinese] || '#2E7D32';
 
           return (
             <div
@@ -76,14 +76,14 @@ const OralSetSelector: React.FC<Props> = ({ onSelectSet }) => {
                 </div>
               )}
               <div className="oral-set-number">练习 {set.setNumber}</div>
-              <h3 className="oral-set-theme">{set.theme}</h3>
-              <p className="oral-set-theme-en">{set.themeEn}</p>
+              <h3 className="oral-set-theme">{set.themeChinese}</h3>
+              <p className="oral-set-theme-en">{set.themeEnglish}</p>
               <div className="oral-set-pills">
                 <span
                   className="oral-moral-pill"
                   style={{ backgroundColor: moralColor }}
                 >
-                  {set.moralValue}
+                  {set.moralChinese}
                 </span>
                 {set.levels.map(lv => (
                   <span key={lv} className="oral-level-pill">{lv}</span>
