@@ -837,38 +837,75 @@ function DictationCard({ item, isError, onKnow, onReview }: {
   item: VocabItem; isError: boolean; onKnow: () => void; onReview: () => void
 }) {
   const writerRef = useRef<any>(null)
+  const mistakeRef = useRef(0)
   const [mistakes, setMistakes] = useState(0)
   const [complete, setComplete] = useState(false)
-  const mistakeRef = useRef(0)
+  const [outlineVisible, setOutlineVisible] = useState(false)
 
-  const size = Math.min(typeof window !== 'undefined' ? window.innerWidth - 80 : 260, 260)
+  const size = Math.min(
+    typeof window !== 'undefined' ? window.innerWidth - 80 : 260, 260
+  )
 
   function getHW(): any {
     try { const m = require('hanzi-writer'); return m.default ?? m } catch { return (window as any).HanziWriter ?? null }
   }
 
+  // Auto-play TTS on card load: collocations[0] if available, else char
+  useEffect(() => {
+    speakChinese(
+      (item.collocations && item.collocations.length > 0)
+        ? item.collocations[0]
+        : item.char
+    )
+  }, [item.id])
+
+  function playSound() {
+    speakChinese(
+      (item.collocations && item.collocations.length > 0)
+        ? item.collocations[0]
+        : item.char
+    )
+  }
+
   function startQuiz() {
-    const container = document.getElementById(`dict-container-${item.id}`)
-    if (!container) return
-    if (writerRef.current) { try { writerRef.current.cancelQuiz() } catch { /**/ } writerRef.current = null }
-    container.innerHTML = ''
     const HW = getHW()
     if (!HW) return
+    mistakeRef.current = 0
+    setMistakes(0)
+    setComplete(false)
+    setOutlineVisible(false)
+    const el = document.getElementById(`dict-container-${item.id}`)
+    if (!el) return
+    if (writerRef.current) { try { writerRef.current.cancelQuiz() } catch { /**/ } writerRef.current = null }
+    el.innerHTML = ''
     writerRef.current = HW.create(`dict-container-${item.id}`, item.char, {
-      width: size, height: size, padding: 24,
-      showCharacter: false, showOutline: true,
+      width: size, height: size,
+      padding: 10,
+      showCharacter: false,
+      showOutline: false,
       strokeColor: '#E53935', outlineColor: '#CCCCCC',
-      highlightColor: '#81C784', drawingColor: '#E53935',
-      drawingWidth: 4, showHintAfterMisses: 3,
+      drawingColor: '#E53935',
+      drawingWidth: 4,
+      showHintAfterMisses: false,
     })
     writerRef.current.quiz({
-      onMistake: () => { mistakeRef.current++; setMistakes(mistakeRef.current) },
+      onMistake: () => { mistakeRef.current += 1; setMistakes(mistakeRef.current) },
       onComplete: () => setComplete(true),
     })
   }
 
+  function toggleOutline() {
+    if (!writerRef.current) return
+    if (outlineVisible) {
+      writerRef.current.hideOutline()
+      setOutlineVisible(false)
+    } else {
+      writerRef.current.showOutline()
+      setOutlineVisible(true)
+    }
+  }
+
   useEffect(() => {
-    mistakeRef.current = 0; setMistakes(0); setComplete(false)
     const t = setTimeout(startQuiz, 150)
     return () => {
       clearTimeout(t)
@@ -876,60 +913,130 @@ function DictationCard({ item, isError, onKnow, onReview }: {
     }
   }, [item.id])
 
-  const toneColor = TONE_COLORS[item.tone] ?? '#78909C'
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      gap: 10, width: '100%', maxWidth: 340,
+    }}>
       {isError && <ErrorBadge />}
 
+      {/* Sound button row */}
       <div style={{
-        width: 'min(340px,100%)', borderRadius: 20, background: '#fff',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: 20,
+        display: 'flex', alignItems: 'center', gap: 12,
+        background: '#FFF8E1', borderRadius: 12,
+        padding: '10px 20px', width: '100%',
+        justifyContent: 'center',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: 22, fontWeight: 600, color: toneColor }}>{item.pinyin}</span>
-          <span style={{ fontSize: 16, color: '#666', marginLeft: 10 }}>{item.meaning_en}</span>
+        <button
+          onClick={playSound}
+          style={{
+            background: '#FF8F00', border: 'none', borderRadius: '50%',
+            width: 44, height: 44, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: 18, flexShrink: 0,
+          }}
+          title="重新播放 / Replay"
+        >
+          <i className="fa-solid fa-volume-high" />
+        </button>
+        <div style={{ textAlign: 'left' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E65100' }}>
+            {(item.collocations && item.collocations.length > 0)
+              ? item.collocations[0]
+              : item.char}
+          </div>
+          <div style={{ fontSize: 11, color: '#999' }}>
+            {(item.collocations && item.collocations.length > 0)
+              ? '点击重听 · Tap to replay'
+              : '单字 · Single character'}
+          </div>
         </div>
-        <div style={{ textAlign: 'center', fontSize: 14, color: '#999', marginBottom: 4 }}>
-          {item.stroke_count} 笔 · 请写出这个字 / Write this character
-        </div>
-        <div style={{ fontSize: 14, color: mistakes > 0 ? '#E53935' : '#999', textAlign: 'center', marginBottom: 8 }}>
-          错误 {mistakes} 次 / Mistakes: {mistakes}
-        </div>
+      </div>
 
-        <div id={`dict-container-${item.id}`} style={{
-          width: size, height: size, background: '#F8F8F8',
-          borderRadius: 16, border: '1px solid #EEE',
-          margin: '0 auto', display: complete ? 'none' : 'block',
-        }} />
+      {/* Stroke count + instruction */}
+      <div style={{ fontSize: 13, color: '#999', textAlign: 'center' }}>
+        {item.stroke_count} 笔 · 请写出这个字 / Write this character
+      </div>
+      <div style={{ fontSize: 13, color: mistakes > 0 ? '#E53935' : '#999' }}>
+        错误 {mistakes} 次 / Mistakes: {mistakes}
+      </div>
 
+      {/* HanziWriter canvas */}
+      <div style={{
+        background: complete ? 'transparent' : '#fff',
+        borderRadius: 16,
+        boxShadow: complete ? 'none' : '0 2px 12px rgba(0,0,0,0.10)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'relative', overflow: 'visible',
+      }}>
+        <div
+          id={`dict-container-${item.id}`}
+          style={{ display: complete ? 'none' : 'block' }}
+        />
         {complete && (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{ fontSize: 40, color: '#E53935', lineHeight: 1, marginBottom: 8 }}>{item.char}</div>
-            <div style={{ fontSize: 16, color: mistakes === 0 ? '#2E7D32' : '#E65100', fontWeight: 600 }}>
-              {mistakes === 0 ? '写对了！/ Correct!' : `共错误 ${mistakes} 次 / ${mistakes} mistakes`}
+          <div style={{
+            width: size, height: size,
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            gap: 6, animation: 'fadeIn 0.4s ease',
+          }}>
+            <div style={{ fontSize: 72, lineHeight: 1, color: '#1A1A1A' }}>
+              {item.char}
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700,
+              color: mistakes === 0 ? '#2E7D32' : '#E65100' }}>
+              {mistakes === 0 ? '🎉 全对！Perfect!' : `${mistakes} 次错误`}
+            </div>
+            {/* Reveal pinyin + meaning only on completion */}
+            <div style={{ fontSize: 14, color: '#1565C0', fontWeight: 600 }}>
+              {item.pinyin}
+            </div>
+            <div style={{ fontSize: 13, color: '#555' }}>
+              {item.meaning_cn}
+            </div>
+            <div style={{ fontSize: 12, color: '#888', fontStyle: 'italic' }}>
+              {item.meaning_en}
             </div>
           </div>
         )}
       </div>
 
-      {complete && (
-        <div style={{ display: 'flex', gap: 10, width: 'min(340px,100%)' }}>
-          <ActionBtn label="认识" sub="Know it" bg="#E8F5E9" color="#2E7D32" border="#A5D6A7"
-            onClick={onKnow} />
-          <ActionBtn label="再复习" sub="Review again" bg="#FFF3E0" color="#E65100" border="#FFCC80"
-            onClick={onReview} />
-        </div>
-      )}
+      {/* 提示 toggle button — only shown during quiz */}
       {!complete && (
-        <button onClick={() => writerRef.current?.skipQuizStroke()}
+        <button
+          onClick={toggleOutline}
           style={{
-            padding: '10px 20px', borderRadius: 12,
-            background: '#FFF8E1', color: '#F57F17', border: 'none',
-            fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44,
-          }}>
-          <i className="fa-solid fa-lightbulb" style={{ marginRight: 6 }} />提示 / Hint
+            background: outlineVisible ? '#FFF3E0' : '#FFFDE7',
+            border: `1.5px solid ${outlineVisible ? '#E65100' : '#FFC107'}`,
+            borderRadius: 20, padding: '8px 24px',
+            fontSize: 14, fontWeight: 600,
+            color: outlineVisible ? '#E65100' : '#F57F17',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}
+        >
+          <i className={`fa-solid ${outlineVisible ? 'fa-eye-slash' : 'fa-lightbulb'}`} />
+          {outlineVisible ? '隐藏提示 / Hide hint' : '提示 / Hint'}
         </button>
+      )}
+
+      {/* Action buttons after completion */}
+      {complete && (
+        <div style={{
+          display: 'flex', gap: 10, width: 'min(340px,100%)',
+          animation: 'fadeIn 0.3s ease',
+        }}>
+          <ActionBtn
+            label="认识" sub="Know it"
+            bg="#E8F5E9" color="#2E7D32" border="#A5D6A7"
+            onClick={onKnow}
+          />
+          <ActionBtn
+            label="再复习" sub="Review again"
+            bg="#FFF3E0" color="#E65100" border="#FFCC80"
+            onClick={onReview}
+          />
+        </div>
       )}
     </div>
   )
