@@ -1,7 +1,6 @@
 import React from 'react'
 import { AppProvider, useApp } from './context/AppContext'
 import BottomNav from './components/BottomNav'
-import DesktopSidebar from './components/DesktopSidebar'
 import HomeScreen from './pages/HomeScreen'
 import VocabPage from './pages/VocabPage'
 import FlashcardPage from './components/Flashcard/FlashcardPage'
@@ -118,9 +117,6 @@ function TabContent() {
 function AppShell() {
   return (
     <div className="app-shell">
-      {/* Desktop sidebar — hidden on mobile/tablet via CSS */}
-      <DesktopSidebar />
-
       {/* Main area */}
       <div className="app-main">
         {/* Scrollable content */}
