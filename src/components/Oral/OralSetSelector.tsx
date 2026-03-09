@@ -1,5 +1,6 @@
 import React from 'react';
 import { oralSets, OralSet } from '../../data/oralData';
+import { useApp } from '../../context/AppContext';
 
 interface Props {
   onSelectSet: (set: OralSet) => void;
@@ -16,8 +17,12 @@ const MORAL_COLOURS: Record<string, string> = {
   '勤奋': '#4E342E',
 };
 
+const LOWER_GRADES = ['K1', 'K2', 'P1', 'P2'];
+
 const OralSetSelector: React.FC<Props> = ({ onSelectSet }) => {
-  const selectedLevel = localStorage.getItem('hwzxb_selected_level') || '';
+  const { selectedLevel } = useApp();
+  // Strip semester suffix so 'P3A' → 'P3', 'P4B' → 'P4', etc.
+  const baseLevel = selectedLevel.replace(/[AB]$/i, '');
 
   const getProgress = (id: string) => {
     try {
@@ -30,8 +35,26 @@ const OralSetSelector: React.FC<Props> = ({ onSelectSet }) => {
     }
   };
 
+  // K1, K2, P1, P2 have no oral sets — show an informational notice
+  if (LOWER_GRADES.includes(baseLevel)) {
+    return (
+      <div className="oral-selector">
+        <div className="oral-insight-banner">
+          <i className="fa-solid fa-info-circle" style={{ marginTop: '2px', flexShrink: 0 }} />
+          <div>
+            <strong>口试练习 适合 P3–P6 · Oral Practice for P3–P6</strong>
+            <p>
+              口试练习题目从小三开始。请在首页将年级调整至 P3 或以上。<br />
+              Oral practice sets start from Primary 3. Please set your level to P3 or above on the Home screen.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const visibleSets = oralSets.filter(set =>
-    !selectedLevel || set.levels.includes(selectedLevel)
+    !baseLevel || set.levels.includes(baseLevel)
   );
 
   return (
@@ -49,9 +72,9 @@ const OralSetSelector: React.FC<Props> = ({ onSelectSet }) => {
       </div>
 
       {/* Level filter note */}
-      {selectedLevel && (
+      {baseLevel && (
         <p className="oral-level-note">
-          显示 {selectedLevel} 的练习 · Showing sets for {selectedLevel}
+          显示 {baseLevel} 的练习 · Showing sets for {baseLevel}
         </p>
       )}
 
