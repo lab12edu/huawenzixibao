@@ -120,7 +120,14 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
             <ToneLabel tone={item.tone} />
-            <span style={{ fontSize: 15, fontWeight: 600, color: toneColor, letterSpacing: 1 }}>
+            <span style={{
+              fontSize: 17,
+              fontWeight: 600,
+              color: toneColor,
+              letterSpacing: 1,
+              fontFamily: "'Noto Sans', 'Arial', sans-serif",
+              lineHeight: 1.4,
+            }}>
               {item.pinyin}
             </span>
             <span style={{
