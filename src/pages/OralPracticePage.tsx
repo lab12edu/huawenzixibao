@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import OralSetSelector from '../components/Oral/OralSetSelector';
 import ReadingAloudPanel from '../components/Oral/ReadingAloudPanel';
 import PictureStoryPanel from '../components/Oral/PictureStoryPanel';
+import VocabPrepPanel from '../components/Oral/VocabPrepPanel';
 import { OralSet } from '../data/oralData';
 
 type OralView = 'selector' | 'set';
@@ -84,11 +85,8 @@ const OralPracticePage: React.FC = () => {
             <PictureStoryPanel set={selectedSet} />
           )}
 
-          {oralTab === 'vocab' && (
-            <div className="oral-placeholder">
-              <i className="fa-solid fa-book" style={{ fontSize: '2rem', color: '#ccc' }} />
-              <p>词汇练习 · 即将推出 / Vocabulary — Coming in Part E</p>
-            </div>
+          {oralTab === 'vocab' && selectedSet && (
+            <VocabPrepPanel set={selectedSet} />
           )}
         </>
       )}

@@ -1485,3 +1485,46 @@ button:active {
 .oral-toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
 .oral-toggle input:checked + .oral-toggle-slider::before { transform: translateX(20px); }
 .oral-hidden-en { opacity: 0; pointer-events: none; }
+
+/* ===== ORAL PRACTICE — Part E (Vocab) ===== */
+.oral-vocab-panel { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+.oral-vocab-header { background: #fff; border-radius: 12px; border-top: 4px solid #2E7D32; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 1rem; display: flex; align-items: center; gap: 0.75rem; position: relative; overflow: hidden; }
+.oral-vocab-header-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.oral-vocab-header-body { flex: 1; }
+.oral-vocab-title { font-size: 1.1rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.2rem; }
+.oral-vocab-title span { font-size: 0.8rem; font-weight: 400; color: #888; margin-left: 0.4rem; }
+.oral-vocab-subtitle { font-size: 0.75rem; color: #999; margin: 0; }
+.oral-vocab-count-badge { background: #E8F5E9; color: #2E7D32; font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 99px; white-space: nowrap; }
+.oral-vocab-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+@media (min-width: 640px) { .oral-vocab-grid { grid-template-columns: repeat(3, 1fr); } }
+.oral-vocab-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); padding: 0.75rem; position: relative; cursor: pointer; user-select: none; transition: box-shadow 0.15s; }
+.oral-vocab-card--added { background: #F1F8E9; }
+.oral-vocab-card:active { box-shadow: 0 0 0 2px #81C784; }
+.oral-vocab-overlay { position: absolute; inset: 0; background: rgba(46,125,50,0.85); color: #fff; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border-radius: 10px; z-index: 5; }
+.oral-vocab-added-badge { position: absolute; top: 0.4rem; right: 0.4rem; font-size: 0.65rem; background: #C8E6C9; color: #1B5E20; padding: 0.15rem 0.4rem; border-radius: 99px; }
+.oral-vocab-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem; }
+.oral-vocab-chinese { font-size: 1.4rem; font-weight: 700; color: #1A1A1A; }
+.oral-vocab-tts-btn { background: none; border: none; cursor: pointer; color: #888; font-size: 0.9rem; padding: 0.2rem; }
+.oral-vocab-tts-btn:hover { color: #2E7D32; }
+.oral-vocab-pinyin { font-size: 0.8rem; font-weight: 600; margin: 0 0 0.2rem; }
+.oral-vocab-english { font-size: 0.75rem; color: #555; margin: 0 0 0.4rem; }
+.oral-vocab-example-toggle { background: none; border: none; cursor: pointer; font-size: 0.7rem; color: #1565C0; padding: 0; }
+.oral-vocab-example { margin-top: 0.4rem; padding: 0.4rem; background: #F5F5F5; border-radius: 6px; font-size: 0.72rem; color: #444; }
+.oral-vocab-example p { margin: 0 0 0.2rem; }
+.oral-vocab-example-en { color: #888; font-style: italic; }
+.oral-vocab-starters { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 1rem; }
+.oral-vocab-section-title { font-size: 0.95rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+.oral-vocab-section-sub { font-size: 0.75rem; color: #999; margin: 0 0 0.75rem; }
+.oral-vocab-starter-card { border-left: 3px solid #2E7D32; padding: 0.6rem 0.75rem; margin-bottom: 0.6rem; background: #FAFAFA; border-radius: 0 8px 8px 0; }
+.oral-vocab-starter-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+.oral-vocab-starter-label { color: #fff; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.4rem; border-radius: 4px; }
+.oral-vocab-starter-text { flex: 1; font-size: 0.82rem; font-weight: 600; color: #1A1A1A; }
+.oral-vocab-starter-actions { display: flex; gap: 0.4rem; }
+.oral-vocab-starter-actions button { background: none; border: none; cursor: pointer; color: #888; font-size: 0.8rem; padding: 0.2rem; }
+.oral-vocab-starter-actions button:hover { color: #2E7D32; }
+.oral-vocab-starter-en { font-size: 0.72rem; color: #888; margin: 0; padding-left: 2rem; }
+.oral-copied-tick { font-size: 0.65rem; color: #2E7D32; font-weight: 700; white-space: nowrap; }
+.oral-vocab-theme-card { background: #fff; border-radius: 12px; border: 2px solid #2E7D32; padding: 1rem; text-align: center; }
+.oral-vocab-theme-title { font-size: 1.1rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.2rem; }
+.oral-vocab-theme-en { font-size: 0.8rem; color: #666; margin: 0 0 0.6rem; }
+.oral-vocab-moral-pill { color: #fff; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 99px; }
