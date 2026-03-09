@@ -1122,21 +1122,21 @@ button:active {
 
 /* Large character tile on vocab card (mobile default) */
 .char-study {
-  font-size: 52px;
+  font-size: 36px;
   font-weight: 400;
 }
 
 /* Tablet: medium study character */
 @media (min-width: 768px) {
   .char-study {
-    font-size: 60px;
+    font-size: 40px;
   }
 }
 
 /* Desktop: bigger study character */
 @media (min-width: 1280px) {
   .char-study {
-    font-size: 68px;
+    font-size: 44px;
   }
 }
 
