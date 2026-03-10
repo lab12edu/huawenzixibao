@@ -120,7 +120,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
             <ToneLabel tone={item.tone} />
-            <span style={{
+            <span className="vc-pinyin" style={{
               fontSize: 17,
               fontWeight: 600,
               color: toneColor,
@@ -138,7 +138,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               {item.label}
             </span>
           </div>
-          <div style={{
+          <div className="vc-meaning" style={{
             fontSize: 13, color: '#555',
             whiteSpace: expanded ? 'normal' : 'nowrap',
             overflow: expanded ? 'visible' : 'hidden',
@@ -234,7 +234,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               border: '1px solid #E0E0E0',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-                <div style={{
+                <div className="vc-sentence-cn" style={{
                   flex: 1, fontSize: 14.5, lineHeight: 1.6,
                   color: '#212121',
                 }}>
@@ -253,7 +253,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
                   <i className="fa-solid fa-volume-low" />
                 </button>
               </div>
-              <div style={{ fontSize: 12, color: '#757575', fontStyle: 'italic', lineHeight: 1.5 }}>
+              <div className="vc-sentence-en" style={{ fontSize: 12, color: '#757575', fontStyle: 'italic', lineHeight: 1.5 }}>
                 {item.example_sentence_en}
               </div>
             </div>
@@ -370,6 +370,7 @@ function Chip({ icon, label, color }: { icon: string; label: string; color: stri
 function CollocationChip({ text }: { text: string }) {
   return (
     <div
+      className="vc-collocation"
       onClick={(e) => { e.stopPropagation(); speakChinese(text) }}
       style={{
         padding: '4px 10px', borderRadius: 8,

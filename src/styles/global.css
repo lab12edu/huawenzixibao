@@ -1703,3 +1703,31 @@ button:active {
   }
 
 }
+
+/* ============================================
+   VOCAB CARD — desktop font scaling
+   Uses className hooks added to VocabCard.tsx
+   ============================================ */
+
+@media (min-width: 1280px) {
+  .vc-pinyin {
+    font-size: 20px !important;
+  }
+
+  .vc-meaning {
+    font-size: 15px !important;
+  }
+
+  .vc-sentence-cn {
+    font-size: 16px !important;
+    line-height: 1.7 !important;
+  }
+
+  .vc-sentence-en {
+    font-size: 13px !important;
+  }
+
+  .vc-collocation {
+    font-size: 15px !important;
+  }
+}
