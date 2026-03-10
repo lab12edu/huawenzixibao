@@ -92,6 +92,11 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   const [liveText, setLiveText] = useState('');
   const recRef = useRef<InstanceType<typeof window.SpeechRecognition> | null>(null);
 
+  // MediaRecorder refs for real audio capture
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioBlobUrlRef = useRef<string | null>(null);
+
   // Rating state
   const [ratings, setRatings] = useState<Ratings>({ q1: 0, q2: 0, q3: 0, q4: 0 });
   const [showToast, setShowToast] = useState(false);
@@ -113,12 +118,48 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
     return () => {
       window.speechSynthesis.cancel();
       if (recRef.current) recRef.current.stop();
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      if (audioBlobUrlRef.current) {
+        URL.revokeObjectURL(audioBlobUrlRef.current);
+        audioBlobUrlRef.current = null;
+      }
     };
   }, []);
 
   // ── Recording handlers ──
-  const startRecording = () => {
+  const startRecording = async () => {
     if (!hasRecognition) return;
+
+    // Revoke any previous audio URL
+    if (audioBlobUrlRef.current) {
+      URL.revokeObjectURL(audioBlobUrlRef.current);
+      audioBlobUrlRef.current = null;
+    }
+    audioChunksRef.current = [];
+
+    // Start MediaRecorder for real audio capture
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      mr.onstop = () => {
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        audioBlobUrlRef.current = URL.createObjectURL(blob);
+      };
+      mediaRecorderRef.current = mr;
+      mr.start();
+    } catch (err) {
+      console.warn('[ReadingAloudPanel] getUserMedia failed, audio capture disabled:', err);
+      mediaRecorderRef.current = null;
+    }
+
+    // Start SpeechRecognition in parallel for transcript
     const rec = new SpeechRecognition();
     rec.lang = 'zh-CN';
     rec.interimResults = true;
@@ -145,15 +186,27 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   };
 
   const stopRecording = () => {
+    // Stop SpeechRecognition
     if (recRef.current) {
       recRef.current.stop();
       recRef.current = null;
+    }
+    // Stop MediaRecorder (onstop will build the Blob URL)
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
     }
     setTranscript(liveText);
     setRecState('recorded');
   };
 
   const reRecord = () => {
+    // Revoke existing blob URL
+    if (audioBlobUrlRef.current) {
+      URL.revokeObjectURL(audioBlobUrlRef.current);
+      audioBlobUrlRef.current = null;
+    }
+    audioChunksRef.current = [];
+    mediaRecorderRef.current = null;
     setTranscript('');
     setLiveText('');
     setRecState('idle');
@@ -161,6 +214,20 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   };
 
   const playBack = () => {
+    // Primary: play the real recorded audio blob
+    if (audioBlobUrlRef.current) {
+      const audio = new Audio(audioBlobUrlRef.current);
+      audio.play().catch(err => {
+        console.warn('[ReadingAloudPanel] Audio playback failed, falling back to TTS:', err);
+        ttsFallback();
+      });
+      return;
+    }
+    // Fallback: TTS of transcript when no audio blob available
+    ttsFallback();
+  };
+
+  const ttsFallback = () => {
     const text = transcript || liveText;
     if (!text) return;
     const u = new SpeechSynthesisUtterance(text);
