@@ -173,6 +173,15 @@ function buildQueue(items: VocabItem[], errorBankIds: string[], srs: SRSData): V
     }
     return arr
   }
+
+  const allDue = [...box1, ...box2, ...box3, ...extra]
+
+  // Fallback: if nothing is due (returning user, all cards reviewed recently),
+  // serve a full review pass of all items so the session always starts.
+  if (allDue.length === 0) {
+    return shuffle([...items])
+  }
+
   return [...shuffle(box1), ...shuffle(box2), ...shuffle(box3), ...shuffle(extra)]
 }
 
@@ -262,7 +271,11 @@ export default function FlashcardPage() {
   function startSession(retryMissed?: VocabItem[]) {
     const src = retryMissed ?? filteredItems
     const q = buildQueue(src, errorBank, getSRSData())
-    if (q.length === 0) return
+    if (q.length === 0) {
+      // This should never happen after the buildQueue fallback, but guard anyway
+      alert('暂时没有需要复习的卡片。\nNo cards due for review right now.')
+      return
+    }
     setQueue(q)
     setCardIndex(0)
     setResults({ know: 0, review: 0, promoted: 0, demoted: 0 })
