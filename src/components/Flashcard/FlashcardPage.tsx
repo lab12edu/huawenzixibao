@@ -1071,7 +1071,17 @@ function FillCard({ item, isError, allItems, onKnow, onReview }: {
     setTimeout(() => setShowActions(true), 1500)
   }
 
-  const sentence = item.example_sentence_cn.replace(item.char, '＿＿')
+  const rawSentence = item.example_sentence_cn
+  const isValidFill = rawSentence.includes(item.char)
+  const displaySentence = isValidFill
+    ? rawSentence.replace(item.char, '＿＿')
+    : `请用「${item.char}」（${item.meaning_cn}）造句。`
+
+  useEffect(() => {
+    if (!isValidFill) {
+      console.warn('[FillCard] char not in sentence — fallback mode', item.char, rawSentence)
+    }
+  }, [item.id])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
@@ -1080,11 +1090,21 @@ function FillCard({ item, isError, allItems, onKnow, onReview }: {
         width: 'min(340px,100%)', borderRadius: 20, background: '#fff',
         boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '20px',
       }}>
+        {!isValidFill && (
+          <div style={{
+            marginBottom: 10, padding: '6px 10px', borderRadius: 8,
+            background: '#FFF8E1', border: '1px solid #FFD54F',
+            fontSize: 12, color: '#E65100', lineHeight: 1.5,
+          }}>
+            本题暂无例句，请直接选出正确答案。<br />
+            <span style={{ color: '#888' }}>No example sentence — identify the correct character.</span>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
           <div style={{ flex: 1, fontSize: 18, lineHeight: 1.7, color: '#212121', letterSpacing: 1 }}>
-            {sentence}
+            {displaySentence}
           </div>
-          <button onClick={() => speakChinese(item.example_sentence_cn)}
+          <button onClick={() => speakChinese(isValidFill ? rawSentence : item.char)}
             style={{
               flexShrink: 0, width: 32, height: 32, borderRadius: 6,
               border: 'none', background: '#FFF3E0', color: '#E65100', cursor: 'pointer', fontSize: 13,
@@ -1093,7 +1113,7 @@ function FillCard({ item, isError, allItems, onKnow, onReview }: {
           </button>
         </div>
         <div style={{ fontSize: 12, color: '#999', fontStyle: 'italic', lineHeight: 1.5, marginBottom: 14 }}>
-          {item.example_sentence_en}
+          {isValidFill ? item.example_sentence_en : ''}
         </div>
 
         {/* Options */}
