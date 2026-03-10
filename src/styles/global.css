@@ -1628,3 +1628,78 @@ button:active {
     background: #FFF5F5;
   }
 }
+
+/* ============================================
+   DESKTOP FONT SCALING — sidebar + vocab cards
+   ============================================ */
+
+@media (min-width: 1280px) {
+
+  /* ── Sidebar nav labels ── */
+  .sidebar-nav-label-cn {
+    font-size: 15px;
+  }
+
+  .sidebar-nav-label-en {
+    font-size: 11px;
+  }
+
+  .sidebar-brand-cn {
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .sidebar-brand-en {
+    font-size: 12px;
+  }
+
+  /* ── Vocab card: large character tile ── */
+  .vocab-card .char-study {
+    font-size: 46px;
+  }
+
+  /* ── Vocab card: pinyin span (Noto Sans font) ── */
+  .vocab-card span[style*="Noto Sans"] {
+    font-size: 19px !important;
+  }
+
+  /* ── Vocab card: meaning line (fontSize 13) ── */
+  .vocab-card div[style*="fontSize: 13"],
+  .vocab-card div[style*="font-size: 13"] {
+    font-size: 15px !important;
+  }
+
+  /* ── Vocab card: example sentence CN (fontSize 14.5) ── */
+  .vocab-card div[style*="fontSize: 14.5"],
+  .vocab-card div[style*="font-size: 14.5"] {
+    font-size: 16px !important;
+  }
+
+  /* ── Vocab card: example sentence EN (fontSize 12) ── */
+  .vocab-card div[style*="fontSize: 12"],
+  .vocab-card div[style*="font-size: 12"] {
+    font-size: 13px !important;
+  }
+
+  /* ── Collocation chips (fontSize 14) ── */
+  .vocab-card div[style*="fontSize: 14"],
+  .vocab-card div[style*="font-size: 14"] {
+    font-size: 15px !important;
+  }
+
+  /* ── Vocab card action buttons ── */
+  .vocab-card button[style*="fontSize: 14"],
+  .vocab-card button[style*="font-size: 14"] {
+    font-size: 15px !important;
+  }
+
+  /* ── Page header titles ── */
+  .page-header-title .cn {
+    font-size: 26px;
+  }
+
+  .page-header-title .en {
+    font-size: 14px;
+  }
+
+}
