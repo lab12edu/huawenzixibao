@@ -1958,3 +1958,111 @@ button:active {
   .page-header-title .cn     { font-size: var(--text-xl); }
   .page-header-title .en     { font-size: var(--text-xs); }
 }
+
+/* ============================================================
+   GLOBAL TYPE SCALE OVERRIDE  (appended – do not delete)
+   Target: make all readable text bigger on both mobile & desktop.
+   Exception: .char-study, .char-display — do NOT touch.
+   ============================================================ */
+
+/* --- MOBILE BASE --- */
+.vc-pinyin          { font-size: 20px !important; line-height: 1.4; }
+.vc-meaning         { font-size: 18px !important; line-height: 1.6; }
+.vc-sentence-cn     { font-size: 16px !important; line-height: 1.9; }
+.vc-sentence-en     { font-size: 14px !important; line-height: 1.6; }
+.vc-collocation     { font-size: 15px !important; }
+.vp-grade-btn       { font-size: 15px !important; }
+.vp-semester-btn    { font-size: 15px !important; }
+.vp-search-input    { font-size: 15px !important; }
+.vp-label-btn       { font-size: 14px !important; }
+.vp-stat-chip       { font-size: 13px !important; }
+.vp-chapter         { font-size: 15px !important; }
+.page-header-title .cn  { font-size: 24px !important; }
+.page-header-title .en  { font-size: 13px !important; }
+.sidebar-brand-cn       { font-size: 17px !important; }
+.sidebar-brand-en       { font-size: 12px !important; }
+.sidebar-nav-label-cn   { font-size: 15px !important; }
+.sidebar-nav-label-en   { font-size: 11px !important; }
+.sidebar-footer-text    { font-size: 12px !important; }
+.section-title-cn       { font-size: 20px !important; }
+.section-title-en       { font-size: 12px !important; }
+.welcome-text .cn       { font-size: 17px !important; }
+.welcome-text .en       { font-size: 12px !important; }
+.quick-card .card-title-cn { font-size: 16px !important; }
+.quick-card .card-title-en { font-size: 12px !important; }
+.welcome-level-badge    { font-size: 14px !important; }
+.oral-passage-text,
+.oral-passage,
+.reading-aloud-text,
+.passage-text,
+.oral-sentence,
+[class*="passage"],
+[class*="reading-text"],
+[class*="oral-text"]    { font-size: 20px !important; line-height: 2.0; }
+.oral-set-theme,
+.oral-set-title         { font-size: 20px !important; line-height: 1.5; }
+.oral-card-title        { font-size: 17px !important; }
+.oral-tab-label,
+.oral-tab               { font-size: 15px !important; }
+.oral-insight,
+.oral-insight-banner    { font-size: 15px !important; }
+.oral-pill,
+.oral-badge             { font-size: 13px !important; }
+.oral-question-text,
+.oral-question          { font-size: 18px !important; line-height: 1.8; }
+.oral-answer-text,
+.oral-answer            { font-size: 17px !important; line-height: 1.8; }
+.fc-question-char       { font-size: 20px !important; }
+.fc-pinyin              { font-size: 18px !important; }
+.fc-meaning             { font-size: 17px !important; }
+.fc-sentence            { font-size: 16px !important; line-height: 1.9; }
+.fc-option-btn          { font-size: 16px !important; }
+.btn, button:not(.icon-btn) { font-size: 15px !important; }
+.chip, .badge, .tag     { font-size: 13px !important; }
+
+/* --- DESKTOP OVERRIDE (≥1280px) --- */
+@media (min-width: 1280px) {
+  .vc-pinyin            { font-size: 22px !important; }
+  .vc-meaning           { font-size: 20px !important; }
+  .vc-sentence-cn       { font-size: 17px !important; }
+  .vc-sentence-en       { font-size: 15px !important; }
+  .vc-collocation       { font-size: 16px !important; }
+  .vp-grade-btn         { font-size: 16px !important; }
+  .vp-semester-btn      { font-size: 16px !important; }
+  .vp-search-input      { font-size: 16px !important; }
+  .vp-label-btn         { font-size: 15px !important; }
+  .vp-stat-chip         { font-size: 14px !important; }
+  .vp-chapter           { font-size: 16px !important; }
+  .page-header-title .cn    { font-size: 28px !important; }
+  .page-header-title .en    { font-size: 14px !important; }
+  .sidebar-brand-cn         { font-size: 18px !important; }
+  .sidebar-nav-label-cn     { font-size: 16px !important; }
+  .sidebar-nav-label-en     { font-size: 12px !important; }
+  .section-title-cn         { font-size: 22px !important; }
+  .welcome-text .cn         { font-size: 18px !important; }
+  .quick-card .card-title-cn { font-size: 17px !important; }
+  .oral-passage-text,
+  .oral-passage,
+  .reading-aloud-text,
+  .passage-text,
+  .oral-sentence,
+  [class*="passage"],
+  [class*="reading-text"],
+  [class*="oral-text"]      { font-size: 23px !important; line-height: 2.0; }
+  .oral-set-theme,
+  .oral-set-title           { font-size: 22px !important; }
+  .oral-card-title          { font-size: 18px !important; }
+  .oral-tab-label,
+  .oral-tab                 { font-size: 16px !important; }
+  .oral-question-text,
+  .oral-question            { font-size: 20px !important; }
+  .oral-answer-text,
+  .oral-answer              { font-size: 19px !important; }
+  .fc-question-char         { font-size: 22px !important; }
+  .fc-pinyin                { font-size: 20px !important; }
+  .fc-meaning               { font-size: 18px !important; }
+  .fc-sentence              { font-size: 17px !important; }
+  .fc-option-btn            { font-size: 17px !important; }
+  .btn, button:not(.icon-btn) { font-size: 16px !important; }
+}
+/* END GLOBAL TYPE SCALE OVERRIDE */
