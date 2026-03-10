@@ -1930,3 +1930,31 @@ button:active {
 .oral-vocab-theme-en      { font-size: var(--text-sm); }
 .oral-vocab-example       { font-size: var(--text-sm);  line-height: 1.7; }
 .oral-vocab-example-en    { font-size: var(--text-xs); }
+
+/* ============================================
+   SIDEBAR FONT FIX — wrap in desktop media query
+   so bare token rules above don't override the
+   earlier @media (min-width:1280px) sidebar block.
+   ============================================ */
+@media (min-width: 1280px) {
+  .sidebar-brand-cn     { font-size: var(--text-base); font-weight: 800; }
+  .sidebar-brand-en     { font-size: var(--text-xs); }
+  .sidebar-nav-label-cn { font-size: var(--text-sm); }
+  .sidebar-nav-label-en { font-size: var(--text-2xs); }
+  .sidebar-footer-text  { font-size: var(--text-xs); }
+}
+
+/* ============================================
+   HOME SCREEN FONT FIX — same reason, desktop wrap
+   ============================================ */
+@media (min-width: 1280px) {
+  .section-title-cn          { font-size: var(--text-lg); }
+  .section-title-en          { font-size: var(--text-xs); }
+  .welcome-text .cn          { font-size: var(--text-base); }
+  .welcome-text .en          { font-size: var(--text-xs); }
+  .quick-card .card-title-cn { font-size: var(--text-base); }
+  .quick-card .card-title-en { font-size: var(--text-xs); }
+  .welcome-level-badge       { font-size: var(--text-sm); }
+  .page-header-title .cn     { font-size: var(--text-xl); }
+  .page-header-title .en     { font-size: var(--text-xs); }
+}
