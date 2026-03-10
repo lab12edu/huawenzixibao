@@ -94,7 +94,7 @@ const OralSetSelector: React.FC<Props> = ({ onSelectSet }) => {
             >
               {progress && (
                 <div className="oral-practiced-badge">
-                  <i className="fa-solid fa-circle-check" style={{ fontSize: '12px' }} />
+                  <i className="fa-solid fa-circle-check" />
                   <span>已练习</span>
                 </div>
               )}

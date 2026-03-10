@@ -50,7 +50,7 @@ function CollapsibleCard({
       >
         <i className={`fa-solid ${icon}`} />
         <span style={{ flex: 1 }}>{title}</span>
-        <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ fontSize: '0.75rem', color: '#aaa' }} />
+        <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ color: '#aaa' }} />
       </button>
       {open && <div style={{ marginTop: '0.5rem' }}>{children}</div>}
     </div>
@@ -65,7 +65,7 @@ function StarRow({ label, en, value, onChange }: {
     <div className="oral-rating-row">
       <span className="oral-rating-label">
         {label}<br />
-        <span style={{ fontSize: '0.72rem', color: '#999' }}>{en}</span>
+        <span style={{ color: '#999' }}>{en}</span>
       </span>
       <div className="oral-stars">
         {[1, 2, 3, 4, 5].map(n => (
@@ -268,7 +268,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
         {!hasRecognition && (
           <div className="oral-warn-banner">
             <strong>您的浏览器不支持录音 / Browser does not support recording</strong>
-            <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem' }}>
+            <p style={{ margin: '0.4rem 0 0' }}>
               您仍可以大声朗读并使用自评 / You can still read aloud and self-rate
             </p>
           </div>

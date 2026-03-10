@@ -135,7 +135,7 @@ export default function VocabPage() {
                 border: `1.5px solid ${grade === g ? GRADE_COLORS[g] : '#E0E0E0'}`,
                 background: grade === g ? GRADE_COLORS[g] : '#fff',
                 color: grade === g ? '#fff' : '#555',
-                fontSize: 13, fontWeight: grade === g ? 700 : 400,
+                fontWeight: grade === g ? 700 : 400,
                 cursor: 'pointer', transition: 'all 0.2s',
                 display: 'inline-flex', alignItems: 'center', gap: 3,
               }}
@@ -146,7 +146,7 @@ export default function VocabPage() {
                   display: 'inline-block',
                   background: grade === g ? 'rgba(255,255,255,0.35)' : '#E53935',
                   color: '#fff',
-                  fontSize: 9, fontWeight: 800,
+                  fontWeight: 800,
                   padding: '1px 4px', borderRadius: 4,
                   lineHeight: 1.4, letterSpacing: 0.3,
                 }}>新</span>
@@ -168,7 +168,7 @@ export default function VocabPage() {
               border: `1.5px solid ${semester === s ? color : '#E0E0E0'}`,
               background: semester === s ? `${color}15` : '#fff',
               color: semester === s ? color : '#888',
-              fontSize: 13, fontWeight: semester === s ? 700 : 400,
+              fontWeight: semester === s ? 700 : 400,
               cursor: 'pointer', transition: 'all 0.2s',
             }}
           >
@@ -201,7 +201,7 @@ export default function VocabPage() {
             width: '100%', boxSizing: 'border-box',
             padding: '10px 40px 10px 14px',
             borderRadius: 12, border: `1.5px solid ${search ? color : '#E0E0E0'}`,
-            fontSize: 14, outline: 'none', background: '#fff',
+            outline: 'none', background: '#fff',
             transition: 'border-color 0.2s',
           }}
         />
@@ -211,7 +211,7 @@ export default function VocabPage() {
             style={{
               position: 'absolute', right: 26, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#9E9E9E', fontSize: 14, padding: 4,
+              color: '#9E9E9E', padding: 4,
             }}
           >
             <i className="fa-solid fa-xmark" />
@@ -219,7 +219,7 @@ export default function VocabPage() {
         ) : (
           <i className="fa-solid fa-magnifying-glass" style={{
             position: 'absolute', right: 26, top: '50%', transform: 'translateY(-50%)',
-            color: '#9E9E9E', fontSize: 13, pointerEvents: 'none',
+            color: '#9E9E9E', pointerEvents: 'none',
           }} />
         )}
       </div>
@@ -241,7 +241,7 @@ export default function VocabPage() {
             key={lf}
             onClick={() => setLabelFilter(lf)}
             style={{
-              padding: '5px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+              padding: '5px 14px', borderRadius: 8, fontWeight: 600,
               border: `1.5px solid ${labelFilter === lf ? (lf === '识写' ? '#E53935' : lf === '识读' ? '#1565C0' : color) : '#E0E0E0'}`,
               background: labelFilter === lf
                 ? lf === '识写' ? '#FFEBEE' : lf === '识读' ? '#E3F2FD' : `${color}15`
@@ -255,7 +255,7 @@ export default function VocabPage() {
             {lf === 'all' ? '全部' : lf}
           </button>
         ))}
-        <div style={{ marginLeft: 'auto', fontSize: 12, color: '#9E9E9E', alignSelf: 'center' }}>
+        <div style={{ marginLeft: 'auto', color: '#9E9E9E', alignSelf: 'center' }}>
           {filtered.length} 字
         </div>
       </div>
@@ -281,7 +281,7 @@ export default function VocabPage() {
             label="上一页" icon="fa-solid fa-chevron-left"
             disabled={page === 1} onClick={() => setPage(p => p - 1)} color={color}
           />
-          <span style={{ fontSize: 13, color: '#757575', minWidth: 60, textAlign: 'center' }}>
+          <span style={{ color: '#757575', minWidth: 60, textAlign: 'center' }}>
             {page} / {totalPages}
           </span>
           <PageBtn
@@ -365,7 +365,7 @@ function ChapterRow({ chapters, chapter, color, onSelect }: {
           pointerEvents: 'none',
           color: '#999999', display: 'flex', alignItems: 'center',
         }}>
-          <i className="fa-solid fa-chevron-right" style={{ fontSize: 12 }} />
+          <i className="fa-solid fa-chevron-right" />
         </div>
       )}
     </div>
@@ -378,9 +378,9 @@ function StatChip({ color, icon, label }: { color: string; icon: string; label: 
       display: 'flex', alignItems: 'center', gap: 5,
       padding: '4px 10px', borderRadius: 20,
       background: `${color}12`, border: `1px solid ${color}30`,
-      fontSize: 12, color, fontWeight: 600,
+      color, fontWeight: 600,
     }}>
-      <i className={icon} style={{ fontSize: 10 }} />
+      <i className={icon} />
       {label}
     </div>
   )
@@ -393,7 +393,7 @@ function ChapterChip({ label, active, color, onClick }: {
     <button
       onClick={onClick}
       style={{
-        flexShrink: 0, padding: '5px 12px', borderRadius: 18, fontSize: 12,
+        flexShrink: 0, padding: '5px 12px', borderRadius: 18,
         border: `1.5px solid ${active ? color : '#E0E0E0'}`,
         background: active ? color : '#fff',
         color: active ? '#fff' : '#666',
@@ -417,7 +417,7 @@ function PageBtn({
       disabled={disabled}
       style={{
         display: 'flex', alignItems: 'center', gap: 5,
-        padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+        padding: '8px 16px', borderRadius: 10, fontWeight: 600,
         border: `1.5px solid ${disabled ? '#E0E0E0' : color}`,
         background: disabled ? '#F5F5F5' : `${color}15`,
         color: disabled ? '#BDBDBD' : color,
@@ -425,9 +425,9 @@ function PageBtn({
         transition: 'all 0.2s',
       }}
     >
-      {!iconRight && <i className={icon} style={{ fontSize: 11 }} />}
+      {!iconRight && <i className={icon} />}
       {label}
-      {iconRight && <i className={icon} style={{ fontSize: 11 }} />}
+      {iconRight && <i className={icon} />}
     </button>
   )
 }
@@ -443,12 +443,12 @@ function EmptyState({ search }: { search: string }) {
         background: '#F5F5F5',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <i className="fa-solid fa-magnifying-glass" style={{ fontSize: 24, color: '#BDBDBD' }} />
+        <i className="fa-solid fa-magnifying-glass" style={{ color: '#BDBDBD' }} />
       </div>
-      <div style={{ fontSize: 15, color: '#555', fontWeight: 600 }}>
+      <div style={{ color: '#555', fontWeight: 600 }}>
         {search ? `没有找到 "${search}"` : '该章节暂无生字'}
       </div>
-      <div style={{ fontSize: 13, color: '#9E9E9E' }}>
+      <div style={{ color: '#9E9E9E' }}>
         {search ? '试试搜索汉字、拼音或中英文释义' : '请选择其他章节'}
       </div>
     </div>

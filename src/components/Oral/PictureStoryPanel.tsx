@@ -55,7 +55,7 @@ function Collapsible({
       >
         <span>{label}</span>
         <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'}`}
-           style={{ fontSize: '0.72rem', color: '#aaa' }} />
+           style={{ color: '#aaa' }} />
       </div>
       {open && <div>{children}</div>}
     </div>
@@ -126,7 +126,7 @@ function QuestionCard({
             </button>
           </div>
           {parentMode && (
-            <p style={{ fontSize: '0.78rem', color: '#666', marginTop: '0.4rem', fontStyle: 'italic' }}>
+            <p style={{ color: '#666', marginTop: '0.4rem', fontStyle: 'italic' }}>
               {q.starterEnglish}
             </p>
           )}
@@ -144,7 +144,7 @@ function QuestionCard({
           <div className="oral-answer-box">
             {highlightKeyPhrases(q.modelAnswerChinese, q.keyPhrases)}
             {q.modelAnswerEnglish && (
-              <p style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: '#666', fontStyle: 'italic' }}>
+              <p style={{ marginTop: '0.5rem', color: '#666', fontStyle: 'italic' }}>
                 {q.modelAnswerEnglish}
               </p>
             )}
@@ -229,7 +229,7 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
         {story.frames.map((frame, idx) => (
           <div key={frame.frameNumber} className="oral-frame-card">
             <div className="oral-frame-placeholder">
-              <i className="fa-solid fa-image" style={{ fontSize: '1.5rem' }} />
+              <i className="fa-solid fa-image" />
               <span>图片 Frame {frame.frameNumber}</span>
             </div>
             <div className="oral-frame-body">

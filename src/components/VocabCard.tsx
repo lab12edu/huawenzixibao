@@ -26,7 +26,7 @@ function ToneLabel({ tone }: { tone: number }) {
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       width: 20, height: 20, borderRadius: '50%',
       background: colors[tone] ?? '#78909C',
-      color: '#fff', fontSize: 10, fontWeight: 700,
+      color: '#fff', fontWeight: 700,
       flexShrink: 0,
     }}>
       {labels[tone] ?? '?'}
@@ -130,7 +130,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               {item.pinyin}
             </span>
             <span style={{
-              fontSize: 11, fontWeight: 700, padding: '1px 6px',
+              fontWeight: 700, padding: '1px 6px',
               borderRadius: 4, background: labelBg, color: labelColor,
               letterSpacing: 0.5, flexShrink: 0,
             }}>
@@ -159,7 +159,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               background: speaking ? '#E53935' : '#F5F5F5',
               color: speaking ? '#fff' : '#E53935',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 16, transition: 'all 0.2s',
+              transition: 'all 0.2s',
               flexShrink: 0,
             }}
             title="播放发音"
@@ -176,7 +176,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               background: isFav ? '#FFF8E1' : '#F5F5F5',
               color: isFav ? '#F9A825' : '#BDBDBD',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 16, transition: 'all 0.2s',
+              transition: 'all 0.2s',
               flexShrink: 0,
             }}
             title={isFav ? '取消收藏' : '收藏'}
@@ -186,7 +186,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
 
           {/* Expand chevron */}
           <span style={{
-            color: '#BDBDBD', fontSize: 12,
+            color: '#BDBDBD',
             transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.25s',
           }}>
@@ -245,7 +245,6 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
                     flexShrink: 0, width: 30, height: 30,
                     borderRadius: 6, border: 'none', cursor: 'pointer',
                     background: '#FFF3E0', color: '#E65100',
-                    fontSize: 12,
                   }}
                   title="朗读例句"
                 >
@@ -268,14 +267,14 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               padding: '10px 16px', borderRadius: 12,
               border: '1px solid #FFCDD2',
               background: '#FFF0F0', color: '#E53935',
-              fontSize: 14, cursor: 'pointer',
+              cursor: 'pointer',
               minHeight: 48,
             }}
           >
-            <i className="fa-solid fa-play-circle" style={{ fontSize: 18 }} />
+            <i className="fa-solid fa-play-circle" />
             <span>
               笔顺演示
-              <span style={{ display: 'block', fontSize: 11, color: '#E57373', fontWeight: 400 }}>
+              <span style={{ display: 'block', color: '#E57373', fontWeight: 400 }}>
                 Stroke Order
               </span>
             </span>
@@ -289,14 +288,14 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               padding: '10px 16px', borderRadius: 12,
               border: '1px solid #A5D6A7',
               background: '#F0FFF4', color: '#2E7D32',
-              fontSize: 14, cursor: 'pointer',
+              cursor: 'pointer',
               minHeight: 48,
             }}
           >
-            <i className="fa-solid fa-pen" style={{ fontSize: 18 }} />
+            <i className="fa-solid fa-pen" />
             <span>
               练习书写
-              <span style={{ display: 'block', fontSize: 11, color: '#66BB6A', fontWeight: 400 }}>
+              <span style={{ display: 'block', color: '#66BB6A', fontWeight: 400 }}>
                 Practice Writing
               </span>
             </span>
@@ -312,7 +311,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               padding: '6px 12px', borderRadius: 8,
               border: '1px solid #FFCDD2',
               background: '#FFF5F5', color: '#C62828',
-              fontSize: 12, cursor: 'pointer',
+              cursor: 'pointer',
             }}
           >
             <i className="fa-solid fa-circle-exclamation" />
@@ -344,8 +343,8 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
 function SectionLabel({ icon, text }: { icon: string; text: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 2 }}>
-      <i className={icon} style={{ fontSize: 11, color: '#9E9E9E' }} />
-      <span style={{ fontSize: 11, fontWeight: 600, color: '#9E9E9E', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+      <i className={icon} style={{ color: '#9E9E9E' }} />
+      <span style={{ fontWeight: 600, color: '#9E9E9E', textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {text}
       </span>
     </div>
@@ -358,9 +357,9 @@ function Chip({ icon, label, color }: { icon: string; label: string; color: stri
       display: 'flex', alignItems: 'center', gap: 5,
       padding: '3px 10px', borderRadius: 20,
       background: `${color}15`, border: `1px solid ${color}30`,
-      fontSize: 12, color,
+      color,
     }}>
-      <i className={icon} style={{ fontSize: 10 }} />
+      <i className={icon} />
       {label}
     </div>
   )
