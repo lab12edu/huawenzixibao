@@ -1756,3 +1756,177 @@ button:active {
 .vc-collocation {
   font-size: 16px;
 }
+
+/* ============================================
+   TYPE-SCALE TOKEN SYSTEM
+   Single source of truth for all font sizes.
+   Mobile defaults in :root, desktop upgrade
+   via @media (min-width:1280px) token override.
+
+   RULE: All new/edited components must use
+   var(--text-*) — never hard-coded px values.
+
+   Token reference:
+     --text-2xs  10→11px  badges, micro labels
+     --text-xs   12→13px  chips, pills, hints
+     --text-sm   14→15px  body, controls, labels
+     --text-base 16→17px  card text, inputs
+     --text-md   18→20px  subheadings, pinyin
+     --text-lg   21→23px  section headings
+     --text-xl   26→28px  page titles
+     --text-2xl  34→38px  display headings
+   NOTE: char-study and char-display are
+   intentionally excluded — sizes are correct.
+   ============================================ */
+
+/* ── Mobile token defaults ── */
+:root {
+  --text-2xs:  10px;
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-md:   18px;
+  --text-lg:   21px;
+  --text-xl:   26px;
+  --text-2xl:  34px;
+}
+
+/* ── Desktop token upgrade ── */
+@media (min-width: 1280px) {
+  :root {
+    --text-2xs:  11px;
+    --text-xs:   13px;
+    --text-sm:   15px;
+    --text-base: 17px;
+    --text-md:   20px;
+    --text-lg:   23px;
+    --text-xl:   28px;
+    --text-2xl:  38px;
+  }
+}
+
+/* ============================================
+   VOCAB CARD — vc- classes
+   ============================================ */
+.vc-pinyin       { font-size: var(--text-md);   line-height: 1.4; }
+.vc-meaning      { font-size: var(--text-base);  line-height: 1.6; }
+.vc-sentence-cn  { font-size: var(--text-sm);    line-height: 1.9; }
+.vc-sentence-en  { font-size: var(--text-xs);    line-height: 1.6; }
+.vc-collocation  { font-size: var(--text-sm); }
+
+/* ============================================
+   VOCAB PAGE CONTROLS — vp- classes
+   ============================================ */
+.vp-grade-btn    { font-size: var(--text-sm); }
+.vp-semester-btn { font-size: var(--text-sm); }
+.vp-search-input { font-size: var(--text-sm); }
+.vp-label-btn    { font-size: var(--text-xs); }
+.vp-stat-chip    { font-size: var(--text-xs); }
+.vp-chapter-chip { font-size: var(--text-xs); }
+
+@media (min-width: 1280px) {
+  .vp-grade-btn    { padding: 8px 18px; }
+  .vp-semester-btn { padding: 8px 16px; }
+  .vp-search-input { padding: 13px 48px 13px 18px; }
+  .vp-label-btn    { padding: 7px 18px; }
+  .vp-stat-chip    { padding: 6px 14px; }
+  .vp-chapter-chip { padding: 7px 16px; }
+}
+
+/* ============================================
+   SIDEBAR — token-based
+   ============================================ */
+.sidebar-brand-cn     { font-size: var(--text-base); font-weight: 800; }
+.sidebar-brand-en     { font-size: var(--text-xs); }
+.sidebar-nav-label-cn { font-size: var(--text-sm); }
+.sidebar-nav-label-en { font-size: var(--text-2xs); }
+.sidebar-footer-text  { font-size: var(--text-xs); }
+
+/* ============================================
+   PAGE HEADER — token-based
+   ============================================ */
+.page-header-title .cn { font-size: var(--text-xl); }
+.page-header-title .en { font-size: var(--text-xs); }
+
+/* ============================================
+   HOME SCREEN — token-based
+   ============================================ */
+.section-title-cn          { font-size: var(--text-lg); }
+.section-title-en          { font-size: var(--text-xs); }
+.welcome-text .cn          { font-size: var(--text-base); }
+.welcome-text .en          { font-size: var(--text-xs); }
+.quick-card .card-title-cn { font-size: var(--text-base); }
+.quick-card .card-title-en { font-size: var(--text-xs); }
+.welcome-level-badge       { font-size: var(--text-sm); }
+
+/* ============================================
+   ORAL MODULE — token-based
+   Covers: OralSetSelector, ReadingAloudPanel,
+   PictureStoryPanel, VocabPrepPanel
+   ============================================ */
+
+/* Selector */
+.oral-page-title       { font-size: var(--text-lg);  font-weight: 700; }
+.oral-page-subtitle    { font-size: var(--text-xs); }
+.oral-insight-banner   { font-size: var(--text-sm); }
+.oral-insight-banner p { font-size: var(--text-sm); line-height: 1.6; }
+.oral-level-note       { font-size: var(--text-sm); }
+.oral-set-number       { font-size: var(--text-xs); }
+.oral-set-theme        { font-size: var(--text-md); font-weight: 700; }
+.oral-set-theme-en     { font-size: var(--text-sm); }
+.oral-moral-pill       { font-size: var(--text-xs); }
+.oral-level-pill       { font-size: var(--text-xs); }
+.oral-set-actions      { font-size: var(--text-sm); }
+.oral-practiced-badge  { font-size: var(--text-xs); }
+
+/* Tab bar */
+.oral-tab              { font-size: var(--text-sm); }
+
+/* Panel cards */
+.oral-card-title       { font-size: var(--text-base); font-weight: 700; }
+
+/* Reading passage — primary content, must be comfortable */
+.oral-passage-text     { font-size: var(--text-lg); line-height: 2.4; letter-spacing: 0.05em; }
+
+/* Controls */
+.oral-read-btn         { font-size: var(--text-base); }
+.oral-mic-btn          { font-size: var(--text-base); }
+.oral-stop-btn         { font-size: var(--text-base); }
+.oral-save-btn         { font-size: var(--text-base); }
+.oral-transcript       { font-size: var(--text-sm);  line-height: 1.7; }
+.oral-rating-label     { font-size: var(--text-sm); }
+.oral-tip-text         { font-size: var(--text-sm); }
+.oral-tip-item         { font-size: var(--text-sm); }
+.oral-ped-body         { font-size: var(--text-sm);  line-height: 1.7; }
+.oral-ped-chip         { font-size: var(--text-xs); }
+
+/* Picture Story */
+.oral-narrator-title     { font-size: var(--text-xl);  font-weight: 800; }
+.oral-narrator-intro     { font-size: var(--text-sm);  line-height: 1.7; }
+.oral-frame-cn           { font-size: var(--text-base); line-height: 1.7; }
+.oral-frame-en           { font-size: var(--text-sm); }
+.oral-frame-badge        { font-size: var(--text-xs); }
+.oral-q-cn               { font-size: var(--text-base); line-height: 1.7; }
+.oral-q-en               { font-size: var(--text-sm); }
+.oral-q-badge            { font-size: var(--text-xs); }
+.oral-starter-text       { font-size: var(--text-sm);  line-height: 1.7; }
+.oral-answer-box         { font-size: var(--text-sm);  line-height: 1.7; }
+.oral-key-chip           { font-size: var(--text-xs); }
+.oral-collapsible-header { font-size: var(--text-sm); }
+.oral-level-tip          { font-size: var(--text-sm);  line-height: 1.7; }
+.oral-parent-label       { font-size: var(--text-sm); }
+
+/* Vocab Prep */
+.oral-vocab-chinese       { font-size: var(--text-2xl); }
+.oral-vocab-pinyin        { font-size: var(--text-base); }
+.oral-vocab-english       { font-size: var(--text-sm); }
+.oral-vocab-title         { font-size: var(--text-lg);  font-weight: 800; }
+.oral-vocab-subtitle      { font-size: var(--text-sm); }
+.oral-vocab-section-title { font-size: var(--text-md);  font-weight: 700; }
+.oral-vocab-section-sub   { font-size: var(--text-sm); }
+.oral-vocab-starter-text  { font-size: var(--text-sm);  line-height: 1.7; }
+.oral-vocab-starter-en    { font-size: var(--text-sm); }
+.oral-vocab-theme-title   { font-size: var(--text-md);  font-weight: 700; }
+.oral-vocab-theme-en      { font-size: var(--text-sm); }
+.oral-vocab-example       { font-size: var(--text-sm);  line-height: 1.7; }
+.oral-vocab-example-en    { font-size: var(--text-xs); }
