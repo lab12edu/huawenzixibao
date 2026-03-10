@@ -121,7 +121,6 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
             <ToneLabel tone={item.tone} />
             <span className="vc-pinyin" style={{
-              fontSize: 17,
               fontWeight: 600,
               color: toneColor,
               letterSpacing: 1,
@@ -139,7 +138,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
             </span>
           </div>
           <div className="vc-meaning" style={{
-            fontSize: 13, color: '#555',
+            color: '#555',
             whiteSpace: expanded ? 'normal' : 'nowrap',
             overflow: expanded ? 'visible' : 'hidden',
             textOverflow: expanded ? 'unset' : 'ellipsis',
@@ -235,7 +234,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
                 <div className="vc-sentence-cn" style={{
-                  flex: 1, fontSize: 14.5, lineHeight: 1.6,
+                  flex: 1, lineHeight: 1.6,
                   color: '#212121',
                 }}>
                   {item.example_sentence_cn}
@@ -253,7 +252,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
                   <i className="fa-solid fa-volume-low" />
                 </button>
               </div>
-              <div className="vc-sentence-en" style={{ fontSize: 12, color: '#757575', fontStyle: 'italic', lineHeight: 1.5 }}>
+              <div className="vc-sentence-en" style={{ color: '#757575', fontStyle: 'italic', lineHeight: 1.5 }}>
                 {item.example_sentence_en}
               </div>
             </div>
@@ -375,7 +374,7 @@ function CollocationChip({ text }: { text: string }) {
       style={{
         padding: '4px 10px', borderRadius: 8,
         background: '#fff', border: '1.5px solid #E0E0E0',
-        fontSize: 14, color: '#212121', cursor: 'pointer',
+        color: '#212121', cursor: 'pointer',
         transition: 'border-color 0.15s',
       }}
     >

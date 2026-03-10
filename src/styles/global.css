@@ -1731,3 +1731,28 @@ button:active {
     font-size: 15px !important;
   }
 }
+
+/* ============================================
+   VOCAB CARD — base font sizes (replaces inline fontSize)
+   Mobile-first; desktop overrides in vc- block above
+   ============================================ */
+
+.vc-pinyin {
+  font-size: 17px;
+}
+
+.vc-meaning {
+  font-size: 13px;
+}
+
+.vc-sentence-cn {
+  font-size: 14px;
+}
+
+.vc-sentence-en {
+  font-size: 12px;
+}
+
+.vc-collocation {
+  font-size: 14px;
+}
