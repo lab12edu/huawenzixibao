@@ -140,7 +140,10 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
           </div>
           <div style={{
             fontSize: 13, color: '#555',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            whiteSpace: expanded ? 'normal' : 'nowrap',
+            overflow: expanded ? 'visible' : 'hidden',
+            textOverflow: expanded ? 'unset' : 'ellipsis',
+            lineHeight: 1.5,
           }}>
             {item.meaning_cn} · {item.meaning_en}
           </div>
