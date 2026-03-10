@@ -1637,7 +1637,7 @@ button:active {
 
   /* ── Sidebar nav labels ── */
   .sidebar-nav-label-cn {
-    font-size: 15px;
+    font-size: 16px;
   }
 
   .sidebar-nav-label-en {
@@ -1645,7 +1645,7 @@ button:active {
   }
 
   .sidebar-brand-cn {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 800;
   }
 
@@ -1711,24 +1711,24 @@ button:active {
 
 @media (min-width: 1280px) {
   .vc-pinyin {
-    font-size: 20px !important;
+    font-size: 24px !important;
   }
 
   .vc-meaning {
-    font-size: 15px !important;
+    font-size: 17px !important;
   }
 
   .vc-sentence-cn {
-    font-size: 16px !important;
+    font-size: 18px !important;
     line-height: 1.7 !important;
   }
 
   .vc-sentence-en {
-    font-size: 13px !important;
+    font-size: 15px !important;
   }
 
   .vc-collocation {
-    font-size: 15px !important;
+    font-size: 17px !important;
   }
 }
 
@@ -1738,21 +1738,21 @@ button:active {
    ============================================ */
 
 .vc-pinyin {
-  font-size: 17px;
+  font-size: 20px;
 }
 
 .vc-meaning {
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .vc-sentence-cn {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .vc-sentence-en {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .vc-collocation {
-  font-size: 14px;
+  font-size: 16px;
 }
