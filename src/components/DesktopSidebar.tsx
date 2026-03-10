@@ -9,13 +9,18 @@ export default function DesktopSidebar() {
     <aside className="desktop-sidebar" role="navigation" aria-label="Desktop navigation">
 
       {/* Brand block */}
-      <div className="sidebar-brand">
+      <button
+        className="sidebar-brand-btn"
+        onClick={() => setActiveTab('home')}
+        aria-label="去首页 Go to Home"
+        title="Home"
+      >
         <div className="sidebar-logo" aria-hidden="true">华</div>
         <div>
           <div className="sidebar-brand-cn">华文自习宝</div>
           <div className="sidebar-brand-en">Chinese Self-Study</div>
         </div>
-      </div>
+      </button>
 
       {/* Nav items */}
       <nav className="sidebar-nav">
