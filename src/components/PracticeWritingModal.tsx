@@ -53,7 +53,7 @@ export default function PracticeWritingModal({ char, onClose }: PracticeWritingM
       outlineColor: '#CCCCCC',
       highlightColor: '#81C784',
       drawingColor: '#2E7D32',
-      drawingWidth: 8,
+      drawingWidth: 12,
       showHintAfterMisses: 3,
     })
 
