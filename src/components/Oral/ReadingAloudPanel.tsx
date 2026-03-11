@@ -141,7 +141,15 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
 
     // Start MediaRecorder for real audio capture
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: true,
+          sampleRate: 44100,
+          channelCount: 1
+        }
+      });
       const mr = new MediaRecorder(stream);
       mr.ondataavailable = (e) => {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
@@ -153,7 +161,8 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
         audioBlobUrlRef.current = URL.createObjectURL(blob);
       };
       mediaRecorderRef.current = mr;
-      mr.start();
+      await new Promise(resolve => setTimeout(resolve, 80));
+      mr.start(500);
     } catch (err) {
       console.warn('[ReadingAloudPanel] getUserMedia failed, audio capture disabled:', err);
       mediaRecorderRef.current = null;
