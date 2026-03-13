@@ -25,6 +25,7 @@ export interface AppState {
   favourites: string[]        // list of character IDs
   errorBank: string[]         // list of wrong-answer character IDs
   activeTab: Tab
+  hasCompletedOnboarding: boolean
 }
 
 interface AppContextValue extends AppState {
@@ -35,6 +36,7 @@ interface AppContextValue extends AppState {
   addToErrorBank: (id: string) => void
   clearErrorBank: () => void
   setActiveTab: (tab: Tab) => void
+  setHasCompletedOnboarding: (val: boolean) => void
 }
 
 // ============================================================
@@ -47,6 +49,7 @@ const DEFAULT_STATE: AppState = {
   favourites: [],
   errorBank: [],
   activeTab: 'home',
+  hasCompletedOnboarding: false,
 }
 
 // ============================================================
@@ -109,12 +112,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [activeTab, setActiveTabState] = useState<Tab>(
     DEFAULT_STATE.activeTab  // always start on home
   )
+  const [hasCompletedOnboarding, setHasCompletedOnboardingState] = useState<boolean>(
+    () => localStorage.getItem('hwzxb_onboarded') === '1'
+  )
 
   // Persist each item independently to its own key
   useEffect(() => { lsSet('hwzxb_selected_level', selectedLevel) }, [selectedLevel])
   useEffect(() => { lsSet('hwzxb_student_name',   studentName)   }, [studentName])
   useEffect(() => { lsSet('hwzxb_favourites',     favourites)    }, [favourites])
   useEffect(() => { lsSet('hwzxb_error_bank',     errorBank)     }, [errorBank])
+  useEffect(() => {
+    if (hasCompletedOnboarding) {
+      localStorage.setItem('hwzxb_onboarded', '1')
+    } else {
+      localStorage.removeItem('hwzxb_onboarded')
+    }
+  }, [hasCompletedOnboarding])
 
   const setSelectedLevel = (level: Level) => setSelectedLevelState(level)
   const setStudentName = (name: string) => setStudentNameState(name)
@@ -131,6 +144,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearErrorBank = () => setErrorBank([])
 
   const setActiveTab = (tab: Tab) => setActiveTabState(tab)
+  const setHasCompletedOnboarding = (val: boolean) => setHasCompletedOnboardingState(val)
 
   return (
     <AppContext.Provider value={{
@@ -139,6 +153,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       favourites,
       errorBank,
       activeTab,
+      hasCompletedOnboarding,
       setSelectedLevel,
       setStudentName,
       addFavourite,
@@ -146,6 +161,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addToErrorBank,
       clearErrorBank,
       setActiveTab,
+      setHasCompletedOnboarding,
     }}>
       {children}
     </AppContext.Provider>

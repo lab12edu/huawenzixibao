@@ -1,6 +1,7 @@
 import React from 'react'
 import { useApp } from '../context/AppContext'
 import LevelChips from '../components/LevelChips'
+import FirstLaunchPrompt from '../components/FirstLaunchPrompt'
 
 // Quick-access cards config
 const QUICK_CARDS = [
@@ -63,10 +64,11 @@ const QUICK_CARDS = [
 ]
 
 export default function HomeScreen() {
-  const { selectedLevel, studentName, favourites, errorBank, setActiveTab } = useApp()
+  const { selectedLevel, studentName, favourites, errorBank, setActiveTab, hasCompletedOnboarding } = useApp()
 
   return (
     <div className="home-screen">
+      {!hasCompletedOnboarding && <FirstLaunchPrompt />}
       {/* ── Hero Banner ── */}
       <div className="home-hero">
         <div className="app-logo-circle pulse">华</div>
