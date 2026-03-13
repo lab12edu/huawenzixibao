@@ -38,12 +38,13 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
 }
 
 // ── Internal queue ─────────────────────────────────────────────
-const queue: Array<{ text: string; rate: number }> = []
+const queue: Array<{ text: string; rate: number; onEnd?: () => void; onError?: () => void }> = []
 let isSpeaking = false
 
 function processQueue() {
   if (isSpeaking || queue.length === 0) return
-  const { text, rate } = queue.shift()!
+  const item = queue.shift()!
+  const { text, rate } = item
   isSpeaking = true
 
   const utt = new SpeechSynthesisUtterance(text)
@@ -54,8 +55,8 @@ function processQueue() {
   const voice = getBestVoice()
   if (voice) utt.voice = voice
 
-  utt.onend   = () => { isSpeaking = false; processQueue() }
-  utt.onerror = () => { isSpeaking = false; processQueue() }
+  utt.onend   = () => { isSpeaking = false; item.onEnd?.();   processQueue() }
+  utt.onerror = () => { isSpeaking = false; item.onError?.(); processQueue() }
 
   window.speechSynthesis.speak(utt)
 }
@@ -69,11 +70,16 @@ export function speak(text: string): void {
   processQueue()
 }
 
+interface SpeakOptions {
+  onEnd?: () => void
+  onError?: () => void
+}
+
 /** Speak a full passage at slightly slower rate. Clears queue first. */
-export function speakPassage(text: string): void {
+export function speakPassage(text: string, options?: SpeakOptions): void {
   if (!isSupported()) return
   cancelSpeak()
-  queue.push({ text, rate: RATE_PASSAGE })
+  queue.push({ text, rate: RATE_PASSAGE, onEnd: options?.onEnd, onError: options?.onError })
   processQueue()
 }
 

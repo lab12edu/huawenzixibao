@@ -84,6 +84,9 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   const [liveText, setLiveText] = useState('');
   const recRef = useRef<InstanceType<typeof window.SpeechRecognition> | null>(null);
 
+  // Read Aloud speaking state
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   // MediaRecorder refs for real audio capture
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -109,6 +112,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   useEffect(() => {
     return () => {
       cancelSpeak();
+      setIsSpeaking(false);
       if (recRef.current) recRef.current.stop();
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
@@ -312,9 +316,26 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
             </p>
           ))}
         </div>
-        <button className="oral-read-btn" onClick={() => speakPassage(fullText)}>
-          <i className="fa-solid fa-volume-high" />
-          朗读全文 Read Aloud
+        <button
+          className="oral-read-btn"
+          onClick={() => {
+            if (isSpeaking) {
+              cancelSpeak();
+              setIsSpeaking(false);
+            } else {
+              setIsSpeaking(true);
+              speakPassage(fullText, {
+                onEnd: () => setIsSpeaking(false),
+                onError: () => setIsSpeaking(false),
+              });
+            }
+          }}
+          style={{ background: isSpeaking ? '#B71C1C' : '#2E7D32' }}
+        >
+          {isSpeaking
+            ? <><i className="fa-solid fa-stop" /> 停止朗读 Stop</>
+            : <><i className="fa-solid fa-volume-high" /> 朗读全文 Read Aloud</>
+          }
         </button>
       </div>
 
