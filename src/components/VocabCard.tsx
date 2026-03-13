@@ -3,6 +3,7 @@ import { VocabItem } from '../data/vocabTypes'
 import { useApp } from '../context/AppContext'
 import StrokeDemoModal from './StrokeDemoModal'
 import PracticeWritingModal from './PracticeWritingModal'
+import { speak } from '../utils/tts'
 
 interface VocabCardProps {
   item: VocabItem
@@ -34,16 +35,6 @@ function ToneLabel({ tone }: { tone: number }) {
   )
 }
 
-function speakChinese(text: string) {
-  if (!('speechSynthesis' in window)) return
-  window.speechSynthesis.cancel()
-  const utt = new SpeechSynthesisUtterance(text)
-  utt.lang = 'zh-CN'
-  utt.rate = 0.85
-  utt.pitch = 1
-  window.speechSynthesis.speak(utt)
-}
-
 export default function VocabCard({ item, index = 0 }: VocabCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [speaking, setSpeaking] = useState(false)
@@ -55,13 +46,13 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
   const handleSpeak = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     setSpeaking(true)
-    speakChinese(item.char)
+    speak(item.char)
     setTimeout(() => setSpeaking(false), 1200)
   }, [item.char])
 
   const handleSpeakSentence = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    speakChinese(item.example_sentence_cn)
+    speak(item.example_sentence_cn)
   }, [item.example_sentence_cn])
 
   const toggleFav = useCallback((e: React.MouseEvent) => {
@@ -369,7 +360,7 @@ function CollocationChip({ text }: { text: string }) {
   return (
     <div
       className="vc-collocation"
-      onClick={(e) => { e.stopPropagation(); speakChinese(text) }}
+      onClick={(e) => { e.stopPropagation(); speak(text) }}
       style={{
         padding: '4px 10px', borderRadius: 8,
         background: '#fff', border: '1.5px solid #E0E0E0',

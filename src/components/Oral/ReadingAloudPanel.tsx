@@ -1,15 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { OralSet } from '../../data/oralData';
 import StrokeDemoModal from '../StrokeDemoModal';
-
-// ─── Speech helpers ───────────────────────────────────────────────────────────
-function speakChinese(text: string) {
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'zh-CN';
-  u.rate = 0.85;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
-}
+import { speak, speakPassage, cancelSpeak, isSupported } from '../../utils/tts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RecordState = 'idle' | 'recording' | 'recorded';
@@ -116,7 +108,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      window.speechSynthesis.cancel();
+      cancelSpeak();
       if (recRef.current) recRef.current.stop();
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
@@ -237,13 +229,10 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   };
 
   const ttsFallback = () => {
+    if (!isSupported()) return;
     const text = transcript || liveText;
     if (!text) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'zh-CN';
-    u.rate = 0.9;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
+    speak(text);
   };
 
   // ── Save rating ──
@@ -306,12 +295,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
                   <span key={ci} className="oral-char-wrap">
                     <span
                       className="oral-char"
-                      onClick={() => {
-                        const u = new SpeechSynthesisUtterance(char);
-                        u.lang = 'zh-CN';
-                        window.speechSynthesis.cancel();
-                        window.speechSynthesis.speak(u);
-                      }}
+                      onClick={() => speak(char)}
                     >
                       {char}
                     </span>
@@ -328,7 +312,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
             </p>
           ))}
         </div>
-        <button className="oral-read-btn" onClick={() => speakChinese(fullText)}>
+        <button className="oral-read-btn" onClick={() => speakPassage(fullText)}>
           <i className="fa-solid fa-volume-high" />
           朗读全文 Read Aloud
         </button>
