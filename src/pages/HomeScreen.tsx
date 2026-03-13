@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import LevelChips from '../components/LevelChips'
 import FirstLaunchPrompt from '../components/FirstLaunchPrompt'
+import SixtySecondChallenge from '../components/SixtySecondChallenge'
 
 // Quick-access cards config
 const QUICK_CARDS = [
@@ -65,10 +66,12 @@ const QUICK_CARDS = [
 
 export default function HomeScreen() {
   const { selectedLevel, studentName, favourites, errorBank, setActiveTab, hasCompletedOnboarding } = useApp()
+  const [showChallenge, setShowChallenge] = useState(false)
 
   return (
     <div className="home-screen">
       {!hasCompletedOnboarding && <FirstLaunchPrompt />}
+      {showChallenge && <SixtySecondChallenge onClose={() => setShowChallenge(false)} />}
       {/* ── Hero Banner ── */}
       <div className="home-hero">
         <div className="app-logo-circle pulse">华</div>
@@ -119,6 +122,22 @@ export default function HomeScreen() {
             </button>
           ))}
         </div>
+      </section>
+
+      {/* ── 60-Second Challenge Entry ── */}
+      <section style={{ padding: '8px 16px 0' }}>
+        <button
+          className="quick-card"
+          style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+          onClick={() => setShowChallenge(true)}
+          aria-label="60秒挑战 – 60-sec Challenge"
+        >
+          <div className="quick-card-icon" style={{ background: '#FFF8E1' }}>⏱</div>
+          <span>
+            <span className="card-title-cn" style={{ display: 'block' }}>60秒挑战</span>
+            <span className="card-title-en" style={{ display: 'block' }}>60-sec Challenge</span>
+          </span>
+        </button>
       </section>
 
       {/* ── Freemium Promo Banner ── */}
