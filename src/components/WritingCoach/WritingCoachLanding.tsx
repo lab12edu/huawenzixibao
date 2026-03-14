@@ -44,7 +44,7 @@ export default function WritingCoachLanding({ onSelectTopic }: Props) {
           onClick={() => setShowInfo(v => !v)}
           aria-label={showInfo ? '收起说明 Hide info' : '了解更多 Learn more'}
         >
-          {showInfo ? '收起 ▲' : '家长须知 ▼'}
+          {showInfo ? '收起 Hide ▲' : '家长须知 Parent Guide ▼'}
         </button>
       </div>
 
