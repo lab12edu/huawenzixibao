@@ -3,7 +3,10 @@ import { useApp } from '../context/AppContext'
 import { isNameAppropriate } from '../utils/challengeUtils'
 
 // ── Validation error messages (Chinese) ───────────────────────
-type ErrorMsg = '' | '请输入名字。' | '名字太短了，请输入至少两个字。' | '这个名字不合适，请换一个。'
+type ErrorMsg = ''
+  | '请输入名字。 Please enter a name.'
+  | '名字太短了，请输入至少两个字。 Name is too short.'
+  | '这个名字不合适，请换一个。 Please choose a different name.'
 
 export default function FirstLaunchPrompt() {
   const { setStudentName, setHasCompletedOnboarding } = useApp()
@@ -23,9 +26,9 @@ export default function FirstLaunchPrompt() {
 
   function validate(name: string): ErrorMsg {
     const trimmed = name.trim()
-    if (!trimmed) return '请输入名字。'
-    if (trimmed.length < 2) return '名字太短了，请输入至少两个字。'
-    if (!isNameAppropriate(trimmed)) return '这个名字不合适，请换一个。'
+    if (!trimmed) return '请输入名字。 Please enter a name.'
+    if (trimmed.length < 2) return '名字太短了，请输入至少两个字。 Name is too short.'
+    if (!isNameAppropriate(trimmed)) return '这个名字不合适，请换一个。 Please choose a different name.'
     return ''
   }
 
@@ -157,7 +160,7 @@ export default function FirstLaunchPrompt() {
       `}</style>
 
       {/* ── Backdrop (click does nothing — intentional) ──────── */}
-      <div className="flp-backdrop" role="dialog" aria-modal="true" aria-label="欢迎设置">
+      <div className="flp-backdrop" role="dialog" aria-modal="true" aria-label="欢迎设置 Welcome Setup">
 
         {/* ── Card ─────────────────────────────────────────────── */}
         <div className="flp-card">
@@ -168,6 +171,10 @@ export default function FirstLaunchPrompt() {
           {/* Welcome line */}
           <p className="flp-welcome">
             欢迎！请输入你的名字开始学习。
+            <br/>
+            <span style={{fontSize:'var(--text-sm)', opacity:0.7, fontWeight:400}}>
+              Welcome! Enter your name to start learning.
+            </span>
           </p>
 
           {/* Name input */}
@@ -176,7 +183,7 @@ export default function FirstLaunchPrompt() {
             className={`flp-input${attempted && error ? ' has-error' : ''}`}
             type="text"
             maxLength={20}
-            placeholder="你的名字…"
+            placeholder="你的名字… Your name"
             value={inputValue}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
@@ -193,7 +200,7 @@ export default function FirstLaunchPrompt() {
 
           {/* Confirm button */}
           <button className="flp-confirm-btn" onClick={handleConfirm}>
-            开始！
+            开始！ Start
           </button>
 
         </div>
