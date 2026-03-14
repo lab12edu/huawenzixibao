@@ -97,6 +97,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
   // answered tracks outcome; tappedIndex tracks which button was tapped
   const [answered, setAnswered]                   = useState<'correct' | 'wrong' | null>(null)
   const [tappedIndex, setTappedIndex]             = useState<number | null>(null)
+  const [showQuitConfirm, setShowQuitConfirm]     = useState(false)
   // ── Result state ─────────────────────────────────────────────
   const [isNewRecord, setIsNewRecord]             = useState(false)
   const [finalScore, setFinalScore]               = useState(0)
@@ -270,6 +271,20 @@ export default function SixtySecondChallenge({ onClose }: Props) {
     onClose()
   }
 
+  // ── Quit (abandons in-progress game — no streak/PB/badges) ──
+  function handleQuit() {
+    clearAllTimers()
+    setShowQuitConfirm(false)
+    setPhase('idle')
+    setScore(0)
+    scoreRef.current = 0
+    setTimeLeft(60)
+    setConsecutiveCorrect(0)
+    setStreakPhrase(null)
+    setAnswered(null)
+    setCurrentQuestion(null)
+  }
+
   // ── Confetti effect ─────────────────────────────────────────
   const confettiRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -398,7 +413,71 @@ export default function SixtySecondChallenge({ onClose }: Props) {
 
     return (
       <div className="challenge-overlay">
-        <div className="challenge-card">
+        <div className="challenge-card" style={{position:'relative'}}>
+
+          {/* Quit button — only visible during play */}
+          <button
+            className="challenge-close-btn"
+            onClick={() => {
+              if (timerRef.current) {
+                clearInterval(timerRef.current)
+                timerRef.current = null
+              }
+              setShowQuitConfirm(true)
+            }}
+            aria-label="退出 Quit"
+            style={{position:'absolute', top:'1rem', right:'1rem'}}
+          >
+            ×
+          </button>
+
+          {/* Quit confirmation bar */}
+          {showQuitConfirm && (
+            <div className="challenge-quit-bar">
+              <span>
+                放弃挑战？<span style={{fontSize:'var(--text-sm)',opacity:0.7}}>Quit the challenge?</span>
+              </span>
+              <div className="challenge-quit-bar-btns">
+                <button
+                  className="challenge-quit-btn-continue"
+                  onClick={() => {
+                    setShowQuitConfirm(false)
+                    // Resume countdown from current timeLeft
+                    timerRef.current = setInterval(() => {
+                      setTimeLeft(prev => {
+                        if (prev <= 1) {
+                          clearInterval(timerRef.current!)
+                          timerRef.current = null
+                          const finalScoreVal = scoreRef.current
+                          const isFirst = getPersonalBest(studentName, selectedLevel) === 0
+                          const newRecord = savePersonalBest(studentName, selectedLevel, finalScoreVal)
+                          const newStreak = updateStreak()
+                          const badges = checkAndAwardBadges(finalScoreVal, newStreak, isFirst)
+                          setFinalScore(finalScoreVal)
+                          setIsNewRecord(newRecord)
+                          setPersonalBest(getPersonalBest(studentName, selectedLevel))
+                          setStreakCount(newStreak)
+                          setNewBadges(badges)
+                          if (newRecord) setConfettiActive(true)
+                          setPhase('results')
+                          return 0
+                        }
+                        return prev - 1
+                      })
+                    }, 1000)
+                  }}
+                >
+                  继续 Continue
+                </button>
+                <button
+                  className="challenge-quit-btn-quit"
+                  onClick={handleQuit}
+                >
+                  放弃 Quit
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Header: time | score */}
           <div className="challenge-header-row">
@@ -521,6 +600,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             style={{marginTop:'1.25rem'}}
             onClick={() => {
               scoreRef.current = 0
+              setShowQuitConfirm(false)
               setPhase('idle')
               setScore(0)
               setTimeLeft(60)

@@ -2323,3 +2323,48 @@ button:active {
   opacity: 0.7;
   text-align: center;
 }
+
+/* ── Quit confirmation bar ── */
+
+.challenge-quit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.challenge-quit-bar-btns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.challenge-quit-btn-continue {
+  border: none;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+}
+
+.challenge-quit-btn-quit {
+  border: 2px solid var(--color-primary);
+  border-radius: 9999px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+}
