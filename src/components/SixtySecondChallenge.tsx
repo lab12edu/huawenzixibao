@@ -5,8 +5,13 @@ import { getVocabForLevel } from '../data/allVocab'
 import {
   buildChallengePool,
   getPersonalBest,
+  savePersonalBest,
+  updateStreak,
+  checkAndAwardBadges,
+  ALL_BADGES,
   getStreakPhrase,
 } from '../utils/challengeUtils'
+import type { Badge } from '../utils/challengeUtils'
 import { speak } from '../utils/tts'
 
 // ── Types ──────────────────────────────────────────────────────
@@ -22,6 +27,9 @@ interface Question {
 interface Props {
   onClose: () => void
 }
+
+// Suppress unused-import warning for ALL_BADGES (used in JSX badge map via newBadges)
+void ALL_BADGES
 
 // ── makeQuestion ───────────────────────────────────────────────
 // Builds a 4-option char-selection Question from a VocabItem.
@@ -48,6 +56,30 @@ function sanitiseMeaning(meaning: string): string {
   return meaning.replace(/[\u4E00-\u9FFF\u3400-\u4DBF]/g, '').replace(/\s{2,}/g, ' ').trim()
 }
 
+// ── Confetti engine ───────────────────────────────────────────
+function launchConfetti(container: HTMLElement) {
+  const COLOURS = ['#E53935','#FF8F00','#43A047','#1E88E5','#8E24AA','#FFD600']
+  const COUNT = 80
+  for (let i = 0; i < COUNT; i++) {
+    const el = document.createElement('div')
+    el.style.cssText = `
+      position:absolute;
+      width:${6 + Math.random() * 8}px;
+      height:${6 + Math.random() * 8}px;
+      background:${COLOURS[Math.floor(Math.random() * COLOURS.length)]};
+      border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+      left:${Math.random() * 100}%;
+      top:-10px;
+      opacity:1;
+      pointer-events:none;
+      animation:confetti-fall ${1.2 + Math.random() * 1.8}s ease-in forwards;
+      animation-delay:${Math.random() * 0.6}s;
+    `
+    container.appendChild(el)
+    setTimeout(() => el.remove(), 3000)
+  }
+}
+
 // ── Component ──────────────────────────────────────────────────
 export default function SixtySecondChallenge({ onClose }: Props) {
   const { selectedLevel, studentName } = useApp()
@@ -65,6 +97,13 @@ export default function SixtySecondChallenge({ onClose }: Props) {
   // answered tracks outcome; tappedIndex tracks which button was tapped
   const [answered, setAnswered]                   = useState<'correct' | 'wrong' | null>(null)
   const [tappedIndex, setTappedIndex]             = useState<number | null>(null)
+  // ── Result state ─────────────────────────────────────────────
+  const [isNewRecord, setIsNewRecord]             = useState(false)
+  const [finalScore, setFinalScore]               = useState(0)
+  const [personalBest, setPersonalBest]           = useState(() => getPersonalBest(studentName, selectedLevel))
+  const [streakCount, setStreakCount]             = useState(0)
+  const [newBadges, setNewBadges]                 = useState<Badge[]>([])
+  const [confettiActive, setConfettiActive]       = useState(false)
 
   // ── Refs ─────────────────────────────────────────────────────
   const timerRef         = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -73,6 +112,8 @@ export default function SixtySecondChallenge({ onClose }: Props) {
   // Mutable refs so interval callbacks always see latest pool state
   const poolRef          = useRef<VocabItem[]>([])
   const poolIndexRef     = useRef(0)
+  // scoreRef keeps live score visible inside the timer interval closure
+  const scoreRef         = useRef(0)
 
   // ── Clear all timers ─────────────────────────────────────────
   function clearAllTimers() {
@@ -164,6 +205,18 @@ export default function SixtySecondChallenge({ onClose }: Props) {
           if (tl <= 0) {
             clearInterval(timerRef.current!)
             timerRef.current = null
+            // ── Compute results before transitioning ────────────
+            const finalScoreVal = scoreRef.current
+            const isFirst = getPersonalBest(studentName, selectedLevel) === 0
+            const newRecord = savePersonalBest(studentName, selectedLevel, finalScoreVal)
+            const newStreak = updateStreak()
+            const badges = checkAndAwardBadges(finalScoreVal, newStreak, isFirst)
+            setFinalScore(finalScoreVal)
+            setIsNewRecord(newRecord)
+            setPersonalBest(getPersonalBest(studentName, selectedLevel))
+            setStreakCount(newStreak)
+            setNewBadges(badges)
+            if (newRecord) setConfettiActive(true)
             setPhase('results')
           }
         }, 1000)
@@ -184,7 +237,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
 
     if (isCorrect) {
       setAnswered('correct')
-      setScore(prev => prev + 1)
+      setScore(prev => { scoreRef.current = prev + 1; return prev + 1 })
       const newConsec = consecutiveCorrect + 1
       setConsecutiveCorrect(newConsec)
       const phrase = getStreakPhrase(newConsec)
@@ -211,34 +264,23 @@ export default function SixtySecondChallenge({ onClose }: Props) {
     }, 600)
   }
 
-  // ── Play Again ───────────────────────────────────────────────
-  function handlePlayAgain() {
-    clearAllTimers()
-    const p = buildPool()
-    poolRef.current      = p
-    poolIndexRef.current = 0
-    setPool(p)
-    setPoolIndex(0)
-    setCurrentQuestion(null)
-    setAnswered(null)
-    setTappedIndex(null)
-    setScore(0)
-    setTimeLeft(60)
-    setCountdown(3)
-    setConsecutiveCorrect(0)
-    setStreakPhrase(null)
-    setPhase('idle')
-  }
-
   // ── Close (idle + results only) ──────────────────────────────
   function handleClose() {
     clearAllTimers()
     onClose()
   }
 
+  // ── Confetti effect ─────────────────────────────────────────
+  const confettiRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (confettiActive && confettiRef.current) {
+      launchConfetti(confettiRef.current)
+      setConfettiActive(false)
+    }
+  }, [confettiActive])
+
   // ── Derived ──────────────────────────────────────────────────
-  const personalBest = getPersonalBest(studentName, selectedLevel)
-  const poolEmpty    = pool.length === 0
+  const poolEmpty = pool.length === 0
 
   // ════════════════════════════════════════════════════════════
   // IDLE SCREEN
@@ -417,30 +459,90 @@ export default function SixtySecondChallenge({ onClose }: Props) {
   }
 
   // ════════════════════════════════════════════════════════════
-  // RESULTS SCREEN (stub — full build in Phase 4)
+  // RESULTS SCREEN
   // ════════════════════════════════════════════════════════════
   if (phase === 'results') {
     return (
       <div className="challenge-overlay">
-        <div className="challenge-card" style={{ textAlign: 'center' }}>
+        <div className="challenge-card" style={{position:'relative', overflow:'hidden', textAlign:'center'}}>
 
-          <div style={{
-            fontSize: 'var(--text-xl)',
-            fontWeight: 800,
-            color: 'var(--color-primary)',
-            marginBottom: '1.25rem',
-          }}>
-            本次得分 <span style={{fontSize:'var(--text-sm)',opacity:0.6}}>Your Score</span>：{score}
+          {/* Confetti container — absolutely positioned inside the card */}
+          <div ref={confettiRef} style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden'}} />
+
+          {/* Tier message */}
+          {isNewRecord ? (
+            <div className="challenge-result-tier challenge-result-tier--record">
+              🏆 <span>新记录！</span><span style={{fontSize:'var(--text-sm)'}}>New Record!</span>
+            </div>
+          ) : finalScore >= personalBest * 0.8 && personalBest > 0 ? (
+            <div className="challenge-result-tier challenge-result-tier--close">
+              💪 <span>差一点！</span><span style={{fontSize:'var(--text-sm)'}}>So close!</span>
+            </div>
+          ) : (
+            <div className="challenge-result-tier challenge-result-tier--keep">
+              <span>继续加油！</span><span style={{fontSize:'var(--text-sm)'}}>Keep going!</span>
+            </div>
+          )}
+
+          {/* Score row */}
+          <div className="challenge-result-score-row">
+            <div className="challenge-result-score-box">
+              <div className="challenge-result-score-label">本次得分 <span>Score</span></div>
+              <div className="challenge-result-score-num">{finalScore}</div>
+            </div>
+            <div className="challenge-result-score-divider" />
+            <div className="challenge-result-score-box">
+              <div className="challenge-result-score-label">最高分 <span>Best</span></div>
+              <div className="challenge-result-score-num challenge-result-score-num--best">{personalBest}</div>
+            </div>
           </div>
 
-          <button className="challenge-action-btn" onClick={handlePlayAgain}>
+          {/* Streak */}
+          <div className="challenge-result-streak">
+            🔥 {streakCount} 天连续 <span style={{fontSize:'var(--text-sm)',opacity:0.7}}>{streakCount}-day streak</span>
+          </div>
+
+          {/* Badge row — only if new badges earned */}
+          {newBadges.length > 0 && (
+            <div className="challenge-result-badges">
+              {newBadges.map(badge => (
+                <div key={badge.id} className="challenge-result-badge-item">
+                  <span className="challenge-result-badge-icon">{badge.icon}</span>
+                  <span className="challenge-result-badge-cn">{badge.labelCn}</span>
+                  <span className="challenge-result-badge-en">{badge.labelEn}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Buttons */}
+          <button
+            className="challenge-start-btn"
+            style={{marginTop:'1.25rem'}}
+            onClick={() => {
+              scoreRef.current = 0
+              setPhase('idle')
+              setScore(0)
+              setTimeLeft(60)
+              setConsecutiveCorrect(0)
+              setStreakPhrase(null)
+              setAnswered(null)
+              setNewBadges([])
+              setPersonalBest(getPersonalBest(studentName, selectedLevel))
+              const fresh = buildChallengePool(getVocabForLevel(selectedLevel), 40).map(q => q.item)
+              poolRef.current = fresh
+              poolIndexRef.current = 0
+              setPool(fresh)
+              setPoolIndex(0)
+              setCurrentQuestion(null)
+            }}
+          >
             再来一次 Play Again
           </button>
-
           <button
             className="challenge-action-btn secondary"
+            style={{marginTop:'0.5rem'}}
             onClick={handleClose}
-            style={{ marginTop: '0.5rem' }}
           >
             关闭 Close
           </button>
