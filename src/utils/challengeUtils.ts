@@ -53,7 +53,7 @@ function shuffle<T>(arr: T[]): T[] {
 // ── Pool builder ───────────────────────────────────────────────
 /**
  * Builds an SRS-weighted question pool.
- * Box 1 = 60%, Box 2 = 30%, Box 3 = 10%.
+ * Box 2 = 60%, Box 3 = 25%, Box 1 = 15%.
  * Falls back to full shuffled pool if no SRS data exists.
  *
  * CORRECTNESS GUARD A: distractor always filtered by i.char !== item.char
@@ -88,8 +88,8 @@ export function buildChallengePool(
   if (!hasSrsData) {
     pool = shuffle([...items]).slice(0, count)
   } else {
-    const take1 = Math.ceil(count * 0.6)
-    const take2 = Math.ceil(count * 0.3)
+    const take1 = Math.ceil(count * 0.15)         //  6 of 40
+    const take2 = Math.ceil(count * 0.60)         // 24 of 40
     const take3 = count - take1 - take2
     pool = [
       ...shuffle(box1).slice(0, take1),
