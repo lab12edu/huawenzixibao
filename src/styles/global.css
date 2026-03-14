@@ -2761,3 +2761,64 @@ button:active {
   margin: 0;
 }
 /* ── END Writing Coach Phase 5A ───────────────────────── */
+
+/* ── Writing Coach info panel additions (5A polish) ────── */
+
+.wc-info-section-title {
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 700;
+  color: #1565C0;
+  margin: 1rem 0 0.4rem;
+  border-left: 3px solid #1565C0;
+  padding-left: 0.5rem;
+}
+
+.wc-info-body-sub {
+  font-size: 0.75rem;
+  color: #888;
+  text-align: center;
+  margin: 0.25rem 0 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.wc-six-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.wc-step {
+  background: #1565C0;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.wc-step-arrow {
+  color: #1565C0;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.wc-dimensions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.wc-dimension-tag {
+  background: #E3F2FD;
+  color: #1565C0;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* ── END Writing Coach info panel additions (5A polish) ── */
