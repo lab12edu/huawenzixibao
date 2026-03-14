@@ -248,7 +248,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
       <div className="challenge-overlay">
         <div className="challenge-card">
 
-          <button className="challenge-close-btn" onClick={handleClose} aria-label="关闭">
+          <button className="challenge-close-btn" onClick={handleClose} aria-label="关闭 Close">
             ×
           </button>
 
@@ -260,7 +260,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             color: 'var(--color-primary)',
             marginBottom: '0.5rem',
           }}>
-            ⏱ 60秒挑战
+            ⏱ 60秒挑战 <span style={{fontSize:'var(--text-sm)',color:'var(--color-text)',opacity:0.6,marginLeft:'0.4rem'}}>60-sec Challenge</span>
           </div>
 
           {/* 60 circle */}
@@ -288,7 +288,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             color: 'var(--color-text)',
             margin: '0 0 0.75rem',
           }}>
-            看意思，选汉字！
+            看意思，选汉字！<br/><span style={{fontSize:'var(--text-sm)',opacity:0.6}}>See the meaning, pick the character!</span>
           </p>
 
           {/* Personal best */}
@@ -298,7 +298,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             color: 'var(--color-text-muted, #888)',
             margin: '0 0 1.25rem',
           }}>
-            最高分：{personalBest > 0 ? personalBest : '—'}
+            最高分 <span style={{fontSize:'var(--text-2xs)',opacity:0.6}}>Personal Best</span>：{personalBest > 0 ? personalBest : '—'}
           </p>
 
           {/* Empty level notice */}
@@ -318,7 +318,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             onClick={handleStart}
             disabled={poolEmpty}
           >
-            开始挑战！
+            开始挑战！Start
           </button>
         </div>
       </div>
@@ -341,7 +341,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             color: 'var(--color-text)',
             marginTop: '1rem',
           }}>
-            准备好了吗？
+            准备好了吗？<br/><span style={{fontSize:'var(--text-sm)',opacity:0.6}}>Ready?</span>
           </p>
         </div>
       </div>
@@ -363,7 +363,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             <span style={{ color: timeLeft <= 10 ? 'var(--color-primary)' : 'inherit' }}>
               ⏱ {timeLeft}s
             </span>
-            <span>得分 {score}</span>
+            <span>得分 <span style={{fontSize:'var(--text-sm)',opacity:0.6}}>Score</span> {score}</span>
           </div>
 
           {/* Progress bar */}
@@ -430,11 +430,11 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             color: 'var(--color-primary)',
             marginBottom: '1.25rem',
           }}>
-            本次得分：{score}
+            本次得分 <span style={{fontSize:'var(--text-sm)',opacity:0.6}}>Your Score</span>：{score}
           </div>
 
           <button className="challenge-action-btn" onClick={handlePlayAgain}>
-            再来一次
+            再来一次 Play Again
           </button>
 
           <button
@@ -442,7 +442,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             onClick={handleClose}
             style={{ marginTop: '0.5rem' }}
           >
-            关闭
+            关闭 Close
           </button>
 
         </div>
