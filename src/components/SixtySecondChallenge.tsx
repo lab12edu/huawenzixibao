@@ -42,6 +42,12 @@ function makeQuestion(item: VocabItem, allItems: VocabItem[]): Question {
   return { item, options, correctIndex, meaning: item.meaning_en }
 }
 
+// Removes any CJK Unified Ideographs from a string so the
+// meaning prompt never accidentally reveals the answer character.
+function sanitiseMeaning(meaning: string): string {
+  return meaning.replace(/[\u4E00-\u9FFF\u3400-\u4DBF]/g, '').replace(/\s{2,}/g, ' ').trim()
+}
+
 // ── Component ──────────────────────────────────────────────────
 export default function SixtySecondChallenge({ onClose }: Props) {
   const { selectedLevel, studentName } = useApp()
@@ -370,7 +376,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
 
           {/* Meaning prompt */}
           <div className="challenge-meaning">
-            {currentQuestion.meaning}
+            {sanitiseMeaning(currentQuestion.meaning)}
           </div>
 
           {/* Streak phrase (fixed-height to prevent layout jump) */}
