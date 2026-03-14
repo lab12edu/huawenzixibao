@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import type { VocabItem } from '../data/vocabTypes'
 import { useApp } from '../context/AppContext'
-import { ALL_VOCAB_LEVELS } from '../data/allVocab'
+import { getVocabForLevel } from '../data/allVocab'
 import {
   buildChallengePool,
   getPersonalBest,
@@ -80,7 +80,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
   // We extract only the items; its Question wrappers are discarded.
   // makeQuestion() is used for all option generation (4-option char quiz).
   const buildPool = useCallback((): VocabItem[] => {
-    const levelItems = ALL_VOCAB_LEVELS[selectedLevel] ?? []
+    const levelItems = getVocabForLevel(selectedLevel)
     if (levelItems.length < 4) return []
     const cqs = buildChallengePool(levelItems, 40)
     return cqs.map(q => q.item)   // keep SRS order; discard cqs options
