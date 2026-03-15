@@ -57,20 +57,23 @@ function LoadingDots() {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function EssayResult({ essayData, onSave, onBack, alreadySaved }: Props) {
-  const [isSpeaking, setIsSpeaking]   = useState(false)
-  const [scoreResult, setScoreResult] = useState<ScoreResult | null>(null)
-  const [isScoring, setIsScoring]     = useState(false)
-  const [scoreError, setScoreError]   = useState('')
-  const [saved, setSaved]             = useState(alreadySaved)
+  const [isSpeaking, setIsSpeaking]       = useState(false)
+  const [scoreResult, setScoreResult]     = useState<ScoreResult | null>(null)
+  const [isScoring, setIsScoring]         = useState(false)
+  const [scoreError, setScoreError]       = useState('')
+  const [saved, setSaved]                 = useState(alreadySaved)
+  const [fullEnhancing, setFullEnhancing] = useState(false)
+  const [enhancedEssay, setEnhancedEssay] = useState('')
 
   // Assemble full essay from sections
   const { sections, gender } = essayData
   const rawEssay = [
     sections.opening,
-    sections.rising,
-    sections.climax,
-    sections.resolution,
-    sections.closing,
+    sections.trigger,
+    sections.event1,
+    sections.event2,
+    sections.result,
+    sections.reflection,
   ].filter(Boolean).join('\n\n')
   const fullEssay = applyGender(rawEssay, gender)
 

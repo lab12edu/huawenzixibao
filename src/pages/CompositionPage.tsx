@@ -1,7 +1,7 @@
 // src/pages/CompositionPage.tsx
 // Orchestrates the full Writing Coach flow:
 //   1. Landing → topic selection (with optional student name + gender)
-//   2. CoachingFlow → five-section essay writing
+//   2. CoachingFlow → six-section essay writing
 //   3. EssayResult  → view score, save
 //   4. SavedEssays  → browse previously saved work
 

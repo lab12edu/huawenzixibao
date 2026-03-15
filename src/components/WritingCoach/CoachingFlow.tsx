@@ -1,6 +1,6 @@
 // src/components/WritingCoach/CoachingFlow.tsx
 // Multi-step composition coaching interface.
-// Five sections: opening → rising → climax → resolution → closing.
+// Six sections: opening → trigger → event1 → event2 → result → reflection.
 // Each section has phrase chips, idiom chips, AI enhance, and a textarea.
 // Gender substitution applied throughout: 他 → 她 when gender === 'female'.
 // Phase 5D: comparison diff view — side-by-side original vs AI suggestion.
@@ -20,42 +20,64 @@ const DRAFT_KEY = 'hwzxb_wc_draft'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
-export type SectionKey = 'opening' | 'rising' | 'climax' | 'resolution' | 'closing'
+export type SectionKey = 'opening' | 'trigger' | 'event1' | 'event2' | 'result' | 'reflection'
 
-export const SECTION_LABELS: Record<SectionKey, string> = {
-  opening:    '开头 Opening',
-  rising:     '事情经过（前） Rising',
-  climax:     '事情经过（高潮） Climax',
-  resolution: '事情结果 Resolution',
-  closing:    '结尾 Closing',
+export const SECTION_LABELS: Record<SectionKey, { cn: string; en: string }> = {
+  opening:    { cn: '开头',   en: 'Opening' },
+  trigger:    { cn: '起因',   en: 'Trigger' },
+  event1:     { cn: '经过①', en: 'Event ①' },
+  event2:     { cn: '经过②', en: 'Event ②' },
+  result:     { cn: '结果',   en: 'Result' },
+  reflection: { cn: '感想',   en: 'Reflection' },
 }
 
 const SECTION_INSTRUCTIONS: Record<SectionKey, { cn: string; en: string }> = {
-  opening:    { cn: '用一句话描述当时的天气或场景，引出故事。', en: 'Set the scene with weather or surroundings to open your story.' },
-  rising:     { cn: '说明事情是怎么开始的，发生了什么。',     en: 'Introduce the main event or what happened next.' },
-  climax:     { cn: '描写最重要的一幕：动作、心理、对话都要有。', en: 'Describe the most exciting or important moment.' },
-  resolution: { cn: '事情怎么结束的？结果如何？',             en: 'Explain how the situation was resolved or what changed.' },
-  closing:    { cn: '写下你的感想或从中学到的道理。',         en: 'Share your feelings or the lesson you learnt.' },
+  opening:    {
+    cn: '用一句话描述当时的天气或场景，引出故事。',
+    en: 'Set the scene with weather or surroundings to open your story.',
+  },
+  trigger:    {
+    cn: '交代事情发生的起因——是什么让这件事开始的？',
+    en: 'Explain what triggered the event — what made it all begin?',
+  },
+  event1:     {
+    cn: '描述事情经过的第一个阶段，写出人物的动作和心情。',
+    en: 'Describe the first part of the event — actions and feelings.',
+  },
+  event2:     {
+    cn: '写出事情最紧张或最重要的时刻，加上细节让读者身临其境。',
+    en: 'Write the most exciting or important moment with vivid details.',
+  },
+  result:     {
+    cn: '交代事情的结果——问题解决了吗？发生了什么变化？',
+    en: 'Describe the outcome — was the problem solved? What changed?',
+  },
+  reflection: {
+    cn: '写下你的感受或从这件事中学到的道理，点题升华。',
+    en: 'Share your feelings or the lesson you learnt — make it meaningful.',
+  },
 }
 
-const SECTION_KEYS: SectionKey[] = ['opening', 'rising', 'climax', 'resolution', 'closing']
+const SECTION_KEYS: SectionKey[] = ['opening', 'trigger', 'event1', 'event2', 'result', 'reflection']
 
 // Per-section phrase category suggestions
 const SECTION_PHRASE_CATEGORIES: Record<SectionKey, PhraseCategory[]> = {
   opening:    ['weather', 'scene', 'opening'],
-  rising:     ['scene', 'action', 'speech', 'emotion_nervous'],
-  climax:     ['action', 'emotion_sad', 'emotion_nervous', 'emotion_angry', 'psychology', 'metaphor', 'speech'],
-  resolution: ['emotion_happy', 'emotion_sad', 'action', 'appearance'],
-  closing:    ['closing', 'psychology', 'emotion_happy'],
+  trigger:    ['scene', 'emotion_nervous', 'psychology'],
+  event1:     ['action', 'speech', 'emotion_nervous'],
+  event2:     ['action', 'emotion_sad', 'psychology', 'metaphor'],
+  result:     ['emotion_happy', 'emotion_sad', 'action'],
+  reflection: ['closing', 'psychology', 'emotion_happy'],
 }
 
 // Per-section idiom ID suggestions
 const SECTION_IDIOM_IDS: Record<SectionKey, string[]> = {
-  opening:    ['i14', 'i01', 'i18'],
-  rising:     ['i03', 'i21', 'i01', 'i12'],
-  climax:     ['i02', 'i09', 'i15', 'i08', 'i11'],
-  resolution: ['i05', 'i07', 'i17', 'i04'],
-  closing:    ['i19', 'i16', 'i22', 'i25'],
+  opening:    ['idiom_014', 'idiom_010', 'idiom_025'],
+  trigger:    ['idiom_006', 'idiom_020', 'idiom_009'],
+  event1:     ['idiom_008', 'idiom_012', 'idiom_000', 'idiom_030'],
+  event2:     ['idiom_023', 'idiom_015', 'idiom_265', 'idiom_277'],
+  result:     ['idiom_022', 'idiom_026', 'idiom_002'],
+  reflection: ['idiom_003', 'idiom_019', 'idiom_031', 'idiom_017'],
 }
 
 export interface EssayData {
@@ -127,7 +149,7 @@ export default function CoachingFlow({
 }: Props) {
   const [currentIdx, setCurrentIdx] = useState<number>(restoredDraft?.currentIdx ?? 0)
   const [sections, setSections] = useState<Record<SectionKey, string>>(
-    restoredDraft?.sections ?? { opening: '', rising: '', climax: '', resolution: '', closing: '' }
+    restoredDraft?.sections ?? { opening: '', trigger: '', event1: '', event2: '', result: '', reflection: '' }
   )
   const [isEnhancing, setIsEnhancing] = useState(false)
   const [enhancedText, setEnhancedText] = useState<string>('')
@@ -226,17 +248,17 @@ export default function CoachingFlow({
     setEnhanceError('')
     const previousSectionsText = SECTION_KEYS
       .slice(0, currentIdx)
-      .map((key, i) => `第${i + 1}段（${SECTION_LABELS[key]}）：${sections[key] || '（未填写）'}`)
+      .map((key, i) => `第${i + 1}段（${SECTION_LABELS[key].cn}）：${sections[key] || '（未填写）'}`)
       .join('\n')
     const charCount = currentText.replace(/\s/g, '').length
     const needsExpansion = charCount < 50
     const enhancePrompt = `你是一位新加坡小学华文老师，正在帮助学生润色作文。
 
 作文题目：${topic.titleCn}
-作文体裁：记叙文（五段式）
+作文体裁：记叙文（六段式）
 学生年级：${level}
 
-${previousSectionsText ? `已完成的段落：\n${previousSectionsText}\n\n` : ''}当前段落（${SECTION_LABELS[currentKey]}）学生原文：
+${previousSectionsText ? `已完成的段落：\n${previousSectionsText}\n\n` : ''}当前段落（${SECTION_LABELS[currentKey].cn}）学生原文：
 ${currentText}
 
 要求：
@@ -400,7 +422,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
                 className={`step-item ${idx === currentIdx ? 'active' : idx < currentIdx ? 'done' : ''}`}
               >
                 <span>{idx < currentIdx ? '✓' : idx + 1}</span>
-                <span>{SECTION_LABELS[key]}</span>
+                <span>{SECTION_LABELS[key].cn}</span>
               </div>
             ))}
           </div>
@@ -476,6 +498,38 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
             </div>
           )}
 
+          {/* Reflection sentence starters — only shown on the reflection section */}
+          {currentKey === 'reflection' && (
+            <div style={{ marginBottom: '10px' }}>
+              <div className="chip-section-header">
+                💭 句子开头 <span className="chip-section-header-en">Sentence Starters</span>
+              </div>
+              <div className="chip-bar">
+                {[
+                  '经过这件事，我明白了……',
+                  '这次经历让我深深体会到……',
+                  '我下定决心，以后一定要……',
+                  '看着眼前的一幕，我心里充满了……',
+                  '这件事深深地印在我的脑海里……',
+                  '我感到十分惭愧，心里暗暗发誓……',
+                ].map((starter) => (
+                  <button
+                    key={starter}
+                    className="chip chip-phrase"
+                    onClick={() => {
+                      setSections(prev => ({
+                        ...prev,
+                        [currentKey]: (prev[currentKey] ? prev[currentKey] + '\n' : '') + starter,
+                      }))
+                    }}
+                  >
+                    {starter}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Image analysis collapsible */}
           {imageAnalysis && (
             <div style={{ marginBottom: '10px' }}>
@@ -505,7 +559,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
 
           {/* Section title + instruction */}
           <div className="section-label">
-            {currentIdx + 1}. {SECTION_LABELS[currentKey]}
+            {currentIdx + 1}. {SECTION_LABELS[currentKey].cn} <span style={{ fontSize: '0.8em', color: 'var(--color-text-muted)', marginLeft: '4px' }}>{SECTION_LABELS[currentKey].en}</span>
           </div>
           <div className="section-instruction">
             <p className="section-instruction-cn">{SECTION_INSTRUCTIONS[currentKey].cn}</p>
@@ -602,8 +656,8 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
                 className="section-textarea"
                 value={currentText}
                 onChange={e => setSections(prev => ({ ...prev, [currentKey]: e.target.value }))}
-                placeholder={`在这里写【${SECTION_LABELS[currentKey]}】…`}
-                aria-label={SECTION_LABELS[currentKey]}
+                placeholder={`在这里写【${SECTION_LABELS[currentKey].cn}】…`}
+                aria-label={SECTION_LABELS[currentKey].cn}
               />
 
               {/* Enhance button — disabled while enhancing or in comparison mode */}
