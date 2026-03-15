@@ -894,8 +894,8 @@ function DictationCard({ item, isError, onKnow, onReview }: {
       padding: 10,
       showCharacter: false,
       showOutline: false,
-      strokeColor: 'var(--color-primary)', outlineColor: '#CCCCCC',
-      drawingColor: 'var(--color-primary)',
+      strokeColor: '#006D77', outlineColor: '#E2E8F0',
+      drawingColor: '#006D77',
       drawingWidth: 6,
       showHintAfterMisses: false,
     })
@@ -981,7 +981,7 @@ function DictationCard({ item, isError, onKnow, onReview }: {
       }}>
         <div
           id={`dict-container-${item.id}`}
-          style={{ display: complete ? 'none' : 'block' }}
+          style={{ display: complete ? 'none' : 'block', width: size, height: size }}
         />
         {complete && (
           <div style={{
