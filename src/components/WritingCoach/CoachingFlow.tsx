@@ -5,7 +5,7 @@
 // Gender substitution applied throughout: 他 → 她 when gender === 'female'.
 // Phase 5D: comparison diff view — side-by-side original vs AI suggestion.
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import type { CompositionTopic } from '../../data/compositionTopics'
 import type { PhraseCategory, Phrase } from '../../data/phraseBank'
 import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
@@ -83,28 +83,17 @@ function applyGender(text: string, gender: 'male' | 'female'): string {
   return text
 }
 
-/**
- * Wrap sentences in the enhanced text that do not appear (even partially)
- * in the original text with <mark class="diff-highlight">.
- * Splits on Chinese sentence-ending punctuation and full stops.
- */
 function highlightDiff(original: string, enhanced: string): string {
-  // Split enhanced text into sentences using Chinese and English punctuation
-  const sentencePattern = /([^。！？!?\n]+[。！？!?\n]?)/g
-  const sentences = enhanced.match(sentencePattern) ?? [enhanced]
+  const splitBySentence = (text: string): string[] =>
+    text.split(/(?<=[。！？，、])/u).filter(s => s.trim().length > 0)
 
-  return sentences
-    .map(sentence => {
-      const core = sentence.trim().replace(/[。！？!?\n]/g, '')
-      if (!core) return sentence
-      // Check whether a meaningful substring (≥ 4 chars) of the sentence exists in the original
-      const checkLen = Math.min(core.length, 6)
-      const sample = core.slice(0, checkLen)
-      if (original.includes(sample)) {
-        return sentence
-      }
-      return `<mark class="diff-highlight">${sentence}</mark>`
-    })
+  const originalSentences = new Set(splitBySentence(original))
+  return splitBySentence(enhanced)
+    .map(sentence =>
+      originalSentences.has(sentence)
+        ? sentence
+        : `<mark class="diff-highlight">${sentence}</mark>`
+    )
     .join('')
 }
 
@@ -144,6 +133,13 @@ export default function CoachingFlow({
   const [enhanceError, setEnhanceError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // ── Reset comparison state on section change ─────────────────────────────
+  useEffect(() => {
+    setEnhancedText('')
+    setComparisonMode(false)
+    setEnhanceError('')
+  }, [currentIdx])
 
   const currentKey = SECTION_KEYS[currentIdx]
   const currentText = sections[currentKey]
@@ -413,46 +409,44 @@ export default function CoachingFlow({
 
           {/* ── Comparison view (Phase 5D) ── */}
           {comparisonMode ? (
-            <div className="comparison-view">
-              <div className="comparison-cols">
+            <div className="comparison-container">
 
-                {/* Original */}
-                <div className="comparison-box comparison-box--original">
-                  <div className="comparison-box__label">我的原稿</div>
-                  <div className="comparison-box__text">{currentText}</div>
-                </div>
-
-                {/* AI suggestion */}
-                <div className="comparison-box comparison-box--enhanced">
-                  <div className="comparison-box__label">AI 润色建议</div>
-                  <div
-                    className="comparison-box__text"
-                    // eslint-disable-next-line react/no-danger
-                    dangerouslySetInnerHTML={{
-                      __html: highlightDiff(currentText, enhancedText),
-                    }}
-                  />
-                </div>
+              {/* Original */}
+              <div className="comparison-box original">
+                <span className="comparison-label">我的原稿</span>
+                <p className="comparison-text">{currentText}</p>
               </div>
 
-              {/* Three-way action row */}
+              {/* AI suggestion */}
+              <div className="comparison-box enhanced">
+                <span className="comparison-label">AI 润色建议</span>
+                <p
+                  className="comparison-text"
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{
+                    __html: highlightDiff(currentText, enhancedText),
+                  }}
+                />
+              </div>
+
+              {/* Three-way action row — nested inside container for animation */}
               <div className="comparison-actions">
                 <button
-                  className="btn-primary comparison-actions__accept"
+                  className="btn-primary"
                   onClick={handleAcceptSuggestion}
                   aria-label="采用 AI 润色建议"
                 >
                   ✅ 采用建议
                 </button>
                 <button
-                  className="btn-secondary comparison-actions__edit"
+                  className="btn-secondary"
                   onClick={handleEditSuggestion}
                   aria-label="在 AI 建议基础上继续修改"
                 >
                   ✏️ 在此基础上修改
                 </button>
                 <button
-                  className="btn-ghost comparison-actions__discard"
+                  className="btn-ghost"
                   onClick={handleDiscardSuggestion}
                   aria-label="保留原文，放弃 AI 建议"
                 >
