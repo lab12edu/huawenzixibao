@@ -1,33 +1,99 @@
 // src/pages/CompositionPage.tsx
+// Orchestrates the full Writing Coach flow:
+//   1. Landing → topic selection (with optional student name + gender)
+//   2. CoachingFlow → five-section essay writing
+//   3. EssayResult  → view score, save
+//   4. SavedEssays  → browse previously saved work
 
 import React, { useState } from 'react'
 import WritingCoachLanding from '../components/WritingCoach/WritingCoachLanding'
+import CoachingFlow from '../components/WritingCoach/CoachingFlow'
+import EssayResult from '../components/WritingCoach/EssayResult'
+import SavedEssays from '../components/WritingCoach/SavedEssays'
 import type { CompositionTopic } from '../data/compositionTopics'
+import type { EssayData } from '../components/WritingCoach/CoachingFlow'
+
+type View = 'landing' | 'coaching' | 'result' | 'saved'
 
 export default function CompositionPage() {
+  const [view, setView]                   = useState<View>('landing')
   const [selectedTopic, setSelectedTopic] = useState<CompositionTopic | null>(null)
+  const [studentName, setStudentName]     = useState<string>('学生')
+  const [gender, setGender]               = useState<'male' | 'female'>('male')
+  const [level, setLevel]                 = useState<string>('P6')
+  const [essayData, setEssayData]         = useState<EssayData | null>(null)
+  const [essaySaved, setEssaySaved]       = useState(false)
 
-  // Phase 5B will replace this stub with the full coaching flow
-  if (selectedTopic) {
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleSelectTopic = (
+    topic: CompositionTopic,
+    name: string,
+    gen: 'male' | 'female',
+    lv: string
+  ) => {
+    setSelectedTopic(topic)
+    setStudentName(name)
+    setGender(gen)
+    setLevel(lv)
+    setEssayData(null)
+    setEssaySaved(false)
+    setView('coaching')
+  }
+
+  const handleCoachingComplete = (data: EssayData) => {
+    setEssayData(data)
+    setEssaySaved(false)
+    setView('result')
+  }
+
+  const handleBackFromCoaching = () => {
+    setView('landing')
+  }
+
+  const handleBackFromResult = () => {
+    setView('coaching')
+  }
+
+  const handleEssaySaved = () => {
+    setEssaySaved(true)
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  if (view === 'saved') {
+    return <SavedEssays onBack={() => setView('landing')} />
+  }
+
+  if (view === 'result' && essayData) {
     return (
-      <div className="wc-stub-selected">
-        <button
-          className="wc-back-btn"
-          onClick={() => setSelectedTopic(null)}
-        >
-          ← 返回题目列表 Back to topics
-        </button>
-        <div className="wc-stub-card">
-          <p className="wc-stub-label">已选题目 / Selected Topic</p>
-          <h2 className="wc-stub-title">{selectedTopic.titleCn}</h2>
-          <p className="wc-stub-source">{selectedTopic.source}</p>
-          <p className="wc-stub-coming">
-            🚧 写作引导流程即将推出 / Writing Coach flow coming in Phase 5B
-          </p>
-        </div>
-      </div>
+      <EssayResult
+        essayData={essayData}
+        onSave={handleEssaySaved}
+        onBack={handleBackFromResult}
+        alreadySaved={essaySaved}
+      />
     )
   }
 
-  return <WritingCoachLanding onSelectTopic={setSelectedTopic} />
+  if (view === 'coaching' && selectedTopic) {
+    return (
+      <CoachingFlow
+        topic={selectedTopic}
+        studentName={studentName}
+        level={level}
+        gender={gender}
+        onComplete={handleCoachingComplete}
+        onBack={handleBackFromCoaching}
+      />
+    )
+  }
+
+  // Default: landing
+  return (
+    <WritingCoachLanding
+      onSelectTopic={handleSelectTopic}
+      onViewSaved={() => setView('saved')}
+    />
+  )
 }

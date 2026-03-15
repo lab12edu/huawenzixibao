@@ -9,15 +9,23 @@ import {
 } from '../../data/compositionTopics'
 
 interface Props {
-  onSelectTopic: (topic: CompositionTopic) => void
+  onSelectTopic: (
+    topic: CompositionTopic,
+    studentName: string,
+    gender: 'male' | 'female',
+    level: string
+  ) => void
+  onViewSaved: () => void
 }
 
 const LEVELS: CompositionLevel[] = ['P5', 'P6', 'PSLE']
 
-export default function WritingCoachLanding({ onSelectTopic }: Props) {
+export default function WritingCoachLanding({ onSelectTopic, onViewSaved }: Props) {
   const [selectedLevel, setSelectedLevel] = useState<CompositionLevel>('P6')
   const [selectedTheme, setSelectedTheme] = useState<CompositionTheme | 'all'>('all')
-  const [showInfo, setShowInfo] = useState(false)
+  const [showInfo, setShowInfo]           = useState(false)
+  const [studentName, setStudentName]     = useState('')
+  const [gender, setGender]               = useState<'male' | 'female'>('male')
 
   const filtered = getTopicsByLevel(selectedLevel).filter(
     t => selectedTheme === 'all' || t.theme === selectedTheme
@@ -26,6 +34,11 @@ export default function WritingCoachLanding({ onSelectTopic }: Props) {
   const themesForLevel = Array.from(
     new Set(getTopicsByLevel(selectedLevel).map(t => t.theme))
   )
+
+  const handleTopicClick = (topic: CompositionTopic) => {
+    const name = studentName.trim() || '学生'
+    onSelectTopic(topic, name, gender, selectedLevel)
+  }
 
   return (
     <div className="wc-landing">
@@ -39,13 +52,22 @@ export default function WritingCoachLanding({ onSelectTopic }: Props) {
             <p className="wc-title-en">AI Writing Coach</p>
           </div>
         </div>
-        <button
-          className="wc-info-btn"
-          onClick={() => setShowInfo(v => !v)}
-          aria-label={showInfo ? '收起说明 Hide info' : '了解更多 Learn more'}
-        >
-          {showInfo ? '收起 Hide ▲' : '家长须知 Parent Guide ▼'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+            onClick={onViewSaved}
+          >
+            💾 已储存 Saved
+          </button>
+          <button
+            className="wc-info-btn"
+            onClick={() => setShowInfo(v => !v)}
+            aria-label={showInfo ? '收起说明 Hide info' : '了解更多 Learn more'}
+          >
+            {showInfo ? '收起 Hide ▲' : '家长须知 Parent Guide ▼'}
+          </button>
+        </div>
       </div>
 
       {/* ── Parent info panel ── */}
@@ -210,6 +232,46 @@ export default function WritingCoachLanding({ onSelectTopic }: Props) {
         </div>
       )}
 
+      {/* ── Student setup ── */}
+      <div className="wc-section">
+        <p className="wc-section-label">学生设置 / Student Settings</p>
+        <div className="wc-student-setup">
+          <div className="wc-student-field">
+            <label htmlFor="wc-student-name" className="wc-student-label">
+              姓名 Name
+            </label>
+            <input
+              id="wc-student-name"
+              className="wc-student-input"
+              type="text"
+              placeholder="输入学生姓名 Enter student name"
+              value={studentName}
+              onChange={e => setStudentName(e.target.value)}
+              maxLength={20}
+            />
+          </div>
+          <div className="wc-student-field">
+            <p className="wc-student-label">性别 Gender</p>
+            <div className="wc-gender-toggle">
+              <button
+                className={`wc-gender-btn ${gender === 'male' ? 'active' : ''}`}
+                onClick={() => setGender('male')}
+                aria-pressed={gender === 'male'}
+              >
+                男 Male
+              </button>
+              <button
+                className={`wc-gender-btn ${gender === 'female' ? 'active' : ''}`}
+                onClick={() => setGender('female')}
+                aria-pressed={gender === 'female'}
+              >
+                女 Female
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── Level selector ── */}
       <div className="wc-section">
         <p className="wc-section-label">选择年级 / Select Level</p>
@@ -266,7 +328,7 @@ export default function WritingCoachLanding({ onSelectTopic }: Props) {
             <button
               key={topic.id}
               className="wc-topic-card"
-              onClick={() => onSelectTopic(topic)}
+              onClick={() => handleTopicClick(topic)}
             >
               <div className="wc-topic-card-top">
                 <span className="wc-topic-theme-badge">

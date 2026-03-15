@@ -69,3 +69,39 @@ export async function smokeTest(): Promise<string> {
   )
   return result.error ?? result.text
 }
+
+// ── Image + text call using gemini-1.5-flash ────────────────────────────────
+// base64Image: raw base64 string (JPEG or PNG), no data URI prefix.
+// Returns the text response string, or throws on HTTP error.
+export async function callGeminiWithImage(
+  prompt: string,
+  base64Image: string
+): Promise<string> {
+  const key = getKey()
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`
+  const body = {
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { inline_data: { mime_type: 'image/jpeg', data: base64Image } },
+          { text: prompt }
+        ]
+      }
+    ],
+    generationConfig: {
+      temperature: 0.6,
+      maxOutputTokens: 512,
+    }
+  }
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    throw new Error(`Gemini image API error ${res.status}: ${res.statusText}`)
+  }
+  const data = await res.json()
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+}
