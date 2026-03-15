@@ -2,7 +2,7 @@
 // Model-agnostic Gemini utility — uses native fetch only, no SDK.
 // All calls are wrapped in try/catch to degrade gracefully.
 
-const MODEL = 'gemini-2.5-flash-lite-preview-06-17'
+const MODEL = 'gemini-1.5-flash'
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 function getKey(): string {
@@ -78,13 +78,15 @@ export async function callGeminiWithImage(
   base64Image: string
 ): Promise<string> {
   const key = getKey()
+  // Strip data URI prefix if caller passed a full data URL
+  const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, '')
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`
   const body = {
     contents: [
       {
         role: 'user',
         parts: [
-          { inline_data: { mime_type: 'image/jpeg', data: base64Image } },
+          { inline_data: { mime_type: 'image/jpeg', data: cleanBase64 } },
           { text: prompt }
         ]
       }

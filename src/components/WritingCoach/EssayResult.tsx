@@ -83,7 +83,7 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
       const prompt =
         '你是新加坡小学华文作文评卷老师。请根据以下14个维度为这篇小学作文评分，' +
         '每个维度满分为5分（1=很弱，5=非常好）。' +
-        '只返回合法JSON，格式：{"dimensions":[{"name":"内容","score":4},...],"totalScore":52,"feedback":"一句总评"}。' +
+        '只返回合法JSON，格式：{"dimensions":[{"name":"内容","score":4},...],"totalScore":52,"feedback":"CN总评 / EN summary"}。' +
         '14个维度：内容、结构、开头、结尾、心理描写、动作描写、对话描写、场景描写、' +
         '成语运用、比喻句、词汇量、句子变化、标点符号、整体流畅度。\n\n' +
         `作文内容：\n${fullEssay}`
@@ -93,12 +93,16 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
         setScoreError('AI 评分暂时不可用，请稍后重试。')
       } else {
         try {
-          // Strip markdown code fences if present
-          const clean = result.text.replace(/```json|```/g, '').trim()
-          const parsed: ScoreResult = JSON.parse(clean)
+          const match = result.text.match(/\{[\s\S]*\}/)
+          if (!match) {
+            setScoreError('评分结果格式异常，请重试。 Score format error, please retry.')
+            setIsScoring(false)
+            return
+          }
+          const parsed: ScoreResult = JSON.parse(match[0])
           setScoreResult(parsed)
         } catch {
-          setScoreError('评分结果格式异常，请重试。')
+          setScoreError('评分结果格式异常，请重试。 Score format error, please retry.')
         }
       }
       setIsScoring(false)

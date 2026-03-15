@@ -19,19 +19,19 @@ import PhrasePickerModal from './PhrasePickerModal'
 export type SectionKey = 'opening' | 'rising' | 'climax' | 'resolution' | 'closing'
 
 export const SECTION_LABELS: Record<SectionKey, string> = {
-  opening:    '开头',
-  rising:     '事情经过（前）',
-  climax:     '事情经过（高潮）',
-  resolution: '事情结果',
-  closing:    '结尾',
+  opening:    '开头 Opening',
+  rising:     '事情经过（前） Rising',
+  climax:     '事情经过（高潮） Climax',
+  resolution: '事情结果 Resolution',
+  closing:    '结尾 Closing',
 }
 
 const SECTION_INSTRUCTIONS: Record<SectionKey, string> = {
-  opening:    '用一句话描述当时的天气或场景，引出故事。',
-  rising:     '说明事情是怎么开始的，发生了什么。',
-  climax:     '描写最重要的一幕：动作、心理、对话都要有。',
-  resolution: '事情怎么结束的？结果如何？',
-  closing:    '写下你的感想或从中学到的道理。',
+  opening:    '用一句话描述当时的天气或场景，引出故事。 Set the scene with weather or surroundings to open your story.',
+  rising:     '说明事情是怎么开始的，发生了什么。 Explain how the event started and what happened.',
+  climax:     '描写最重要的一幕：动作、心理、对话都要有。 Write the key moment with actions, thoughts, and dialogue.',
+  resolution: '事情怎么结束的？结果如何？ How did the situation resolve? What was the outcome?',
+  closing:    '写下你的感想或从中学到的道理。 Share your feelings or the lesson you learnt.',
 }
 
 const SECTION_KEYS: SectionKey[] = ['opening', 'rising', 'climax', 'resolution', 'closing']
@@ -272,6 +272,13 @@ export default function CoachingFlow({
 
   const handleBack = () => {
     if (currentIdx === 0) {
+      const hasContent = Object.values(sections).some(s => s.trim().length > 0)
+      if (hasContent) {
+        const confirmed = window.confirm(
+          '返回将失去未保存的内容。确定要返回吗？\nGo back? Your unsaved writing will be lost.'
+        )
+        if (!confirmed) return
+      }
       onBack()
     } else {
       setCurrentIdx(i => i - 1)
