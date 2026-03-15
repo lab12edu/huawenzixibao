@@ -15,6 +15,9 @@ import { callGemini, callGeminiWithImage } from '../../utils/aiApi'
 import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
 
+// ── Draft persistence ────────────────────────────────────────────────────
+const DRAFT_KEY = 'hwzxb_wc_draft'
+
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export type SectionKey = 'opening' | 'rising' | 'climax' | 'resolution' | 'closing'
@@ -27,12 +30,12 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
   closing:    '结尾 Closing',
 }
 
-const SECTION_INSTRUCTIONS: Record<SectionKey, string> = {
-  opening:    '用一句话描述当时的天气或场景，引出故事。 Set the scene with weather or surroundings to open your story.',
-  rising:     '说明事情是怎么开始的，发生了什么。 Explain how the event started and what happened.',
-  climax:     '描写最重要的一幕：动作、心理、对话都要有。 Write the key moment with actions, thoughts, and dialogue.',
-  resolution: '事情怎么结束的？结果如何？ How did the situation resolve? What was the outcome?',
-  closing:    '写下你的感想或从中学到的道理。 Share your feelings or the lesson you learnt.',
+const SECTION_INSTRUCTIONS: Record<SectionKey, { cn: string; en: string }> = {
+  opening:    { cn: '用一句话描述当时的天气或场景，引出故事。', en: 'Set the scene with weather or surroundings to open your story.' },
+  rising:     { cn: '说明事情是怎么开始的，发生了什么。',     en: 'Introduce the main event or what happened next.' },
+  climax:     { cn: '描写最重要的一幕：动作、心理、对话都要有。', en: 'Describe the most exciting or important moment.' },
+  resolution: { cn: '事情怎么结束的？结果如何？',             en: 'Explain how the situation was resolved or what changed.' },
+  closing:    { cn: '写下你的感想或从中学到的道理。',         en: 'Share your feelings or the lesson you learnt.' },
 }
 
 const SECTION_KEYS: SectionKey[] = ['opening', 'rising', 'climax', 'resolution', 'closing']
@@ -67,6 +70,11 @@ export interface EssayData {
   imageAnalysis?: string
 }
 
+interface RestoredDraft {
+  sections: Record<SectionKey, string>
+  currentIdx: number
+}
+
 interface Props {
   topic: CompositionTopic
   studentName: string
@@ -74,6 +82,7 @@ interface Props {
   gender: 'male' | 'female'
   onComplete: (essayData: EssayData) => void
   onBack: () => void
+  restoredDraft?: RestoredDraft | null
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -114,11 +123,12 @@ export default function CoachingFlow({
   gender,
   onComplete,
   onBack,
+  restoredDraft,
 }: Props) {
-  const [currentIdx, setCurrentIdx] = useState(0)
-  const [sections, setSections] = useState<Record<SectionKey, string>>({
-    opening: '', rising: '', climax: '', resolution: '', closing: '',
-  })
+  const [currentIdx, setCurrentIdx] = useState<number>(restoredDraft?.currentIdx ?? 0)
+  const [sections, setSections] = useState<Record<SectionKey, string>>(
+    restoredDraft?.sections ?? { opening: '', rising: '', climax: '', resolution: '', closing: '' }
+  )
   const [isEnhancing, setIsEnhancing] = useState(false)
   const [enhancedText, setEnhancedText] = useState<string>('')
   const [comparisonMode, setComparisonMode] = useState<boolean>(false)
@@ -136,6 +146,19 @@ export default function CoachingFlow({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const idiomCloseRef = useRef<HTMLButtonElement>(null)
+
+  // ── Auto-save draft to localStorage on every write ────────────────────────
+  useEffect(() => {
+    const draft = {
+      topicId: topic.id,
+      topicTitleCn: topic.titleCn,
+      level,
+      sections,
+      currentIdx,
+      savedAt: Date.now(),
+    }
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+  }, [sections, currentIdx])
 
   // ── Reset comparison state on section change ─────────────────────────────
   useEffect(() => {
@@ -236,8 +259,12 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
       setEnhancedText(enhanced)
       // Fetch English translation for parent/student reference
       try {
-        const translationPrompt = `Translate this Chinese text into 2 to 3 simple English sentences suitable for a Singapore primary school parent. Use simple everyday words. Return only the English translation, nothing else.\n\n${enhanced}`
-        const translationResult = await callGemini('You are a helpful translator.', translationPrompt)
+        const translationPrompt = `Translate this Chinese text into exactly 2 simple English sentences for a Singapore primary school parent. Simple everyday words only. Return only the English translation, no explanation.\n\n${enhanced}`
+        const translationResult = await callGemini(
+          'You are a helpful translator.',
+          translationPrompt,
+          { maxOutputTokens: 256, temperature: 0.3, thinkingConfig: { thinkingBudget: 0 } }
+        )
         setEnhancedTranslation(translationResult.text.trim())
       } catch {
         setEnhancedTranslation('')
@@ -312,6 +339,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
   const handleNext = () => {
     if (!canAdvance) return
     if (isLastSection) {
+      localStorage.removeItem(DRAFT_KEY)
       onComplete({
         topicId: topic.id,
         topicTitle: topic.titleCn,
@@ -480,7 +508,8 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
             {currentIdx + 1}. {SECTION_LABELS[currentKey]}
           </div>
           <div className="section-instruction">
-            {SECTION_INSTRUCTIONS[currentKey]}
+            <p className="section-instruction-cn">{SECTION_INSTRUCTIONS[currentKey].cn}</p>
+            <p className="section-instruction-en">{SECTION_INSTRUCTIONS[currentKey].en}</p>
           </div>
 
           {/* ── Comparison view (Phase 5D) ── */}

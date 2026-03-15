@@ -5,15 +5,18 @@
 //   3. EssayResult  → view score, save
 //   4. SavedEssays  → browse previously saved work
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import WritingCoachLanding from '../components/WritingCoach/WritingCoachLanding'
 import CoachingFlow from '../components/WritingCoach/CoachingFlow'
 import EssayResult from '../components/WritingCoach/EssayResult'
 import SavedEssays from '../components/WritingCoach/SavedEssays'
 import type { CompositionTopic } from '../data/compositionTopics'
+import { getTopicById } from '../data/compositionTopics'
 import type { EssayData } from '../components/WritingCoach/CoachingFlow'
 
 type View = 'landing' | 'coaching' | 'result' | 'saved'
+
+const DRAFT_KEY = 'hwzxb_wc_draft'
 
 export default function CompositionPage() {
   const [view, setView]                   = useState<View>('landing')
@@ -23,6 +26,38 @@ export default function CompositionPage() {
   const [level, setLevel]                 = useState<string>('P6')
   const [essayData, setEssayData]         = useState<EssayData | null>(null)
   const [essaySaved, setEssaySaved]       = useState(false)
+  const [restoredDraft, setRestoredDraft] = useState<Record<string, unknown> | null>(null)
+
+  // ── Restore draft on mount ───────────────────────────────────────────────────────
+  useEffect(() => {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    if (!raw) return
+    try {
+      const draft = JSON.parse(raw)
+      // Only restore if draft is less than 24 hours old
+      if (Date.now() - draft.savedAt > 86_400_000) {
+        localStorage.removeItem(DRAFT_KEY)
+        return
+      }
+      const restore = window.confirm(
+        `发现未完成的作文草稿：“${draft.topicTitleCn}”\n\nFound an unfinished draft: “${draft.topicTitleCn}”\n\nDo you want to continue where you left off?\n是否继续上次的作文？`
+      )
+      if (restore) {
+        // Attempt to look up the topic so the coaching view can render
+        const restoredTopic = getTopicById(draft.topicId as string)
+        if (restoredTopic) {
+          setSelectedTopic(restoredTopic)
+          setLevel((draft.level as string) || 'P6')
+        }
+        setRestoredDraft(draft)
+        setView('coaching')
+      } else {
+        localStorage.removeItem(DRAFT_KEY)
+      }
+    } catch {
+      localStorage.removeItem(DRAFT_KEY)
+    }
+  }, [])
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -38,6 +73,7 @@ export default function CompositionPage() {
     setLevel(lv)
     setEssayData(null)
     setEssaySaved(false)
+    setRestoredDraft(null)
     setView('coaching')
   }
 
@@ -85,6 +121,14 @@ export default function CompositionPage() {
         gender={gender}
         onComplete={handleCoachingComplete}
         onBack={handleBackFromCoaching}
+        restoredDraft={
+          restoredDraft?.sections && restoredDraft?.currentIdx !== undefined
+            ? {
+                sections: restoredDraft.sections as Record<string, string>,
+                currentIdx: restoredDraft.currentIdx as number,
+              }
+            : null
+        }
       />
     )
   }

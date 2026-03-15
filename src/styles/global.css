@@ -4036,3 +4036,20 @@ mark.diff-highlight {
   justify-content: flex-end;
 }
 /* ── End full essay enhance ──────────────────────────────────────── */
+
+/* ── Section instruction bilingual subtitles ────────────────────── */
+.section-instruction-cn {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 2px 0;
+  line-height: 1.5;
+}
+
+.section-instruction-en {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+  opacity: 0.75;
+}
+/* ── End section instruction ────────────────────────────────────── */
