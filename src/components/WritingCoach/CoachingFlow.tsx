@@ -12,7 +12,7 @@ import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
 import { IDIOM_BANK } from '../../data/idiomBank'
 import { callGemini, callGeminiWithImage } from '../../utils/aiApi'
-import { speak } from '../../utils/tts'
+import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -132,6 +132,7 @@ export default function CoachingFlow({
   const [activeIdiom, setActiveIdiom] = useState<Idiom | null>(null)
   const [enhanceError, setEnhanceError] = useState('')
   const [enhancedTranslation, setEnhancedTranslation] = useState<string>('')
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const idiomCloseRef = useRef<HTMLButtonElement>(null)
@@ -142,6 +143,8 @@ export default function CoachingFlow({
     setComparisonMode(false)
     setEnhanceError('')
     setEnhancedTranslation('')
+    cancelSpeak()
+    setIsSpeaking(false)
   }, [currentIdx])
 
   // ── Auto-focus idiom close button when overlay opens ─────────────────────
@@ -198,15 +201,26 @@ export default function CoachingFlow({
     if (!currentText.trim() || isEnhancing || comparisonMode) return
     setIsEnhancing(true)
     setEnhanceError('')
-    const genderChar = gender === 'female' ? '女生' : '男生'
-    const pronoun   = gender === 'female' ? '她' : '他'
-    const prompt =
-      `你是新加坡小学华文作文老师。以下是学生写的【${SECTION_LABELS[currentKey]}】部分：\n\n${currentText}\n\n` +
-      `请帮学生把这段文字改得更生动，使用简单汉字，控制在120字以内。` +
-      `如果学生的主角是${genderChar}，请使用正确的"${pronoun}"。` +
-      `请用好词好句，避免生僻字。只需要返回改好的段落，不要解释。` +
-      `请用简单的新加坡小学华文，避免生僻字。`
-    const result = await callGemini('你是一位专业的小学华文作文老师。', prompt)
+    const previousSectionsText = SECTION_KEYS
+      .slice(0, currentIdx)
+      .map((key, i) => `第${i + 1}段（${SECTION_LABELS[key]}）：${sections[key] || '（未填写）'}`)
+      .join('\n')
+    const enhancePrompt = `你是一位新加坡小学华文老师，正在帮助学生润色作文。
+
+作文题目：${topic.titleCn}
+作文体裁：记叙文（五段式）
+
+${previousSectionsText ? `已完成的段落：\n${previousSectionsText}\n\n` : ''}当前段落（${SECTION_LABELS[currentKey]}）学生原文：
+${currentText}
+
+要求：
+1. 改写必须包含学生原文中的所有内容，不得遗漏任何句子或意思。
+2. 使用新加坡小学华文P3至P5水平的词汇，避免生僻字和成语，除非学生原文已使用。
+3. 句子要自然流畅，适合小学生写作风格。
+4. 必须与作文题目紧密相关。
+5. 如果已有前面段落，改写内容必须与前文自然衔接。
+6. 直接输出改写后的段落，不要解释，不要标题。`
+    const result = await callGemini('你是一位专业的新加坡小学华文作文老师。', enhancePrompt)
     if (result.error) {
       setEnhanceError('AI 润色失败，请稍后再试。')
     } else {
@@ -214,7 +228,7 @@ export default function CoachingFlow({
       setEnhancedText(enhanced)
       // Fetch English translation for parent/student reference
       try {
-        const translationPrompt = `Translate the following Chinese text into simple English suitable for a Singapore primary school parent. Keep it natural and brief. Return only the English translation, no explanation.\n\n${enhanced}`
+        const translationPrompt = `Translate this Chinese text into 2 to 3 simple English sentences suitable for a Singapore primary school parent. Use simple everyday words. Return only the English translation, nothing else.\n\n${enhanced}`
         const translationResult = await callGemini('You are a helpful translator.', translationPrompt)
         setEnhancedTranslation(translationResult.text.trim())
       } catch {
@@ -229,6 +243,8 @@ export default function CoachingFlow({
 
   /** Accept the AI suggestion: replace textarea content. */
   const handleAcceptSuggestion = () => {
+    cancelSpeak()
+    setIsSpeaking(false)
     setSections(prev => ({ ...prev, [currentKey]: enhancedText }))
     setEnhancedText('')
     setComparisonMode(false)
@@ -237,6 +253,8 @@ export default function CoachingFlow({
 
   /** Copy AI suggestion to textarea for further editing, then focus it. */
   const handleEditSuggestion = () => {
+    cancelSpeak()
+    setIsSpeaking(false)
     setSections(prev => ({ ...prev, [currentKey]: enhancedText }))
     setEnhancedText('')
     setComparisonMode(false)
@@ -247,6 +265,8 @@ export default function CoachingFlow({
 
   /** Discard AI suggestion and keep original text. */
   const handleDiscardSuggestion = () => {
+    cancelSpeak()
+    setIsSpeaking(false)
     setEnhancedText('')
     setComparisonMode(false)
     setEnhancedTranslation('')
@@ -351,9 +371,9 @@ export default function CoachingFlow({
 
           {/* Phrase chips */}
           <div style={{ marginBottom: '10px' }}>
-            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '6px', fontWeight: 600 }}>
-              📝 好词好句
-            </p>
+            <div className="chip-section-header">
+              📝 好词好句 <span className="chip-section-header-en">Good Phrases</span>
+            </div>
             <div className="chip-bar">
               {SECTION_PHRASE_CATEGORIES[currentKey].map(cat => (
                 <button
@@ -369,9 +389,9 @@ export default function CoachingFlow({
 
           {/* Idiom chips */}
           <div style={{ marginBottom: '10px' }}>
-            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '6px', fontWeight: 600 }}>
-              📖 成语
-            </p>
+            <div className="chip-section-header">
+              📖 成语 <span className="chip-section-header-en">Idioms</span>
+            </div>
             <div className="chip-bar">
               {sectionIdioms.map(idiom => (
                 <button
@@ -439,6 +459,14 @@ export default function CoachingFlow({
         {/* ── Right column ── */}
         <div className="coaching-right">
 
+          {/* Composition topic title */}
+          {topic.titleCn && (
+            <div className="coaching-topic-title">
+              <span className="coaching-topic-label">📝 作文题目 Essay Title:</span>
+              <span className="coaching-topic-text">{topic.titleCn}</span>
+            </div>
+          )}
+
           {/* Section title + instruction */}
           <div className="section-label">
             {currentIdx + 1}. {SECTION_LABELS[currentKey]}
@@ -464,15 +492,25 @@ export default function CoachingFlow({
                 <span className="comparison-label">AI 润色建议
                   <span className="comparison-label-en">AI Suggestion</span>
                 </span>
-                {/* TTS button row */}
+                {/* TTS toggle button */}
                 <div className="comparison-tts-row">
                   <button
                     className="btn-tts-small"
-                    onClick={() => speak(enhancedText)}
-                    title="Read aloud"
-                    aria-label="Read AI suggestion aloud"
+                    onClick={() => {
+                      if (isSpeaking) {
+                        cancelSpeak()
+                        setIsSpeaking(false)
+                      } else {
+                        setIsSpeaking(true)
+                        speakPassage(enhancedText, {
+                          onEnd: () => setIsSpeaking(false),
+                          onError: () => setIsSpeaking(false),
+                        })
+                      }
+                    }}
+                    aria-label={isSpeaking ? 'Stop reading' : 'Read AI suggestion aloud'}
                   >
-                    🔊 朗读 Read Aloud
+                    {isSpeaking ? '⏹ 停止 Stop' : '🔊 朗读 Read Aloud'}
                   </button>
                 </div>
 
