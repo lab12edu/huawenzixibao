@@ -2,7 +2,7 @@
 // Model-agnostic Gemini utility — uses native fetch only, no SDK.
 // All calls are wrapped in try/catch to degrade gracefully.
 
-const MODEL = 'gemini-1.5-flash'
+const MODEL = 'gemini-2.5-flash'
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 function getKey(): string {
@@ -70,7 +70,7 @@ export async function smokeTest(): Promise<string> {
   return result.error ?? result.text
 }
 
-// ── Image + text call using gemini-1.5-flash ────────────────────────────────
+// ── Image + text call ────────────────────────────────────────────────────────
 // base64Image: raw base64 string (JPEG or PNG), no data URI prefix.
 // Returns the text response string, or throws on HTTP error.
 export async function callGeminiWithImage(
@@ -80,7 +80,7 @@ export async function callGeminiWithImage(
   const key = getKey()
   // Strip data URI prefix if caller passed a full data URL
   const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, '')
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`
+  const url = `${API_BASE}/${MODEL}:generateContent?key=${key}`
   const body = {
     contents: [
       {
