@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useApp } from '../context/AppContext'
 import {
-  getVocabForLevel, getChaptersForLevel, getLevelStats,
+  getVocabForLevel, getChaptersForLevel,
 } from '../data/allVocab'
 import { VocabItem } from '../data/vocabTypes'
 import StrokeDemoModal from '../components/StrokeDemoModal'
@@ -219,8 +219,34 @@ export default function FlashcardPage() {
   const level = isNewGrade ? grade : `${grade}${semester}`
   const color = GRADE_COLORS[grade] ?? 'var(--color-primary)'
 
-  const allItems = useMemo(() => getVocabForLevel(level), [level])
-  const chapters = useMemo(() => getChaptersForLevel(level), [level])
+  // ── Async vocab state ──
+  const [allItems, setAllItems] = useState<VocabItem[]>([])
+  const [chapters, setChapters] = useState<number[]>([])
+  const [vocabLoading, setVocabLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setVocabLoading(true)
+    setAllItems([])
+    setChapters([])
+    async function load() {
+      try {
+        const [items, chaps] = await Promise.all([
+          getVocabForLevel(level),
+          getChaptersForLevel(level),
+        ])
+        if (!cancelled) {
+          setAllItems(items)
+          setChapters(chaps)
+        }
+      } finally {
+        if (!cancelled) setVocabLoading(false)
+      }
+    }
+    void load()
+    return () => { cancelled = true }
+  }, [level])
+
   const filteredItems = useMemo(() =>
     chapter === 'all' ? allItems : allItems.filter(v => v.chapter === chapter),
     [allItems, chapter])
@@ -352,6 +378,7 @@ export default function FlashcardPage() {
       srsCounts={srsCounts} errorBankCount={errorBankCount}
       needsMin4={needsMin4} modeDisabled={modeDisabled}
       onStart={() => startSession()}
+      vocabLoading={vocabLoading}
     />
   }
 
@@ -414,8 +441,9 @@ function SelectorScreen({
   grade, setGrade, semester, setSemester, chapter, setChapter,
   mode, setMode, color, isNewGrade, chapters, filteredItems,
   srsCounts, errorBankCount, needsMin4, modeDisabled, onStart,
+  vocabLoading,
 }: any) {
-  const noCards = filteredItems.length === 0
+  const noCards = !vocabLoading && filteredItems.length === 0
 
   return (
     <div style={{ padding: '0 0 32px' }}>
@@ -574,17 +602,17 @@ function SelectorScreen({
         {/* Start button */}
         <button
           onClick={onStart}
-          disabled={noCards}
+          disabled={noCards || vocabLoading}
           style={{
             width: '100%', maxWidth: 280, display: 'block', margin: '0 auto',
             height: 52, borderRadius: 16, border: 'none',
-            background: noCards ? '#BDBDBD' : 'var(--color-primary)',
+            background: (noCards || vocabLoading) ? '#BDBDBD' : 'var(--color-primary)',
             color: '#fff', fontSize: 18, fontWeight: 700,
-            cursor: noCards ? 'not-allowed' : 'pointer',
+            cursor: (noCards || vocabLoading) ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s',
           }}
         >
-          开始复习 / Start Review
+          {vocabLoading ? '正在加载…' : '开始复习 / Start Review'}
         </button>
 
       </div>

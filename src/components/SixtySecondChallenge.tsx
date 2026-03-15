@@ -105,6 +105,8 @@ export default function SixtySecondChallenge({ onClose }: Props) {
   const [streakCount, setStreakCount]             = useState(0)
   const [newBadges, setNewBadges]                 = useState<Badge[]>([])
   const [confettiActive, setConfettiActive]       = useState(false)
+  // ── Vocab loading state ───────────────────────────────────────
+  const [vocabLoading, setVocabLoading]           = useState(true)
 
   // ── Refs ─────────────────────────────────────────────────────
   const timerRef         = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -123,12 +125,12 @@ export default function SixtySecondChallenge({ onClose }: Props) {
     if (streakTimeoutRef.current) { clearTimeout(streakTimeoutRef.current); streakTimeoutRef.current = null }
   }
 
-  // ── Build SRS-weighted pool ───────────────────────────────────
+  // ── Build SRS-weighted pool (async) ──────────────────────────
   // buildChallengePool() provides SRS ordering as VocabItem[].
   // We extract only the items; its Question wrappers are discarded.
   // makeQuestion() is used for all option generation (4-option char quiz).
-  const buildPool = useCallback((): VocabItem[] => {
-    const levelItems = getVocabForLevel(selectedLevel)
+  const buildPool = useCallback(async (): Promise<VocabItem[]> => {
+    const levelItems = await getVocabForLevel(selectedLevel)
     if (levelItems.length < 4) return []
     const cqs = buildChallengePool(levelItems, 40)
     return cqs.map(q => q.item)   // keep SRS order; discard cqs options
@@ -158,11 +160,19 @@ export default function SixtySecondChallenge({ onClose }: Props) {
     setTappedIndex(null)
   }
 
-  // ── Mount: build pool ────────────────────────────────────────
+  // ── Mount: build pool asynchronously ────────────────────────
   useEffect(() => {
-    const p = buildPool()
-    poolRef.current = p
-    setPool(p)
+    let cancelled = false
+    setVocabLoading(true)
+    buildPool().then(p => {
+      if (cancelled) return
+      poolRef.current = p
+      setPool(p)
+      setVocabLoading(false)
+    }).catch(() => {
+      if (!cancelled) setVocabLoading(false)
+    })
+    return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -171,7 +181,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
 
   // ── Start challenge ──────────────────────────────────────────
   function handleStart() {
-    if (pool.length === 0) return
+    if (pool.length === 0 || vocabLoading) return
     clearAllTimers()
     setCountdown(3)
     setPhase('countdown')
@@ -295,7 +305,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
   }, [confettiActive])
 
   // ── Derived ──────────────────────────────────────────────────
-  const poolEmpty = pool.length === 0
+  const poolEmpty = pool.length === 0 || vocabLoading
 
   // ════════════════════════════════════════════════════════════
   // IDLE SCREEN
@@ -358,15 +368,15 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             最高分 <span style={{fontSize:'var(--text-2xs)',opacity:0.6}}>Personal Best</span>：{personalBest > 0 ? personalBest : '—'}
           </p>
 
-          {/* Empty level notice */}
+          {/* Empty level notice / loading notice */}
           {poolEmpty && (
             <p style={{
               textAlign: 'center',
               fontSize: 'var(--text-sm)',
-              color: 'var(--color-warning, #F57C00)',
+              color: vocabLoading ? '#9E9E9E' : 'var(--color-warning, #F57C00)',
               margin: '0 0 0.75rem',
             }}>
-              该年级暂无词汇。
+              {vocabLoading ? '正在加载题目…' : '该年级暂无词汇。'}
             </p>
           )}
 
@@ -375,7 +385,7 @@ export default function SixtySecondChallenge({ onClose }: Props) {
             onClick={handleStart}
             disabled={poolEmpty}
           >
-            开始挑战！Start
+            {vocabLoading ? '正在加载…' : '开始挑战！Start'}
           </button>
         </div>
       </div>
@@ -609,12 +619,17 @@ export default function SixtySecondChallenge({ onClose }: Props) {
               setAnswered(null)
               setNewBadges([])
               setPersonalBest(getPersonalBest(studentName, selectedLevel))
-              const fresh = buildChallengePool(getVocabForLevel(selectedLevel), 40).map(q => q.item)
-              poolRef.current = fresh
-              poolIndexRef.current = 0
-              setPool(fresh)
-              setPoolIndex(0)
-              setCurrentQuestion(null)
+              // Rebuild pool asynchronously
+              setVocabLoading(true)
+              getVocabForLevel(selectedLevel).then(levelItems => {
+                const fresh = buildChallengePool(levelItems, 40).map(q => q.item)
+                poolRef.current = fresh
+                poolIndexRef.current = 0
+                setPool(fresh)
+                setPoolIndex(0)
+                setCurrentQuestion(null)
+                setVocabLoading(false)
+              }).catch(() => setVocabLoading(false))
             }}
           >
             再来一次 Play Again

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import VocabCard from '../components/VocabCard'
 import { getVocabForLevel, getChaptersForLevel, searchVocab, getLevelStats, GRADE_LEVELS } from '../data/allVocab'
@@ -28,6 +28,9 @@ const SEMESTER_LABELS: Record<string, string> = {
   A: '上学期', B: '下学期',
 }
 
+// Suppress unused import warning — GRADE_LEVELS is imported for external consumers
+void GRADE_LEVELS
+
 type LabelFilter = 'all' | '识读' | '识写'
 
 // Derive the grade key and semester from a full level string
@@ -53,6 +56,9 @@ function parseLevelString(lv: string): { grade: string; semester: 'A' | 'B' | nu
   return { grade: 'P1', semester: 'A' }
 }
 
+// ── Stats shape ───────────────────────────────────────────────
+interface Stats { total: number; shidu: number; shixie: number; chapters: number }
+
 // ── Main VocabPage ────────────────────────────────────────────
 export default function VocabPage() {
   const { selectedLevel, setSelectedLevel } = useApp()
@@ -69,6 +75,13 @@ export default function VocabPage() {
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 30
   const searchRef = useRef<HTMLInputElement>(null)
+
+  // ── Async data state ─────────────────────────────────────────
+  const [allItems, setAllItems] = useState<VocabItem[]>([])
+  const [chapters, setChapters] = useState<number[]>([])
+  const [stats, setStats] = useState<Stats>({ total: 0, shidu: 0, shixie: 0, chapters: 0 })
+  const [vocabLoading, setVocabLoading] = useState(true)
+  const [filteredItems, setFilteredItems] = useState<VocabItem[]>([])
 
   // BUG 2 FIX — sync grade/semester whenever the global selectedLevel changes
   // (covers: homepage selection → navigate to vocab page)
@@ -93,28 +106,63 @@ export default function VocabPage() {
   const isNewGrade = NEW_GRADES.has(grade)  // true only for K1, K2
   const level = isNewGrade ? grade : `${grade}${semester}`  // e.g. "P1A", "P1newA", "K1"
   const color = GRADE_COLORS[grade] ?? 'var(--color-primary)'
-  const stats = getLevelStats(level)
-  const chapters = getChaptersForLevel(level)
 
   // Reset chapter/page when level changes
   useEffect(() => { setChapter('all'); setPage(1) }, [level])
   useEffect(() => { setPage(1) }, [search, chapter, labelFilter])
 
-  // Filtered vocab
-  const filtered: VocabItem[] = useMemo(() => {
-    // For new-curriculum grades, search within the full grade level
-    // For standard grades, search across both semesters of the same grade
-    const searchScope = isNewGrade ? grade : grade
-    let items = search.trim()
-      ? searchVocab(search, searchScope)  // search whole grade when query active
-      : getVocabForLevel(level)
-    if (chapter !== 'all') items = items.filter(v => v.chapter === chapter)
-    if (labelFilter !== 'all') items = items.filter(v => v.label === labelFilter)
-    return items
-  }, [search, grade, level, chapter, labelFilter, isNewGrade])
+  // ── Load vocab data asynchronously ────────────────────────────
+  useEffect(() => {
+    let cancelled = false
+    setVocabLoading(true)
+    setAllItems([])
+    setChapters([])
+    setStats({ total: 0, shidu: 0, shixie: 0, chapters: 0 })
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+    async function load() {
+      try {
+        const [items, chaps, s] = await Promise.all([
+          getVocabForLevel(level),
+          getChaptersForLevel(level),
+          getLevelStats(level),
+        ])
+        if (!cancelled) {
+          setAllItems(items)
+          setChapters(chaps)
+          setStats(s)
+        }
+      } finally {
+        if (!cancelled) setVocabLoading(false)
+      }
+    }
+    void load()
+    return () => { cancelled = true }
+  }, [level])
+
+  // ── Filter vocab items (search or plain list) ──────────────────
+  useEffect(() => {
+    let cancelled = false
+    if (vocabLoading) return
+
+    async function applyFilter() {
+      let items: VocabItem[]
+      if (search.trim()) {
+        // search across the whole grade, not just one semester
+        const searchScope = isNewGrade ? grade : grade
+        items = await searchVocab(search, searchScope)
+      } else {
+        items = allItems
+      }
+      if (chapter !== 'all') items = items.filter(v => v.chapter === chapter)
+      if (labelFilter !== 'all') items = items.filter(v => v.label === labelFilter)
+      if (!cancelled) setFilteredItems(items)
+    }
+    void applyFilter()
+    return () => { cancelled = true }
+  }, [search, grade, allItems, chapter, labelFilter, isNewGrade, vocabLoading])
+
+  const totalPages = Math.ceil(filteredItems.length / PAGE_SIZE)
+  const visible = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div style={{ paddingBottom: 24 }}>
@@ -184,10 +232,21 @@ export default function VocabPage() {
         display: 'flex', gap: 8, padding: '0 14px 12px',
         flexWrap: 'wrap',
       }}>
-        <StatChip color={color} icon="fa-solid fa-list" label={`${stats.total} 字`} />
-        <StatChip color="#1565C0" icon="fa-solid fa-eye" label={`识读 ${stats.shidu}`} />
-        <StatChip color="var(--color-primary)" icon="fa-solid fa-pen-nib" label={`识写 ${stats.shixie}`} />
-        <StatChip color="#6A1B9A" icon="fa-solid fa-book-open" label={`${stats.chapters} 课`} />
+        {vocabLoading ? (
+          <>
+            <div className="vocab-card-skeleton" style={{ width: 80, height: 32, borderRadius: 20 }} />
+            <div className="vocab-card-skeleton" style={{ width: 80, height: 32, borderRadius: 20 }} />
+            <div className="vocab-card-skeleton" style={{ width: 80, height: 32, borderRadius: 20 }} />
+            <div className="vocab-card-skeleton" style={{ width: 80, height: 32, borderRadius: 20 }} />
+          </>
+        ) : (
+          <>
+            <StatChip color={color} icon="fa-solid fa-list" label={`${stats.total} 字`} />
+            <StatChip color="#1565C0" icon="fa-solid fa-eye" label={`识读 ${stats.shidu}`} />
+            <StatChip color="var(--color-primary)" icon="fa-solid fa-pen-nib" label={`识写 ${stats.shixie}`} />
+            <StatChip color="#6A1B9A" icon="fa-solid fa-book-open" label={`${stats.chapters} 课`} />
+          </>
+        )}
       </div>
 
       {/* ── Search bar ── */}
@@ -256,13 +315,18 @@ export default function VocabPage() {
           </button>
         ))}
         <div style={{ marginLeft: 'auto', color: '#9E9E9E', alignSelf: 'center' }}>
-          {filtered.length} 字
+          {vocabLoading ? '…' : `${filteredItems.length} 字`}
         </div>
       </div>
 
       {/* ── Vocab cards ── */}
       <div className="vocab-cards-grid" style={{ padding: '0 14px' }}>
-        {visible.length === 0 ? (
+        {vocabLoading ? (
+          // 12 skeleton placeholders while the grade chunk loads
+          Array.from({ length: 12 }, (_, i) => (
+            <div key={i} className="vocab-card-skeleton" />
+          ))
+        ) : visible.length === 0 ? (
           <EmptyState search={search} />
         ) : (
           visible.map((item, i) => (
@@ -272,7 +336,7 @@ export default function VocabPage() {
       </div>
 
       {/* ── Pagination ── */}
-      {totalPages > 1 && (
+      {!vocabLoading && totalPages > 1 && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: 8, padding: '16px 14px 0',
