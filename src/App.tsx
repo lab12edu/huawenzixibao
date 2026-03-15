@@ -1,17 +1,34 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { AppProvider, useApp } from './context/AppContext'
 import BottomNav from './components/BottomNav'
 import DesktopSidebar from './components/DesktopSidebar'
-import HomeScreen from './pages/HomeScreen'
-import VocabPage from './pages/VocabPage'
-import FlashcardPage from './components/Flashcard/FlashcardPage'
-import GamesPage from './pages/GamesPage'
-import CompositionPage from './pages/CompositionPage'
-import OralPracticePage from './pages/OralPracticePage'
-import ToolsPage from './pages/ToolsPage'
-import ProfilePage from './pages/ProfilePage'
 
-// Page header for inner tabs
+// ── Lazy-loaded page components ───────────────────────────────────────────
+// Each page becomes its own JS chunk — the initial bundle is kept minimal.
+const HomeScreen       = React.lazy(() => import('./pages/HomeScreen'))
+const VocabPage        = React.lazy(() => import('./pages/VocabPage'))
+const FlashcardPage    = React.lazy(() => import('./pages/FlashcardPage'))
+const GamesPage        = React.lazy(() => import('./pages/GamesPage'))
+const CompositionPage  = React.lazy(() => import('./pages/CompositionPage'))
+const OralPracticePage = React.lazy(() => import('./pages/OralPracticePage'))
+const ToolsPage        = React.lazy(() => import('./pages/ToolsPage'))
+const ProfilePage      = React.lazy(() => import('./pages/ProfilePage'))
+
+// ── Suspense fallback ─────────────────────────────────────────────────────
+const PageLoader: React.FC = () => (
+  <div className="page-loader">
+    <div className="loading-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginTop: '12px' }}>
+      正在加载...
+    </p>
+  </div>
+)
+
+// ── Page header for inner tabs ────────────────────────────────────────────
 function PageHeader({ icon, cn, en, color }: {
   icon: string; cn: string; en: string; color: string
 }) {
@@ -30,7 +47,8 @@ function PageHeader({ icon, cn, en, color }: {
   )
 }
 
-// Tab page wrapper — renders correct page based on activeTab
+// ── Tab page switcher ─────────────────────────────────────────────────────
+// Renders the correct lazy page component based on activeTab.
 function TabContent() {
   const { activeTab } = useApp()
 
@@ -114,7 +132,7 @@ function TabContent() {
   }
 }
 
-// Inner shell — uses context
+// ── App shell — sidebar + scrollable main + bottom nav ───────────────────
 function AppShell() {
   return (
     <div className="app-shell">
@@ -126,7 +144,10 @@ function AppShell() {
         <main className="main-content app-main-content" id="main-content">
           {/* Inner content wrapper — constrains max-width */}
           <div className="content-inner">
-            <TabContent />
+            {/* Single Suspense boundary — one loading state for all lazy pages */}
+            <Suspense fallback={<PageLoader />}>
+              <TabContent />
+            </Suspense>
           </div>
         </main>
 
@@ -137,7 +158,7 @@ function AppShell() {
   )
 }
 
-// Root — wraps everything in context provider
+// ── Root — wraps everything in context provider ───────────────────────────
 export default function App() {
   return (
     <AppProvider>
