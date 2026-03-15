@@ -1,6 +1,6 @@
 /* ============================================
    华文自习宝 – Global Styles
-   Mobile-first | Breakpoints: 768px, 1280px
+   Mobile-first | Breakpoints: 768px, 1024px
    ============================================ */
 
 /* ── CSS Variables ── */
@@ -115,8 +115,8 @@ body {
   }
 }
 
-/* ── Desktop (1280px+) ── */
-@media (min-width: 1280px) {
+/* ── Desktop (1024px+) ── */
+@media (min-width: 1024px) {
   :root {
     --sidebar-width: 240px;
     --nav-height: 0px; /* no bottom nav on desktop */
@@ -149,7 +149,7 @@ body {
   display: none; /* hidden on mobile & tablet */
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .desktop-sidebar {
     display: flex;
     flex-direction: column;
@@ -303,7 +303,7 @@ body {
 }
 
 /* AUDIT 1 — hide bottom nav on desktop */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .bottom-nav {
     display: none;
   }
@@ -408,7 +408,7 @@ h1, h2, h3, h4 {
 }
 
 /* Desktop typography */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .char-display { font-size: 80px; }
   .pinyin-display { font-size: 22px; }
   .meaning-en-text { font-size: 17px; }
@@ -427,7 +427,7 @@ h1, h2, h3, h4 {
 }
 
 /* Desktop: 2-column grid, 20px gap per spec */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .vocab-cards-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -496,14 +496,14 @@ button:active {
 }
 
 /* Mobile/tablet: enforce 48px min tap target */
-@media (max-width: 1279px) {
+@media (max-width: 1023px) {
   .nav-item {
     min-height: 48px;
   }
 }
 
 /* Desktop: normal button sizing, pointer cursor */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   button {
     cursor: pointer;
   }
@@ -1134,7 +1134,7 @@ button:active {
 }
 
 /* Desktop: bigger study character */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .char-study {
     font-size: 44px;
   }
@@ -1149,7 +1149,7 @@ button:active {
 .section-title-cn {
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
 
   /* ── Global body text ── */
   body {
@@ -1300,7 +1300,7 @@ button:active {
   /* ── Quick access tile hover (desktop pointer only) ── */
 }
 
-@media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
   .quick-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
@@ -1308,7 +1308,7 @@ button:active {
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
 
   /* ── Freemium promo banner ── */
   .promo-banner {
@@ -1588,7 +1588,7 @@ button:active {
 }
 
 /* ── Desktop content width expansion ── */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .content-inner {
     max-width: 1100px;
     padding: 0 40px;
@@ -1633,7 +1633,7 @@ button:active {
    DESKTOP FONT SCALING — sidebar + vocab cards
    ============================================ */
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
 
   /* ── Sidebar nav labels ── */
   .sidebar-nav-label-cn {
@@ -1709,7 +1709,7 @@ button:active {
    Uses className hooks added to VocabCard.tsx
    ============================================ */
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .vc-pinyin {
     font-size: 24px !important;
   }
@@ -1761,7 +1761,7 @@ button:active {
    TYPE-SCALE TOKEN SYSTEM
    Single source of truth for all font sizes.
    Mobile defaults in :root, desktop upgrade
-   via @media (min-width:1280px) token override.
+   via @media (min-width: 1024px) token override.
 
    RULE: All new/edited components must use
    var(--text-*) — never hard-coded px values.
@@ -1792,7 +1792,7 @@ button:active {
 }
 
 /* ── Desktop token upgrade ── */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   :root {
     --text-2xs:  11px;
     --text-xs:   13px;
@@ -1824,7 +1824,7 @@ button:active {
 .vp-stat-chip    { font-size: var(--text-xs); }
 .vp-chapter-chip { font-size: var(--text-xs); }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .vp-grade-btn    { padding: 8px 18px; }
   .vp-semester-btn { padding: 8px 16px; }
   .vp-search-input { padding: 13px 48px 13px 18px; }
@@ -1934,9 +1934,9 @@ button:active {
 /* ============================================
    SIDEBAR FONT FIX — wrap in desktop media query
    so bare token rules above don't override the
-   earlier @media (min-width:1280px) sidebar block.
+   earlier @media (min-width: 1024px) sidebar block.
    ============================================ */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .sidebar-brand-cn     { font-size: var(--text-base); font-weight: 800; }
   .sidebar-brand-en     { font-size: var(--text-xs); }
   .sidebar-nav-label-cn { font-size: var(--text-sm); }
@@ -1947,7 +1947,7 @@ button:active {
 /* ============================================
    HOME SCREEN FONT FIX — same reason, desktop wrap
    ============================================ */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .section-title-cn          { font-size: var(--text-lg); }
   .section-title-en          { font-size: var(--text-xs); }
   .welcome-text .cn          { font-size: var(--text-base); }
@@ -2020,8 +2020,8 @@ button:active {
 .btn, button:not(.icon-btn) { font-size: 15px !important; }
 .chip, .badge, .tag     { font-size: 13px !important; }
 
-/* --- DESKTOP OVERRIDE (≥1280px) --- */
-@media (min-width: 1280px) {
+/* --- DESKTOP OVERRIDE (≥1024px) --- */
+@media (min-width: 1024px) {
   .vc-pinyin            { font-size: 22px !important; }
   .vc-meaning           { font-size: 20px !important; }
   .vc-sentence-cn       { font-size: 17px !important; }
@@ -2837,9 +2837,6 @@ button:active {
   min-height: 100vh;
   background: #FAFAFA;
 }
-.app-sidebar {
-  display: none;
-}
 .app-main-content {
   flex: 1;
   width: 100%;
@@ -2849,69 +2846,17 @@ button:active {
 /* Tablet ≥ 768px */
 @media (min-width: 768px) {
   .app-main-content {
-    max-width: 700px;
+    max-width: 720px;
     margin: 0 auto;
-    padding: 20px 16px calc(var(--nav-height) + 16px);
+    padding: 20px 16px;
   }
 }
 
 /* Desktop ≥ 1024px — fixed sidebar, hide bottom nav */
 @media (min-width: 1024px) {
+  :root { --nav-height: 0px; }
   .app-shell {
     flex-direction: row;
-  }
-  .app-sidebar {
-    display: flex;
-    flex-direction: column;
-    width: var(--sidebar-width);
-    min-height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    background: #ffffff;
-    border-right: 1px solid #E5E7EB;
-    padding: 24px 0;
-    z-index: 100;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.04);
-  }
-  .app-sidebar-logo {
-    padding: 0 20px 20px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #C0392B;
-    border-bottom: 1px solid #E5E7EB;
-    margin-bottom: 12px;
-  }
-  .app-sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 0 8px;
-  }
-  .app-sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    color: #4B5563;
-    font-size: 0.92rem;
-    text-decoration: none;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    width: 100%;
-    text-align: left;
-    transition: background 0.15s, color 0.15s;
-  }
-  .app-sidebar-link:hover {
-    background: #FADBD8;
-    color: #C0392B;
-  }
-  .app-sidebar-link.active {
-    background: #C0392B;
-    color: #ffffff;
-    font-weight: 600;
   }
   .app-main-content {
     margin-left: var(--sidebar-width);
