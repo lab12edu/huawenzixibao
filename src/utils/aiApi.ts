@@ -18,7 +18,8 @@ export interface AiApiResult {
 
 export async function callGemini(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  generationConfig?: Record<string, unknown>
 ): Promise<AiApiResult> {
   try {
     const key = getKey()
@@ -30,7 +31,7 @@ export async function callGemini(
       contents: [
         { role: 'user', parts: [{ text: userPrompt }] }
       ],
-      generationConfig: {
+      generationConfig: generationConfig ?? {
         temperature: 0.7,
         maxOutputTokens: 1024,
       }

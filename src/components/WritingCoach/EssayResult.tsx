@@ -93,13 +93,7 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
         setScoreError('AI 评分暂时不可用，请稍后重试。')
       } else {
         try {
-          const match = result.text.match(/\{[\s\S]*\}/)
-          if (!match) {
-            setScoreError('评分结果格式异常，请重试。 Score format error, please retry.')
-            setIsScoring(false)
-            return
-          }
-          const parsed: ScoreResult = JSON.parse(match[0])
+          const parsed: ScoreResult = JSON.parse(extractJson(result.text))
           setScoreResult(parsed)
         } catch {
           setScoreError('评分结果格式异常，请重试。 Score format error, please retry.')
@@ -151,6 +145,39 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
     }
   }
 
+  // ── Full essay enhance handler ──────────────────────────────────────────
+  const handleFullEnhance = async () => {
+    if (fullEnhancing) return
+    setFullEnhancing(true)
+    setEnhancedEssay('')
+    try {
+      const fullPrompt = `你是一位新加坡小学华文老师。请帮助润色以下学生的作文。
+
+作文题目：${essayData.topicTitle}
+学生年级：${essayData.level}
+
+学生原文：
+${fullEssay}
+
+要求：
+1. 改写后的作文应为350至500个汉字，五段式记叙文结构。
+2. 保留学生原文的所有主要情节和意思。
+3. 使用${essayData.level}水平的词汇，句子自然流畅。
+4. 每段80至100字，段落之间衔接自然。
+5. 直接输出完整作文，不要解释，不要标题，不要多余符号。`
+      const result = await callGemini(
+        '你是一位专业的新加坡小学华文作文老师。',
+        fullPrompt,
+        { maxOutputTokens: 3000, temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } }
+      )
+      setEnhancedEssay(result.error ? '' : result.text.trim())
+    } catch {
+      setEnhancedEssay('')
+    } finally {
+      setFullEnhancing(false)
+    }
+  }
+
   return (
     <div className="essay-result">
 
@@ -181,6 +208,35 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
           {saved ? '✅ 已储存 Saved' : '💾 储存作文 Save'}
         </button>
       </div>
+
+      {/* Full essay enhance */}
+      <div className="essay-full-enhance-row">
+        <button
+          className="btn-full-enhance"
+          onClick={handleFullEnhance}
+          disabled={fullEnhancing}
+        >
+          {fullEnhancing ? '✨ 提升中…' : '✨ AI 提升全文  Enhance Full Essay'}
+        </button>
+      </div>
+
+      {enhancedEssay && (
+        <div className="enhanced-essay-block">
+          <div className="enhanced-essay-header">
+            ✨ AI 提升版本 <span className="enhanced-essay-header-en">AI Enhanced Version</span>
+          </div>
+          <div className="enhanced-essay-body">{enhancedEssay}</div>
+          <div className="enhanced-essay-actions">
+            <button
+              className="btn-tts-small"
+              onClick={() => speakPassage(enhancedEssay)}
+              aria-label="Read enhanced essay aloud"
+            >
+              🔊 朗读 Read Aloud
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Score card */}
       <div className="score-card">

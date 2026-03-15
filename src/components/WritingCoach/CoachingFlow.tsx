@@ -205,22 +205,30 @@ export default function CoachingFlow({
       .slice(0, currentIdx)
       .map((key, i) => `第${i + 1}段（${SECTION_LABELS[key]}）：${sections[key] || '（未填写）'}`)
       .join('\n')
+    const charCount = currentText.replace(/\s/g, '').length
+    const needsExpansion = charCount < 50
     const enhancePrompt = `你是一位新加坡小学华文老师，正在帮助学生润色作文。
 
 作文题目：${topic.titleCn}
 作文体裁：记叙文（五段式）
+学生年级：${level}
 
 ${previousSectionsText ? `已完成的段落：\n${previousSectionsText}\n\n` : ''}当前段落（${SECTION_LABELS[currentKey]}）学生原文：
 ${currentText}
 
 要求：
-1. 改写必须包含学生原文中的所有内容，不得遗漏任何句子或意思。
-2. 使用新加坡小学华文P3至P5水平的词汇，避免生僻字和成语，除非学生原文已使用。
-3. 句子要自然流畅，适合小学生写作风格。
-4. 必须与作文题目紧密相关。
-5. 如果已有前面段落，改写内容必须与前文自然衔接。
-6. 直接输出改写后的段落，不要解释，不要标题。`
-    const result = await callGemini('你是一位专业的新加坡小学华文作文老师。', enhancePrompt)
+1. 保留并改写学生原文的所有内容，不得遗漏任何句子或意思。
+${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继续发展这段的情节，让段落更完整生动。' : '2. 在学生原有内容基础上适当扩充，使段落更完整。'}
+3. 改写后的段落应为80至120个汉字，句子完整，不得在句子中间截断。
+4. 使用${level}水平的词汇，句子自然流畅，适合小学生写作风格，避免生僻字。
+5. 内容必须与作文题目"${topic.titleCn}"紧密相关。
+6. 如果已有前面段落，内容必须与前文自然衔接。
+7. 直接输出改写后的段落，不要解释，不要标题，不要多余符号。`
+    const result = await callGemini(
+      '你是一位专业的新加坡小学华文作文老师。',
+      enhancePrompt,
+      { maxOutputTokens: 2048, temperature: 0.75, thinkingConfig: { thinkingBudget: 0 } }
+    )
     if (result.error) {
       setEnhanceError('AI 润色失败，请稍后再试。')
     } else {
