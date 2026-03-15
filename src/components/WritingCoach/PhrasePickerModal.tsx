@@ -88,7 +88,7 @@ export default function PhrasePickerModal({
       className="phrase-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label={`选择好词好句 — ${label}`}
+      aria-labelledby="phrase-modal-title"
       onClick={onClose}
     >
       <div
@@ -97,7 +97,7 @@ export default function PhrasePickerModal({
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="phrase-modal__header">
+        <div id="phrase-modal-title" className="phrase-modal__header">
           好词好句 — {label}
         </div>
 

@@ -79,7 +79,7 @@ export default function IdiomPopup({ idiom, onClose }: Props) {
       className="idiom-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label={`成语详解 ${idiom.chinese}`}
+      aria-labelledby="idiom-popup-title"
       onClick={onClose}
     >
       <div
@@ -98,7 +98,7 @@ export default function IdiomPopup({ idiom, onClose }: Props) {
         </button>
 
         {/* Chinese characters */}
-        <div className="idiom-card__chinese">{idiom.chinese}</div>
+        <div id="idiom-popup-title" className="idiom-card__chinese">{idiom.chinese}</div>
 
         {/* Pinyin */}
         <div className="idiom-card__pinyin">{idiom.pinyin}</div>

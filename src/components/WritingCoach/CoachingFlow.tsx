@@ -132,6 +132,7 @@ export default function CoachingFlow({
   const [enhanceError, setEnhanceError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const idiomCloseRef = useRef<HTMLButtonElement>(null)
 
   // ── Reset comparison state on section change ─────────────────────────────
   useEffect(() => {
@@ -139,6 +140,25 @@ export default function CoachingFlow({
     setComparisonMode(false)
     setEnhanceError('')
   }, [currentIdx])
+
+  // ── Auto-focus idiom close button when overlay opens ─────────────────────
+  useEffect(() => {
+    if (activeIdiom) {
+      idiomCloseRef.current?.focus()
+    }
+  }, [activeIdiom])
+
+  // ── Escape key closes idiom overlay ──────────────────────────────────────
+  useEffect(() => {
+    if (!activeIdiom) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveIdiom(null)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [activeIdiom])
 
   const currentKey = SECTION_KEYS[currentIdx]
   const currentText = sections[currentKey]
@@ -568,12 +588,17 @@ export default function CoachingFlow({
           className="idiom-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label={`成语详解 ${activeIdiom.chinese}`}
+          aria-labelledby="idiom-overlay-title"
           onClick={() => setActiveIdiom(null)}
         >
           <div className="idiom-card" onClick={e => e.stopPropagation()}>
-            <button className="idiom-card__close" onClick={() => setActiveIdiom(null)} aria-label="关闭 Close">✕</button>
-            <div className="idiom-card__chinese">{activeIdiom.chinese}</div>
+            <button
+              className="idiom-card__close"
+              ref={idiomCloseRef}
+              onClick={() => setActiveIdiom(null)}
+              aria-label="关闭 Close"
+            >✕</button>
+            <div id="idiom-overlay-title" className="idiom-card__chinese">{activeIdiom.chinese}</div>
             <div className="idiom-card__pinyin">{activeIdiom.pinyin}</div>
             <hr className="idiom-card__divider" />
             <div className="idiom-card__label">📖 中文意思</div>
