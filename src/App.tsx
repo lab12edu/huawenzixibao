@@ -123,7 +123,7 @@ function AppShell() {
       {/* Main area */}
       <div className="app-main">
         {/* Scrollable content */}
-        <main className="main-content" id="main-content">
+        <main className="main-content app-main-content" id="main-content">
           {/* Inner content wrapper — constrains max-width */}
           <div className="content-inner">
             <TabContent />
