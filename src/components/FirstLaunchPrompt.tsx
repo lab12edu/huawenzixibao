@@ -125,13 +125,13 @@ export default function FirstLaunchPrompt() {
         }
 
         .flp-input.has-error {
-          border-color: #E53935;
+          border-color: var(--color-primary);
         }
 
         .flp-error-container {
           min-height: 1.4em;
           font-size: var(--text-sm, 0.875rem);
-          color: #E53935;
+          color: var(--color-primary);
           margin: 0;
           line-height: 1.4;
         }

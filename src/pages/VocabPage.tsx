@@ -13,7 +13,7 @@ const SEMESTER_GRADES = new Set(['P1', 'P1new', 'P2', 'P2new', 'P3', 'P4', 'P5',
 const NEW_GRADES = new Set(['K1', 'K2'])  // P1new/P2new DO have A/B semesters
 const GRADE_COLORS: Record<string, string> = {
   K1: '#43A047', K2: '#00897B',
-  P1: '#E53935', 'P1new': '#C62828',
+  P1: 'var(--color-primary)', 'P1new': '#C62828',
   P2: '#E91E63', 'P2new': '#AD1457',
   P3: '#9C27B0',
   P4: '#1565C0', P5: '#00695C', P6: '#E65100',
@@ -92,7 +92,7 @@ export default function VocabPage() {
   // K1/K2 have no semester split; all other grades (including P1new/P2new) use A/B
   const isNewGrade = NEW_GRADES.has(grade)  // true only for K1, K2
   const level = isNewGrade ? grade : `${grade}${semester}`  // e.g. "P1A", "P1newA", "K1"
-  const color = GRADE_COLORS[grade] ?? '#E53935'
+  const color = GRADE_COLORS[grade] ?? 'var(--color-primary)'
   const stats = getLevelStats(level)
   const chapters = getChaptersForLevel(level)
 
@@ -144,7 +144,7 @@ export default function VocabPage() {
               {isNew && (
                 <span style={{
                   display: 'inline-block',
-                  background: grade === g ? 'rgba(255,255,255,0.35)' : '#E53935',
+                  background: grade === g ? 'rgba(255,255,255,0.35)' : 'var(--color-primary)',
                   color: '#fff',
                   fontWeight: 800,
                   padding: '1px 4px', borderRadius: 4,
@@ -186,7 +186,7 @@ export default function VocabPage() {
       }}>
         <StatChip color={color} icon="fa-solid fa-list" label={`${stats.total} 字`} />
         <StatChip color="#1565C0" icon="fa-solid fa-eye" label={`识读 ${stats.shidu}`} />
-        <StatChip color="#E53935" icon="fa-solid fa-pen-nib" label={`识写 ${stats.shixie}`} />
+        <StatChip color="var(--color-primary)" icon="fa-solid fa-pen-nib" label={`识写 ${stats.shixie}`} />
         <StatChip color="#6A1B9A" icon="fa-solid fa-book-open" label={`${stats.chapters} 课`} />
       </div>
 
@@ -242,12 +242,12 @@ export default function VocabPage() {
             onClick={() => setLabelFilter(lf)}
             style={{
               padding: '5px 14px', borderRadius: 8, fontWeight: 600,
-              border: `1.5px solid ${labelFilter === lf ? (lf === '识写' ? '#E53935' : lf === '识读' ? '#1565C0' : color) : '#E0E0E0'}`,
+              border: `1.5px solid ${labelFilter === lf ? (lf === '识写' ? 'var(--color-primary)' : lf === '识读' ? '#1565C0' : color) : '#E0E0E0'}`,
               background: labelFilter === lf
                 ? lf === '识写' ? '#FFEBEE' : lf === '识读' ? '#E3F2FD' : `${color}15`
                 : '#fff',
               color: labelFilter === lf
-                ? lf === '识写' ? '#E53935' : lf === '识读' ? '#1565C0' : color
+                ? lf === '识写' ? 'var(--color-primary)' : lf === '识读' ? '#1565C0' : color
                 : '#888',
               cursor: 'pointer', transition: 'all 0.2s',
             }}

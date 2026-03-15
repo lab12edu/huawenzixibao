@@ -38,7 +38,7 @@ export default function BottomNav() {
                 <button
                   key={tab.id}
                   className="drawer-nav-link"
-                  style={isActive ? { background: '#FADBD8', color: '#C0392B', fontWeight: 600 } : undefined}
+                  style={isActive ? { background: '#FADBD8', color: 'var(--color-primary)', fontWeight: 600 } : undefined}
                   onClick={() => {
                     setActiveTab(tab.id as Tab)
                     setDrawerOpen(false)

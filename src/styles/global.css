@@ -5,35 +5,35 @@
 
 /* ── CSS Variables ── */
 :root {
-  --color-primary: #E53935;
-  --color-primary-dark: #B71C1C;
-  --color-primary-light: #FFEBEE;
-  --color-primary-mid: #EF9A9A;
-  --color-secondary: #FF8F00;
-  --color-secondary-light: #FFF8E1;
-  --color-bg: #FAFAFA;
+  /* Scholar Teal Brand Palette */
+  --color-primary: #006D77;
+  --color-primary-dark: #005F69;
+  --color-primary-light: #E6F2F2;   /* backgrounds only — do not use as text colour */
+  --color-primary-mid: #83C5BE;     /* decorative icons/fills only — do not use as text colour */
+  --color-secondary: #E29578;       /* warm clay accent for CTAs */
+
+  /* Surfaces */
+  --color-bg: #F8FAFB;
   --color-surface: #FFFFFF;
-  --color-border: #F0E6E6;
-  --color-text: #2D2D2D;
-  --color-text-secondary: #6B6B6B;
-  --color-text-hint: #AAAAAA;
-  --color-success: #43A047;
-  --color-warning: #FB8C00;
-  --color-nav-bg: #FFFFFF;
-  --color-nav-active: #E53935;
-  --color-nav-inactive: #BDBDBD;
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --radius-full: 9999px;
-  --shadow-sm: 0 2px 8px rgba(229, 57, 53, 0.08);
-  --shadow-md: 0 4px 20px rgba(229, 57, 53, 0.12);
-  --shadow-nav: 0 -2px 16px rgba(0, 0, 0, 0.08);
-  /* Mobile defaults */
+  --color-border: #E2E8F0;
+
+  /* Typography */
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #475569;      /* alias kept for backward compatibility with Phase 5B components */
+  --color-text-hint: #94A3B8;
+
+  /* Shape & Shadow */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);  /* alias for new token name */
+  --shadow-modal: 0 8px 40px rgba(15, 23, 42, 0.18);
+
+  /* Layout */
+  --sidebar-width: 220px;
   --nav-height: 64px;
-  --sidebar-width: 0px;
-  --header-height: 64px;
 }
 
 /* ── Reset ── */
@@ -450,9 +450,9 @@ h1, h2, h3, h4 {
 .card {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   padding: 16px;
-  border: 1px solid var(--color-border);
+  border: none;
 }
 
 /* AUDIT 8 — hover only on real mouse */
@@ -775,8 +775,8 @@ button:active {
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
@@ -2824,11 +2824,7 @@ button:active {
 /* ── END Writing Coach info panel additions (5A polish) ── */
 
 /* ═══ RESPONSIVE DESIGN SYSTEM — Phase 5B-1 ══════════════════ */
-:root {
-  --sidebar-width: 240px;
-  --content-max:   860px;
-  --nav-height:    60px;
-}
+
 
 /* Base: single column, mobile-first */
 .app-shell {
@@ -2970,20 +2966,7 @@ button:active {
 /* ── Phase 5B-3: UI Primitives ─────────────────────────────────── */
 
 /* Design tokens (if not already present) */
-:root {
-  --color-primary: #E8612C;
-  --color-primary-dark: #C44E22;
-  --color-bg: #FFF8F0;
-  --color-surface: #FFFFFF;
-  --color-text: #1A1A1A;
-  --color-text-muted: #666666;
-  --color-border: #E0D5C8;
-  --color-highlight: #FFF3CD;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --shadow-card: 0 2px 12px rgba(0,0,0,0.08);
-  --shadow-modal: 0 8px 40px rgba(0,0,0,0.18);
-}
+
 
 /* Idiom Popup */
 .idiom-overlay {
@@ -3136,7 +3119,8 @@ button:active {
 .phrase-card {
   background: var(--color-bg);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  border: none;
+  box-shadow: var(--shadow-md);
   padding: 14px 16px;
   margin-bottom: 12px;
 }
@@ -3497,8 +3481,9 @@ button:active {
 
 /* ── Score card ── */
 .score-card {
-  background: var(--color-bg-card);
-  border: 1.5px solid #E0E0E0;
+  background: var(--color-surface);
+  border: none;
+  box-shadow: var(--shadow-md);
   border-radius: 12px;
   padding: 18px;
 }
@@ -3573,8 +3558,9 @@ button:active {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: var(--color-bg-card);
-  border: 1.5px solid #E0E0E0;
+  background: var(--color-surface);
+  border: none;
+  box-shadow: var(--shadow-md);
   border-radius: 10px;
   padding: 12px 14px;
   flex-wrap: wrap;
@@ -3607,3 +3593,33 @@ button:active {
 }
 
 /* ── END Writing Coach Phase 5B-4 ─────────────────────────────────────────── */
+
+/* ── Phase 5C: Pro Density & Desktop Overrides ──────────────────── */
+
+@media (min-width: 1440px) {
+  .content-inner {
+    max-width: 1300px;
+  }
+  .vocab-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .quick-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-hero {
+    min-height: 140px;
+    padding: 32px 40px;
+  }
+  .app-logo-circle {
+    width: 64px;
+    height: 64px;
+    font-size: 28px;
+  }
+}
+
+/* ── End Phase 5C ───────────────────────────────────────────────── */

@@ -54,7 +54,7 @@ export default function StrokeDemoModal({ char, onClose }: StrokeDemoModalProps)
           height: size,
           padding: 24,
           showOutline: true,
-          strokeColor: '#E53935',
+          strokeColor: 'var(--color-primary)',
           outlineColor: '#DDDDDD',
           strokeAnimationSpeed: 1,
           delayBetweenStrokes: 400,
@@ -140,7 +140,7 @@ export default function StrokeDemoModal({ char, onClose }: StrokeDemoModalProps)
         }}>
           {/* Left: title + subtitle */}
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#E53935' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary)' }}>
               笔顺演示
             </div>
             <div style={{ fontSize: 12, color: '#999999', marginTop: 2 }}>
@@ -166,7 +166,7 @@ export default function StrokeDemoModal({ char, onClose }: StrokeDemoModalProps)
 
         {/* Large character display */}
         <div style={{
-          fontSize: 52, color: '#E53935',
+          fontSize: 52, color: 'var(--color-primary)',
           textAlign: 'center', margin: '8px 0 4px 0',
           lineHeight: 1,
         }}>
@@ -205,7 +205,7 @@ export default function StrokeDemoModal({ char, onClose }: StrokeDemoModalProps)
             onClick={() => writerRef.current?.animateCharacter()}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              background: '#E53935', color: '#fff',
+              background: 'var(--color-primary)', color: '#fff',
               border: 'none', borderRadius: 12,
               padding: '12px 24px', fontSize: 15,
               minHeight: 48, cursor: 'pointer',

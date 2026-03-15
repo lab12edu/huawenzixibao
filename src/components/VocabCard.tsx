@@ -12,7 +12,7 @@ interface VocabCardProps {
 
 // Tone mark map for pinyin display
 const TONE_COLORS: Record<number, string> = {
-  1: '#E53935', // red — flat
+  1: 'var(--color-primary)', // red — flat
   2: '#1565C0', // blue — rising
   3: '#2E7D32', // green — dipping
   4: '#6A1B9A', // purple — falling
@@ -21,7 +21,7 @@ const TONE_COLORS: Record<number, string> = {
 
 function ToneLabel({ tone }: { tone: number }) {
   const labels = ['中', '阴', '阳', '上', '去']
-  const colors = ['#78909C', '#E53935', '#1565C0', '#2E7D32', '#6A1B9A']
+  const colors = ['#78909C', 'var(--color-primary)', '#1565C0', '#2E7D32', '#6A1B9A']
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -62,7 +62,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
   }, [isFav, item.id, addFavourite, removeFavourite])
 
   const isShixie = item.label === '识写'
-  const labelColor = isShixie ? '#E53935' : '#1565C0'
+  const labelColor = isShixie ? 'var(--color-primary)' : '#1565C0'
   const labelBg   = isShixie ? '#FFEBEE' : '#E3F2FD'
   const toneColor = TONE_COLORS[item.tone] ?? '#78909C'
 
@@ -147,8 +147,8 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
             style={{
               width: 44, height: 44, borderRadius: 10,
               border: 'none', cursor: 'pointer',
-              background: speaking ? '#E53935' : '#F5F5F5',
-              color: speaking ? '#fff' : '#E53935',
+              background: speaking ? 'var(--color-primary)' : '#F5F5F5',
+              color: speaking ? '#fff' : 'var(--color-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'all 0.2s',
               flexShrink: 0,
@@ -257,7 +257,7 @@ export default function VocabCard({ item, index = 0 }: VocabCardProps) {
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '10px 16px', borderRadius: 12,
               border: '1px solid #FFCDD2',
-              background: '#FFF0F0', color: '#E53935',
+              background: '#FFF0F0', color: 'var(--color-primary)',
               cursor: 'pointer',
               minHeight: 48,
             }}

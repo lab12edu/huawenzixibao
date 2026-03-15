@@ -74,7 +74,7 @@ export default function SavedEssays({ onBack }: Props) {
           )}
           <button
             className="btn-secondary"
-            style={{ color: '#E53935', borderColor: '#E53935' }}
+            style={{ color: 'var(--color-primary)', borderColor: 'var(--color-primary)' }}
             onClick={() => handleDelete(viewing.id)}
           >
             🗑 删除 Delete
@@ -151,7 +151,7 @@ export default function SavedEssays({ onBack }: Props) {
               </button>
               <button
                 className="btn-secondary"
-                style={{ padding: '6px 14px', fontSize: '0.82rem', color: '#E53935', borderColor: '#E53935' }}
+                style={{ padding: '6px 14px', fontSize: '0.82rem', color: 'var(--color-primary)', borderColor: 'var(--color-primary)' }}
                 onClick={() => handleDelete(essay.id)}
               >
                 删除 Delete

@@ -370,7 +370,7 @@ export default function CoachingFlow({
             {isEnhancing ? <><LoadingDots /> 润色中…</> : '✨ AI 帮我写得更好'}
           </button>
           {enhanceError && (
-            <p style={{ fontSize: '0.85rem', color: '#E53935', marginTop: '6px' }}>{enhanceError}</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--color-primary)', marginTop: '6px' }}>{enhanceError}</p>
           )}
 
           {/* Selected phrases chips */}

@@ -191,7 +191,7 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
         )}
 
         {scoreError && (
-          <p style={{ color: '#E53935', fontSize: '0.88rem' }}>{scoreError}</p>
+          <p style={{ color: 'var(--color-primary)', fontSize: '0.88rem' }}>{scoreError}</p>
         )}
 
         {scoreResult && (

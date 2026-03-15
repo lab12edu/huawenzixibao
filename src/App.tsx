@@ -45,7 +45,7 @@ function TabContent() {
             icon="fa-solid fa-book"
             cn="生字表"
             en="MOE Vocabulary List"
-            color="#E53935"
+            color="var(--color-primary)"
           />
           <VocabPage />
         </>

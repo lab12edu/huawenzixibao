@@ -48,11 +48,11 @@ function isDue(entry: SRSEntry): boolean {
 // TONE colours (same as VocabCard.tsx)
 // ─────────────────────────────────────────────
 const TONE_COLORS: Record<number, string> = {
-  1: '#E53935', 2: '#1565C0', 3: '#2E7D32', 4: '#6A1B9A', 0: '#78909C',
+  1: 'var(--color-primary)', 2: '#1565C0', 3: '#2E7D32', 4: '#6A1B9A', 0: '#78909C',
 }
 function ToneLabel({ tone }: { tone: number }) {
   const labels = ['中', '阴', '阳', '上', '去']
-  const colors = ['#78909C', '#E53935', '#1565C0', '#2E7D32', '#6A1B9A']
+  const colors = ['#78909C', 'var(--color-primary)', '#1565C0', '#2E7D32', '#6A1B9A']
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -72,7 +72,7 @@ const GRADES = ['K1', 'K2', 'P1', 'P1new', 'P2', 'P2new', 'P3', 'P4', 'P5', 'P6'
 const NEW_GRADES = new Set(['K1', 'K2'])
 const GRADE_COLORS: Record<string, string> = {
   K1: '#43A047', K2: '#00897B',
-  P1: '#E53935', P1new: '#C62828',
+  P1: 'var(--color-primary)', P1new: '#C62828',
   P2: '#E91E63', P2new: '#AD1457',
   P3: '#9C27B0', P4: '#1565C0', P5: '#00695C', P6: '#E65100',
 }
@@ -190,7 +190,7 @@ function buildQueue(items: VocabItem[], errorBankIds: string[], srs: SRSData): V
 // ─────────────────────────────────────────────
 type Mode = 'recognition' | 'dictation' | 'fill' | 'pinyin'
 const MODES: { id: Mode; cn: string; en: string; icon: string; color: string }[] = [
-  { id: 'recognition', cn: '认读', en: 'Recognition',     icon: 'fa-solid fa-eye',         color: '#E53935' },
+  { id: 'recognition', cn: '认读', en: 'Recognition',     icon: 'fa-solid fa-eye',         color: 'var(--color-primary)' },
   { id: 'dictation',   cn: '听写', en: 'Dictation',icon: 'fa-solid fa-pen-nib',     color: '#1565C0' },
   { id: 'fill',        cn: '填空', en: 'Fill in the Blank',icon: 'fa-solid fa-align-left',  color: '#6A1B9A' },
   { id: 'pinyin',      cn: '拼音', en: 'Tone Challenge',   icon: 'fa-solid fa-music',       color: '#00695C' },
@@ -217,7 +217,7 @@ export default function FlashcardPage() {
 
   const isNewGrade = NEW_GRADES.has(grade)
   const level = isNewGrade ? grade : `${grade}${semester}`
-  const color = GRADE_COLORS[grade] ?? '#E53935'
+  const color = GRADE_COLORS[grade] ?? 'var(--color-primary)'
 
   const allItems = useMemo(() => getVocabForLevel(level), [level])
   const chapters = useMemo(() => getChaptersForLevel(level), [level])
@@ -425,7 +425,7 @@ function SelectorScreen({
         borderBottom: '1px solid #F0F0F0',
         marginBottom: 4,
       }}>
-        <div style={{ fontSize: 24, fontWeight: 700, color: '#E53935' }}>闪卡复习</div>
+        <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-primary)' }}>闪卡复习</div>
         <div style={{ fontSize: 14, color: '#999999', marginTop: 2 }}>Flashcard Review</div>
       </div>
 
@@ -451,7 +451,7 @@ function SelectorScreen({
                 {GRADE_LABELS[g] ?? g}
                 {isNew && (
                   <span style={{
-                    background: grade === g ? 'rgba(255,255,255,0.35)' : '#E53935',
+                    background: grade === g ? 'rgba(255,255,255,0.35)' : 'var(--color-primary)',
                     color: '#fff', fontSize: 9, fontWeight: 800,
                     padding: '1px 4px', borderRadius: 4, lineHeight: 1.4,
                   }}>新</span>
@@ -563,7 +563,7 @@ function SelectorScreen({
                 </span>
               </div>
               {errorBankCount > 0 && (
-                <div style={{ color: '#E53935', marginTop: 4, fontWeight: 600 }}>
+                <div style={{ color: 'var(--color-primary)', marginTop: 4, fontWeight: 600 }}>
                   ⚠ {errorBankCount} 张错题 / {errorBankCount} error bank cards
                 </div>
               )}
@@ -578,7 +578,7 @@ function SelectorScreen({
           style={{
             width: '100%', maxWidth: 280, display: 'block', margin: '0 auto',
             height: 52, borderRadius: 16, border: 'none',
-            background: noCards ? '#BDBDBD' : '#E53935',
+            background: noCards ? '#BDBDBD' : 'var(--color-primary)',
             color: '#fff', fontSize: 18, fontWeight: 700,
             cursor: noCards ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s',
@@ -628,7 +628,7 @@ function SessionWrapper({
       {/* Progress bar */}
       <div style={{ height: 6, background: '#FFCDD2' }}>
         <div style={{
-          height: '100%', background: '#E53935',
+          height: '100%', background: 'var(--color-primary)',
           width: `${progress}%`, transition: 'width 0.3s', borderRadius: 3,
         }} />
       </div>
@@ -656,7 +656,7 @@ function SessionWrapper({
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={onExitConfirm} style={{
                 flex: 1, height: 44, borderRadius: 12, border: 'none',
-                background: '#E53935', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                background: 'var(--color-primary)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer',
               }}>退出</button>
               <button onClick={onExitCancel} style={{
                 flex: 1, height: 44, borderRadius: 12, border: '1.5px solid #E0E0E0',
@@ -723,7 +723,7 @@ function RecognitionCard({ item, isError, onKnow, onReview }: {
               style={{
                 position: 'absolute', top: 12, right: 12,
                 width: 36, height: 36, borderRadius: '50%',
-                border: 'none', background: '#FFF0F0', color: '#E53935',
+                border: 'none', background: '#FFF0F0', color: 'var(--color-primary)',
                 cursor: 'pointer', fontSize: 14,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
@@ -741,8 +741,8 @@ function RecognitionCard({ item, isError, onKnow, onReview }: {
               style={{
                 marginTop: 4,
                 padding: '4px 14px', borderRadius: 20,
-                border: '1.5px solid #E53935', background: '#FFF0F0',
-                color: '#E53935', fontSize: 13, cursor: 'pointer',
+                border: '1.5px solid var(--color-primary)', background: '#FFF0F0',
+                color: 'var(--color-primary)', fontSize: 13, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}
             >
@@ -768,7 +768,7 @@ function RecognitionCard({ item, isError, onKnow, onReview }: {
               style={{
                 position: 'absolute', top: 12, right: 12,
                 width: 36, height: 36, borderRadius: '50%',
-                border: 'none', background: '#FFF0F0', color: '#E53935',
+                border: 'none', background: '#FFF0F0', color: 'var(--color-primary)',
                 cursor: 'pointer', fontSize: 14,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
@@ -894,8 +894,8 @@ function DictationCard({ item, isError, onKnow, onReview }: {
       padding: 10,
       showCharacter: false,
       showOutline: false,
-      strokeColor: '#E53935', outlineColor: '#CCCCCC',
-      drawingColor: '#E53935',
+      strokeColor: 'var(--color-primary)', outlineColor: '#CCCCCC',
+      drawingColor: 'var(--color-primary)',
       drawingWidth: 6,
       showHintAfterMisses: false,
     })
@@ -967,7 +967,7 @@ function DictationCard({ item, isError, onKnow, onReview }: {
         </div>
       </div>
 
-      <div style={{ fontSize: 13, color: mistakes > 0 ? '#E53935' : '#999' }}>
+      <div style={{ fontSize: 13, color: mistakes > 0 ? 'var(--color-primary)' : '#999' }}>
         错误 {mistakes} 次 / Mistakes: {mistakes}
       </div>
 
@@ -1137,7 +1137,7 @@ function FillCard({ item, isError, allItems, onKnow, onReview }: {
             const revealed = chosen !== null
             let bg = '#F5F5F5'; let border = '#E0E0E0'; let color = '#212121'
             if (isChosen && isCorrect) { bg = '#E8F5E9'; border = '#2E7D32'; color = '#2E7D32' }
-            if (isChosen && !isCorrect) { bg = '#FFEBEE'; border = '#E53935'; color = '#E53935' }
+            if (isChosen && !isCorrect) { bg = '#FFEBEE'; border = 'var(--color-primary)'; color = 'var(--color-primary)' }
             if (revealed && isCorrect && !isChosen) { bg = '#E8F5E9'; border = '#2E7D32'; color = '#2E7D32' }
             return (
               <button key={c} onClick={() => pick(c)}
@@ -1153,7 +1153,7 @@ function FillCard({ item, isError, allItems, onKnow, onReview }: {
         </div>
         {chosen && (
           <div style={{ textAlign: 'center', marginTop: 10, fontSize: 14, fontWeight: 600,
-            color: chosen === item.char ? '#2E7D32' : '#E53935' }}>
+            color: chosen === item.char ? '#2E7D32' : 'var(--color-primary)' }}>
             {chosen === item.char ? '✓ 正确！/ Correct!' : '✗ 错了 / Wrong'}
           </div>
         )}
@@ -1211,7 +1211,7 @@ function PinyinCard({ item, isError, allItems, onKnow, onReview }: {
             <button onClick={() => speakChinese(item.char)}
               style={{
                 width: 36, height: 36, borderRadius: '50%',
-                border: 'none', background: '#FFF0F0', color: '#E53935', cursor: 'pointer', fontSize: 14,
+                border: 'none', background: '#FFF0F0', color: 'var(--color-primary)', cursor: 'pointer', fontSize: 14,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
               <i className="fa-solid fa-volume-low" />
@@ -1227,7 +1227,7 @@ function PinyinCard({ item, isError, allItems, onKnow, onReview }: {
             const revealed = chosen !== null
             let bg = '#F5F5F5'; let border = '#E0E0E0'; let color = '#212121'
             if (isChosen && isCorrect) { bg = '#E8F5E9'; border = '#2E7D32'; color = '#2E7D32' }
-            if (isChosen && !isCorrect) { bg = '#FFEBEE'; border = '#E53935'; color = '#E53935' }
+            if (isChosen && !isCorrect) { bg = '#FFEBEE'; border = 'var(--color-primary)'; color = 'var(--color-primary)' }
             if (revealed && isCorrect && !isChosen) { bg = '#E8F5E9'; border = '#2E7D32'; color = '#2E7D32' }
             // find tone for this pinyin option
             const { toneIdx } = stripTone(p)
@@ -1254,7 +1254,7 @@ function PinyinCard({ item, isError, allItems, onKnow, onReview }: {
         </div>
         {chosen && (
           <div style={{ textAlign: 'center', marginTop: 10, fontSize: 14, fontWeight: 600,
-            color: chosen === item.pinyin ? '#2E7D32' : '#E53935' }}>
+            color: chosen === item.pinyin ? '#2E7D32' : 'var(--color-primary)' }}>
             {chosen === item.pinyin ? '✓ 正确！/ Correct!' : `✗ 错了 / Wrong — ${item.pinyin}`}
           </div>
         )}
@@ -1288,7 +1288,7 @@ function CompleteScreen({ results, accuracy, elapsed, missedItems, onRetryMissed
       padding: '32px 16px', gap: 16, maxWidth: 380, margin: '0 auto',
     }}>
       <div style={{ fontSize: 48 }}>🎉</div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: '#E53935' }}>复习完成！/ Review Complete!</div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-primary)' }}>复习完成！/ Review Complete!</div>
 
       {/* Stats grid */}
       <div style={{
@@ -1312,7 +1312,7 @@ function CompleteScreen({ results, accuracy, elapsed, missedItems, onRetryMissed
         {missedItems.length > 0 && (
           <button onClick={onRetryMissed} style={{
             width: '100%', height: 52, borderRadius: 16, border: 'none',
-            background: '#E53935', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
+            background: 'var(--color-primary)', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
           }}>
             再复习错题 / Retry Missed ({missedItems.length})
           </button>
@@ -1354,7 +1354,7 @@ function ActionBtn({ label, sub, bg, color, border, onClick }: {
 function ErrorBadge() {
   return (
     <div style={{
-      background: '#FFEBEE', color: '#E53935', border: '1px solid #FFCDD2',
+      background: '#FFEBEE', color: 'var(--color-primary)', border: '1px solid #FFCDD2',
       borderRadius: 12, padding: '4px 10px', fontSize: 12, fontWeight: 700,
     }}>⚠ 错题</div>
   )

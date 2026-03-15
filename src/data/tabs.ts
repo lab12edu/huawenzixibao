@@ -19,7 +19,7 @@ export const TABS: TabDef[] = [
     labelCn: '生字表',
     labelEn: 'Vocab',
     icon: 'fa-solid fa-book',
-    color: '#E53935',
+    color: 'var(--color-primary)',
     colorLight: '#FFEBEE',
   },
   {

@@ -58,7 +58,7 @@ function sanitiseMeaning(meaning: string): string {
 
 // ── Confetti engine ───────────────────────────────────────────
 function launchConfetti(container: HTMLElement) {
-  const COLOURS = ['#E53935','#FF8F00','#43A047','#1E88E5','#8E24AA','#FFD600']
+  const COLOURS = ['var(--color-primary)','#FF8F00','#43A047','#1E88E5','#8E24AA','#FFD600']
   const COUNT = 80
   for (let i = 0; i < COUNT; i++) {
     const el = document.createElement('div')

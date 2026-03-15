@@ -9,7 +9,7 @@ const QUICK_CARDS = [
   {
     tab: 'vocab' as const,
     icon: '📖',
-    color: '#E53935',
+    color: 'var(--color-primary)',
     colorLight: '#FFEBEE',
     cn: '生字表',
     en: 'Vocab List',
