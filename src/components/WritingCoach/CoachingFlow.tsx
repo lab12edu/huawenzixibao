@@ -12,7 +12,6 @@ import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
 import { IDIOM_BANK } from '../../data/idiomBank'
 import { callGemini, callGeminiWithImage } from '../../utils/aiApi'
-import IdiomPopup from './IdiomPopup'
 import PhrasePickerModal from './PhrasePickerModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -231,7 +230,7 @@ export default function CoachingFlow({
     }))
   }
 
-  // ── Idiom selected (use button inside IdiomPopup) ────────────────────────
+  // ── Idiom overlay — rendered inline; IdiomPopup.tsx exists on disk but is not used here ──
   const handleIdiomUse = (idiom: Idiom) => {
     setSelectedIdioms(prev =>
       prev.find(i => i.id === idiom.id) ? prev : [...prev, idiom]
