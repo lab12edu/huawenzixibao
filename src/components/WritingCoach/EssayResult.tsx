@@ -46,6 +46,19 @@ function applyGender(text: string, gender: 'male' | 'female'): string {
   return text
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Extract the first JSON object from a string that may contain markdown fences. */
+function extractJson(raw: string): string {
+  // Remove markdown code fences if present
+  const stripped = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+  // Find the outermost { … } block
+  const start = stripped.indexOf('{')
+  const end   = stripped.lastIndexOf('}')
+  if (start === -1 || end === -1 || end < start) return stripped
+  return stripped.slice(start, end + 1)
+}
+
 function LoadingDots() {
   return (
     <span className="loading-dots" aria-label="处理中">
@@ -77,23 +90,33 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
   ].filter(Boolean).join('\n\n')
   const fullEssay = applyGender(rawEssay, gender)
 
-  // Auto-score on mount
+  // ── Scoring prompt — extracted so both auto-score and retry reuse it ──
+  const scoringPrompt =
+    '你是新加坡小学华文作文评卷老师。请根据以下14个维度为这篇小学作文评分，' +
+    '每个维度满分为5分（1=很弱，5=非常好）。' +
+    '只返回合法JSON，格式：{"dimensions":[{"name":"内容","score":4},...],"totalScore":52,"feedback":"CN总评 / EN summary"}。' +
+    '14个维度：内容、结构、开头、结尾、心理描写、动作描写、对话描写、场景描写、' +
+    '成语运用、比喻句、词汇量、句子变化、标点符号、整体流畅度。\n\n' +
+    `作文内容：\n${fullEssay}`
+
+  const scoringConfig = { maxOutputTokens: 2048, temperature: 0.3, thinkingConfig: { thinkingBudget: 0 } }
+  const scoringSystem = '你是一位专业的小学华文作文评分老师。请用简单的新加坡小学华文，避免生僻字。'
+
+  // ── Auto-score on mount — delayed 4 s to avoid rate-limit collision ──
   useEffect(() => {
     let cancelled = false
-    const fetchScore = async () => {
+    const timer = setTimeout(async () => {
+      if (cancelled) return
       setIsScoring(true)
       setScoreError('')
-      const prompt =
-        '你是新加坡小学华文作文评卷老师。请根据以下14个维度为这篇小学作文评分，' +
-        '每个维度满分为5分（1=很弱，5=非常好）。' +
-        '只返回合法JSON，格式：{"dimensions":[{"name":"内容","score":4},...],"totalScore":52,"feedback":"CN总评 / EN summary"}。' +
-        '14个维度：内容、结构、开头、结尾、心理描写、动作描写、对话描写、场景描写、' +
-        '成语运用、比喻句、词汇量、句子变化、标点符号、整体流畅度。\n\n' +
-        `作文内容：\n${fullEssay}`
-      const result = await callGemini('你是一位专业的小学华文作文评分老师。请用简单的新加坡小学华文，避免生僻字。', prompt)
+      const result = await callGemini(scoringSystem, scoringPrompt, scoringConfig)
       if (cancelled) return
       if (result.error) {
-        setScoreError('AI 评分暂时不可用，请稍后重试。')
+        setScoreError(
+          result.rateLimited
+            ? 'AI 正忙，请30秒后点击重试。 AI is busy — please wait 30 seconds and retry.'
+            : 'AI 评分暂时不可用，请稍后重试。 Score unavailable, please retry.'
+        )
       } else {
         try {
           const parsed: ScoreResult = JSON.parse(extractJson(result.text))
@@ -103,9 +126,11 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
         }
       }
       setIsScoring(false)
+    }, 4000) // wait 4 s to avoid rate-limit collision with prior enhance calls
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
     }
-    fetchScore()
-    return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -254,7 +279,36 @@ ${fullEssay}
         )}
 
         {scoreError && (
-          <p style={{ color: 'var(--color-primary)', fontSize: '0.88rem' }}>{scoreError}</p>
+          <div>
+            <p style={{ color: 'var(--color-primary)', fontSize: '0.88rem' }}>{scoreError}</p>
+            <button
+              className="btn-secondary"
+              style={{ marginTop: '8px', fontSize: '0.85rem', padding: '6px 16px' }}
+              onClick={() => {
+                setScoreError('')
+                setScoreResult(null)
+                setIsScoring(true)
+                callGemini(scoringSystem, scoringPrompt, scoringConfig).then(res => {
+                  if (res.error) {
+                    setScoreError(
+                      res.rateLimited
+                        ? 'AI 正忙，请30秒后点击重试。 AI is busy — please wait 30 seconds and retry.'
+                        : 'AI 评分暂时不可用。 Score unavailable.'
+                    )
+                  } else {
+                    try {
+                      setScoreResult(JSON.parse(extractJson(res.text)))
+                    } catch {
+                      setScoreError('评分结果格式异常。 Score format error.')
+                    }
+                  }
+                  setIsScoring(false)
+                })
+              }}
+            >
+              🔄 重试评分 Retry Score
+            </button>
+          </div>
         )}
 
         {scoreResult && (

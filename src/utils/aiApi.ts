@@ -1,6 +1,7 @@
 // src/utils/aiApi.ts
 // Model-agnostic Gemini utility — uses native fetch only, no SDK.
 // All calls are wrapped in try/catch to degrade gracefully.
+// Automatic single retry on HTTP 429 (rate limit) after a 6-second wait.
 
 const MODEL = 'gemini-2.5-flash'
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
@@ -13,7 +14,8 @@ function getKey(): string {
 
 export interface AiApiResult {
   text: string
-  error?: string
+  error?: boolean
+  rateLimited?: boolean
 }
 
 export async function callGemini(
@@ -24,39 +26,38 @@ export async function callGemini(
   try {
     const key = getKey()
     const url = `${API_BASE}/${MODEL}:generateContent?key=${key}`
-    const body = {
-      system_instruction: {
-        parts: [{ text: systemPrompt }]
-      },
-      contents: [
-        { role: 'user', parts: [{ text: userPrompt }] }
-      ],
-      generationConfig: generationConfig ?? {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
-      }
-    }
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    const body = JSON.stringify({
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      generationConfig: generationConfig ?? { temperature: 0.7, maxOutputTokens: 1024 },
     })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      return {
-        text: '',
-        error: `API error ${res.status}: ${JSON.stringify(err)}`
+
+    // One automatic retry on 429 after a 6-second wait
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+      if (res.status === 429 && attempt === 0) {
+        await new Promise(resolve => setTimeout(resolve, 6000))
+        continue
       }
+      if (res.status === 429) {
+        // Second attempt also rate-limited
+        return { text: '', error: true, rateLimited: true }
+      }
+      if (!res.ok) {
+        return { text: '', error: true }
+      }
+      const data = await res.json()
+      const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+      return { text, error: !text || undefined }
     }
-    const data = await res.json()
-    const text: string =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-    return { text }
+    // Loop exhausted (should not be reached, but satisfies TypeScript)
+    return { text: '', error: true, rateLimited: true }
   } catch (e) {
-    return {
-      text: '',
-      error: e instanceof Error ? e.message : 'Unknown error'
-    }
+    return { text: '', error: true }
   }
 }
 
@@ -68,7 +69,8 @@ export async function smokeTest(): Promise<string> {
     '你是一个测试助手。',
     '请用中文回答：你好吗？只需一句话。'
   )
-  return result.error ?? result.text
+  if (result.error) return result.rateLimited ? 'rate-limited' : 'error'
+  return result.text
 }
 
 // ── Image + text call ────────────────────────────────────────────────────────
@@ -82,29 +84,35 @@ export async function callGeminiWithImage(
   // Strip data URI prefix if caller passed a full data URL
   const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, '')
   const url = `${API_BASE}/${MODEL}:generateContent?key=${key}`
-  const body = {
+  const body = JSON.stringify({
     contents: [
       {
         role: 'user',
         parts: [
           { inline_data: { mime_type: 'image/jpeg', data: cleanBase64 } },
-          { text: prompt }
-        ]
-      }
+          { text: prompt },
+        ],
+      },
     ],
-    generationConfig: {
-      temperature: 0.6,
-      maxOutputTokens: 1024,
-    }
-  }
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    generationConfig: { temperature: 0.6, maxOutputTokens: 1024 },
   })
-  if (!res.ok) {
-    throw new Error(`Gemini image API error ${res.status}: ${res.statusText}`)
+
+  // One automatic retry on 429 after a 6-second wait
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    })
+    if (res.status === 429 && attempt === 0) {
+      await new Promise(resolve => setTimeout(resolve, 6000))
+      continue
+    }
+    if (!res.ok) {
+      throw new Error(`Gemini image API error ${res.status}: ${res.statusText}`)
+    }
+    const data = await res.json()
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
   }
-  const data = await res.json()
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+  throw new Error('Gemini image API error: rate limited after retry')
 }
