@@ -34,6 +34,12 @@
   /* Layout */
   --sidebar-width: 220px;
   --nav-height: 64px;
+
+  /* Typography scale (rem) — supplement to the px tokens below */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
 }
 
 /* ── Reset ── */
@@ -179,7 +185,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: var(--color-primary);
+  background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-dark));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3623,3 +3629,137 @@ button:active {
 }
 
 /* ── End Phase 5C ───────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Phase 5D: AI Enhance Comparison Diff View
+   Side-by-side original vs AI suggestion with diff highlighting.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Comparison view wrapper ── */
+.comparison-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+  animation: fadeInComparison 0.25s ease;
+}
+
+/* ── Two-column layout ── */
+.comparison-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 600px) {
+  .comparison-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Individual boxes ── */
+.comparison-box {
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  min-height: 120px;
+}
+
+.comparison-box--original {
+  background: #F8FAFB;
+  border: 1px solid var(--color-border);
+}
+
+.comparison-box--enhanced {
+  background: #EFF9F7;
+  border: 1px solid var(--color-primary-mid);
+}
+
+/* ── Box label ── */
+.comparison-box__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid var(--color-border);
+}
+
+.comparison-box--original  .comparison-box__label { color: var(--color-text-secondary); }
+.comparison-box--enhanced  .comparison-box__label { color: var(--color-primary); }
+
+/* ── Box body text ── */
+.comparison-box__text {
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Diff highlight ── */
+mark.diff-highlight {
+  background: rgba(0, 109, 119, 0.12);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+/* ── Three-way action row ── */
+.comparison-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.comparison-actions__accept  { order: 1; }
+.comparison-actions__edit    { order: 2; }
+.comparison-actions__discard { order: 3; }
+
+/* ── Ghost button (used for "保留原文") ── */
+.btn-ghost {
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+}
+
+/* ── Fade-in animation ── */
+@keyframes fadeInComparison {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Desktop: wider comparison columns ── */
+@media (min-width: 1024px) {
+  .comparison-cols {
+    gap: 20px;
+  }
+
+  .comparison-box {
+    padding: 16px 18px;
+    min-height: 160px;
+  }
+
+  .comparison-box__text {
+    font-size: 1rem;
+  }
+
+  .comparison-actions {
+    gap: 14px;
+  }
+}

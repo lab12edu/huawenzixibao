@@ -3,6 +3,7 @@
 // Five sections: opening → rising → climax → resolution → closing.
 // Each section has phrase chips, idiom chips, AI enhance, and a textarea.
 // Gender substitution applied throughout: 他 → 她 when gender === 'female'.
+// Phase 5D: comparison diff view — side-by-side original vs AI suggestion.
 
 import React, { useState, useRef } from 'react'
 import type { CompositionTopic } from '../../data/compositionTopics'
@@ -82,6 +83,31 @@ function applyGender(text: string, gender: 'male' | 'female'): string {
   return text
 }
 
+/**
+ * Wrap sentences in the enhanced text that do not appear (even partially)
+ * in the original text with <mark class="diff-highlight">.
+ * Splits on Chinese sentence-ending punctuation and full stops.
+ */
+function highlightDiff(original: string, enhanced: string): string {
+  // Split enhanced text into sentences using Chinese and English punctuation
+  const sentencePattern = /([^。！？!?\n]+[。！？!?\n]?)/g
+  const sentences = enhanced.match(sentencePattern) ?? [enhanced]
+
+  return sentences
+    .map(sentence => {
+      const core = sentence.trim().replace(/[。！？!?\n]/g, '')
+      if (!core) return sentence
+      // Check whether a meaningful substring (≥ 4 chars) of the sentence exists in the original
+      const checkLen = Math.min(core.length, 6)
+      const sample = core.slice(0, checkLen)
+      if (original.includes(sample)) {
+        return sentence
+      }
+      return `<mark class="diff-highlight">${sentence}</mark>`
+    })
+    .join('')
+}
+
 function LoadingDots() {
   return (
     <span className="loading-dots" aria-label="处理中">
@@ -105,6 +131,8 @@ export default function CoachingFlow({
     opening: '', rising: '', climax: '', resolution: '', closing: '',
   })
   const [isEnhancing, setIsEnhancing] = useState(false)
+  const [enhancedText, setEnhancedText] = useState<string>('')
+  const [comparisonMode, setComparisonMode] = useState<boolean>(false)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [imageAnalysis, setImageAnalysis] = useState('')
   const [isAnalysingImage, setIsAnalysingImage] = useState(false)
@@ -115,6 +143,7 @@ export default function CoachingFlow({
   const [activeIdiom, setActiveIdiom] = useState<Idiom | null>(null)
   const [enhanceError, setEnhanceError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const currentKey = SECTION_KEYS[currentIdx]
   const currentText = sections[currentKey]
@@ -148,7 +177,7 @@ export default function CoachingFlow({
 
   // ── AI Enhance handler ───────────────────────────────────────────────────
   const handleEnhance = async () => {
-    if (!currentText.trim() || isEnhancing) return
+    if (!currentText.trim() || isEnhancing || comparisonMode) return
     setIsEnhancing(true)
     setEnhanceError('')
     const genderChar = gender === 'female' ? '女生' : '男生'
@@ -164,9 +193,34 @@ export default function CoachingFlow({
       setEnhanceError('AI 润色失败，请稍后再试。')
     } else {
       const enhanced = applyGender(result.text.trim(), gender)
-      setSections(prev => ({ ...prev, [currentKey]: enhanced }))
+      setEnhancedText(enhanced)
+      setComparisonMode(true)
     }
     setIsEnhancing(false)
+  }
+
+  // ── Comparison action handlers ───────────────────────────────────────────
+
+  /** Accept the AI suggestion: replace textarea content. */
+  const handleAcceptSuggestion = () => {
+    setSections(prev => ({ ...prev, [currentKey]: enhancedText }))
+    setEnhancedText('')
+    setComparisonMode(false)
+  }
+
+  /** Copy AI suggestion to textarea for further editing, then focus it. */
+  const handleEditSuggestion = () => {
+    setSections(prev => ({ ...prev, [currentKey]: enhancedText }))
+    setEnhancedText('')
+    setComparisonMode(false)
+    // Focus textarea after React re-render
+    requestAnimationFrame(() => textareaRef.current?.focus())
+  }
+
+  /** Discard AI suggestion and keep original text. */
+  const handleDiscardSuggestion = () => {
+    setEnhancedText('')
+    setComparisonMode(false)
   }
 
   // ── Phrase selected ──────────────────────────────────────────────────────
@@ -215,6 +269,9 @@ export default function CoachingFlow({
     } else {
       setCurrentIdx(i => i + 1)
       setEnhanceError('')
+      // Reset comparison state on section change
+      setEnhancedText('')
+      setComparisonMode(false)
     }
   }
 
@@ -224,6 +281,9 @@ export default function CoachingFlow({
     } else {
       setCurrentIdx(i => i - 1)
       setEnhanceError('')
+      // Reset comparison state on section change
+      setEnhancedText('')
+      setComparisonMode(false)
     }
   }
 
@@ -328,7 +388,7 @@ export default function CoachingFlow({
           {imageAnalysis && (
             <div style={{ marginBottom: '10px' }}>
               <button
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.82rem', color: '#4527A0', fontWeight: 600, padding: '0 0 6px' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 600, padding: '0 0 6px' }}
                 onClick={() => setShowImageAnalysis(v => !v)}
               >
                 {showImageAnalysis ? '▲ 收起图片分析' : '▼ 图片分析'}
@@ -351,26 +411,80 @@ export default function CoachingFlow({
             {SECTION_INSTRUCTIONS[currentKey]}
           </div>
 
-          {/* Main textarea */}
-          <textarea
-            className="section-textarea"
-            value={currentText}
-            onChange={e => setSections(prev => ({ ...prev, [currentKey]: e.target.value }))}
-            placeholder={`在这里写【${SECTION_LABELS[currentKey]}】…`}
-            aria-label={SECTION_LABELS[currentKey]}
-          />
+          {/* ── Comparison view (Phase 5D) ── */}
+          {comparisonMode ? (
+            <div className="comparison-view">
+              <div className="comparison-cols">
 
-          {/* Enhance button */}
-          <button
-            className="enhance-btn"
-            onClick={handleEnhance}
-            disabled={isEnhancing || !currentText.trim()}
-            aria-label="AI 帮我写得更好"
-          >
-            {isEnhancing ? <><LoadingDots /> 润色中…</> : '✨ AI 帮我写得更好'}
-          </button>
-          {enhanceError && (
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-primary)', marginTop: '6px' }}>{enhanceError}</p>
+                {/* Original */}
+                <div className="comparison-box comparison-box--original">
+                  <div className="comparison-box__label">我的原稿</div>
+                  <div className="comparison-box__text">{currentText}</div>
+                </div>
+
+                {/* AI suggestion */}
+                <div className="comparison-box comparison-box--enhanced">
+                  <div className="comparison-box__label">AI 润色建议</div>
+                  <div
+                    className="comparison-box__text"
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{
+                      __html: highlightDiff(currentText, enhancedText),
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Three-way action row */}
+              <div className="comparison-actions">
+                <button
+                  className="btn-primary comparison-actions__accept"
+                  onClick={handleAcceptSuggestion}
+                  aria-label="采用 AI 润色建议"
+                >
+                  ✅ 采用建议
+                </button>
+                <button
+                  className="btn-secondary comparison-actions__edit"
+                  onClick={handleEditSuggestion}
+                  aria-label="在 AI 建议基础上继续修改"
+                >
+                  ✏️ 在此基础上修改
+                </button>
+                <button
+                  className="btn-ghost comparison-actions__discard"
+                  onClick={handleDiscardSuggestion}
+                  aria-label="保留原文，放弃 AI 建议"
+                >
+                  ✕ 保留原文
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Main textarea — normal mode */}
+              <textarea
+                ref={textareaRef}
+                className="section-textarea"
+                value={currentText}
+                onChange={e => setSections(prev => ({ ...prev, [currentKey]: e.target.value }))}
+                placeholder={`在这里写【${SECTION_LABELS[currentKey]}】…`}
+                aria-label={SECTION_LABELS[currentKey]}
+              />
+
+              {/* Enhance button — disabled while enhancing or in comparison mode */}
+              <button
+                className="enhance-btn"
+                onClick={handleEnhance}
+                disabled={isEnhancing || comparisonMode || !currentText.trim()}
+                aria-label="AI 帮我写得更好"
+              >
+                {isEnhancing ? <><LoadingDots /> 润色中…</> : '✨ AI 帮我写得更好'}
+              </button>
+              {enhanceError && (
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-primary)', marginTop: '6px' }}>{enhanceError}</p>
+              )}
+            </>
           )}
 
           {/* Selected phrases chips */}
