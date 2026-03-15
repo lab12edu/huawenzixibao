@@ -12,6 +12,7 @@ import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
 import { IDIOM_BANK } from '../../data/idiomBank'
 import { callGemini, callGeminiWithImage } from '../../utils/aiApi'
+import { speak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -130,6 +131,7 @@ export default function CoachingFlow({
   const [phraseModalCategory, setPhraseModalCategory] = useState<PhraseCategory | null>(null)
   const [activeIdiom, setActiveIdiom] = useState<Idiom | null>(null)
   const [enhanceError, setEnhanceError] = useState('')
+  const [enhancedTranslation, setEnhancedTranslation] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const idiomCloseRef = useRef<HTMLButtonElement>(null)
@@ -139,6 +141,7 @@ export default function CoachingFlow({
     setEnhancedText('')
     setComparisonMode(false)
     setEnhanceError('')
+    setEnhancedTranslation('')
   }, [currentIdx])
 
   // ── Auto-focus idiom close button when overlay opens ─────────────────────
@@ -209,6 +212,14 @@ export default function CoachingFlow({
     } else {
       const enhanced = applyGender(result.text.trim(), gender)
       setEnhancedText(enhanced)
+      // Fetch English translation for parent/student reference
+      try {
+        const translationPrompt = `Translate the following Chinese text into simple English suitable for a Singapore primary school parent. Keep it natural and brief. Return only the English translation, no explanation.\n\n${enhanced}`
+        const translationResult = await callGemini('You are a helpful translator.', translationPrompt)
+        setEnhancedTranslation(translationResult.text.trim())
+      } catch {
+        setEnhancedTranslation('')
+      }
       setComparisonMode(true)
     }
     setIsEnhancing(false)
@@ -221,6 +232,7 @@ export default function CoachingFlow({
     setSections(prev => ({ ...prev, [currentKey]: enhancedText }))
     setEnhancedText('')
     setComparisonMode(false)
+    setEnhancedTranslation('')
   }
 
   /** Copy AI suggestion to textarea for further editing, then focus it. */
@@ -228,6 +240,7 @@ export default function CoachingFlow({
     setSections(prev => ({ ...prev, [currentKey]: enhancedText }))
     setEnhancedText('')
     setComparisonMode(false)
+    setEnhancedTranslation('')
     // Focus textarea after React re-render
     requestAnimationFrame(() => textareaRef.current?.focus())
   }
@@ -236,6 +249,7 @@ export default function CoachingFlow({
   const handleDiscardSuggestion = () => {
     setEnhancedText('')
     setComparisonMode(false)
+    setEnhancedTranslation('')
   }
 
   // ── Phrase selected ──────────────────────────────────────────────────────
@@ -439,20 +453,45 @@ export default function CoachingFlow({
 
               {/* Original */}
               <div className="comparison-box original">
-                <span className="comparison-label">我的原稿</span>
+                <span className="comparison-label">我的原稿
+                  <span className="comparison-label-en">My Original Draft</span>
+                </span>
                 <p className="comparison-text">{currentText}</p>
               </div>
 
               {/* AI suggestion */}
               <div className="comparison-box enhanced">
-                <span className="comparison-label">AI 润色建议</span>
-                <p
+                <span className="comparison-label">AI 润色建议
+                  <span className="comparison-label-en">AI Suggestion</span>
+                </span>
+                {/* TTS button row */}
+                <div className="comparison-tts-row">
+                  <button
+                    className="btn-tts-small"
+                    onClick={() => speak(enhancedText)}
+                    title="Read aloud"
+                    aria-label="Read AI suggestion aloud"
+                  >
+                    🔊 朗读 Read Aloud
+                  </button>
+                </div>
+
+                {/* Enhanced Chinese text with diff highlights */}
+                <div
                   className="comparison-text"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{
-                    __html: highlightDiff(currentText, enhancedText),
+                    __html: highlightDiff(sections[currentKey] || '', enhancedText),
                   }}
                 />
+
+                {/* English translation — fetched after enhance */}
+                {enhancedTranslation && (
+                  <div className="comparison-translation">
+                    <span className="comparison-translation-label">📖 English meaning:</span>
+                    <p>{enhancedTranslation}</p>
+                  </div>
+                )}
               </div>
 
               {/* Three-way action row — nested inside container for animation */}

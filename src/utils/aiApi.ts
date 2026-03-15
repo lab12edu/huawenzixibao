@@ -93,7 +93,7 @@ export async function callGeminiWithImage(
     ],
     generationConfig: {
       temperature: 0.6,
-      maxOutputTokens: 512,
+      maxOutputTokens: 1024,
     }
   }
   const res = await fetch(url, {
