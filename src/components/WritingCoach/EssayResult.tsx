@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react'
 import type { EssayData } from './CoachingFlow'
-import { callGemini, isApiLocked } from '../../utils/aiApi'
+import { scoreEssay, enhanceFullEssay } from '../../utils/aiApi'
 import { speakPassage, cancelSpeak } from '../../utils/tts'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -97,33 +97,12 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
   ].filter(Boolean).join('\n\n')
   const fullEssay = applyGender(rawEssay, gender)
 
-  // ── WS4: Singapore guardrail ────────────────────────────────────────────
-  const SG_GUARDRAIL = [
-    'You are a Singapore Primary School Chinese writing coach.',
-    'All names must be Singapore names: 小明, 小红, 小华, 阿明, Ali, Siti, Muthu, Wei Liang.',
-    'All settings must be Singapore settings: 组屋 (HDB flat), 食阁 (hawker centre),',
-    '民众俱乐部 (community centre), 图书馆 (public library), CCA, PSLE,',
-    '组屋走廊 (HDB corridor), 巴刹 (wet market), 学校操场 (school field).',
-    'Never reference 祖国, 长城, 北京, 天安门, 故宫, or any China-specific landmark.',
-    'Every suggestion must feel like it was written by a Singapore child about their Singapore life.',
-  ].join('\n')
-
-  // ── Scoring prompt — extracted so both auto-score and retry reuse it ──
-  const scoringPrompt =
-    '你是新加坡小学华文作文评卷老师。请根据以下14个维度为这篇小学作文评分，' +
-    '每个维度满分为5分（1=很弱，5=非常好）。' +
-    '只返回合法JSON，格式：' +
-    '{"dimensions":[{"name":"内容","score":4},...], "totalScore":52, "feedback":"CN总评 / EN summary",' +
-    '"idiomFeedback":{"idiom":"成语词","feedbackCn":"中文评语","feedbackEn":"English feedback"}}。' +
-    '成语运用 (Idiom Usage)：检查学生是否正确使用了成语。如果有，填写 idiomFeedback，' +
-    'feedbackCn 中须提及好词好句及语文评分，feedbackEn 须提及 Language marks 和 PSLE rubric。' +
-    '如果没有使用成语，idiomFeedback 设为 null。' +
-    '14个维度：内容、结构、开头、结尾、心理描写、动作描写、对话描写、场景描写、' +
-    '成语运用、比喻句、词汇量、句子变化、标点符号、整体流畅度。\n\n' +
-    `作文内容：\n${fullEssay}`
-
-  const scoringConfig = { maxOutputTokens: 2048, temperature: 0.3, thinkingConfig: { thinkingBudget: 0 } }
-  const scoringSystem = `${SG_GUARDRAIL}\n\n你是一位专业的小学华文作文评分老师。请用简单的新加坡小学华文，避免生僻字。`
+  // Score payload — reused by auto-score and retry
+  const scorePayload = {
+    level:      essayData.level,
+    topicTitle: essayData.topicTitle,
+    fullEssay,
+  }
 
   // ── Auto-score on mount — delayed 4 s to avoid rate-limit collision ──
   useEffect(() => {
@@ -132,7 +111,7 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
       if (cancelled) return
       setIsScoring(true)
       setScoreError('')
-      const result = await callGemini(scoringSystem, scoringPrompt, scoringConfig)
+      const result = await scoreEssay(scorePayload)
       if (cancelled) return
       if (result.error) {
         setScoreError(
@@ -202,25 +181,11 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
     setFullEnhancing(true)
     setEnhancedEssay('')
     try {
-      const fullPrompt = `你是一位新加坡小学华文老师。请帮助润色以下学生的作文。
-
-作文题目：${essayData.topicTitle}
-学生年级：${essayData.level}
-
-学生原文：
-${fullEssay}
-
-要求：
-1. 改写后的作文应为350至500个汉字，五段式记叙文结构。
-2. 保留学生原文的所有主要情节和意思。
-3. 使用${essayData.level}水平的词汇，句子自然流畅。
-4. 每段80至100字，段落之间衔接自然。
-5. 直接输出完整作文，不要解释，不要标题，不要多余符号。`
-      const result = await callGemini(
-        `${SG_GUARDRAIL}\n\n你是一位专业的新加坡小学华文作文老师。`,
-        fullPrompt,
-        { maxOutputTokens: 3000, temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } }
-      )
+      const result = await enhanceFullEssay({
+        topicTitle: essayData.topicTitle,
+        level:      essayData.level,
+        fullEssay,
+      })
       setEnhancedEssay(result.error ? '' : result.text.trim())
     } catch {
       setEnhancedEssay('')
@@ -265,9 +230,9 @@ ${fullEssay}
         <button
           className="btn-full-enhance"
           onClick={handleFullEnhance}
-          disabled={fullEnhancing || isApiLocked()}
+          disabled={fullEnhancing}
         >
-          {fullEnhancing || isApiLocked() ? '⏳ AI 处理中…' : '✨ AI 提升全文  Enhance Full Essay'}
+          {fullEnhancing ? '⏳ AI 处理中…' : '✨ AI 提升全文  Enhance Full Essay'}
         </button>
       </div>
 
@@ -307,13 +272,12 @@ ${fullEssay}
             <button
               className="btn-secondary"
               style={{ marginTop: '8px', fontSize: '0.85rem', padding: '6px 16px' }}
-              disabled={isApiLocked()}
+              disabled={isScoring}
               onClick={() => {
-                if (isApiLocked()) return
                 setScoreError('')
                 setScoreResult(null)
                 setIsScoring(true)
-                callGemini(scoringSystem, scoringPrompt, scoringConfig).then(res => {
+                scoreEssay(scorePayload).then(res => {
                   if (res.error) {
                     setScoreError(
                       res.rateLimited
@@ -331,7 +295,7 @@ ${fullEssay}
                 })
               }}
             >
-              {isApiLocked() ? '⏳ AI 处理中…' : '🔄 重试评分 Retry Score'}
+              {isScoring ? '⏳ AI 处理中…' : '🔄 重试评分 Retry Score'}
             </button>
           </div>
         )}

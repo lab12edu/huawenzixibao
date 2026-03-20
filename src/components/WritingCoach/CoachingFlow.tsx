@@ -11,22 +11,13 @@ import type { PhraseCategory, Phrase } from '../../data/phraseBank'
 import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
 import { IDIOM_BANK, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES, detectTone } from '../../data/idiomBank'
-import { callGemini, callGeminiWithImage, isApiLocked } from '../../utils/aiApi'
+import { analyseImage, enhanceSection, translateText } from '../../utils/aiApi'
 import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
 import { useDragScroll } from '../../hooks/useDragScroll'
 
 // ── Draft persistence ────────────────────────────────────────────────────
 const DRAFT_KEY = 'hwzxb_wc_draft'
-
-// ── WS4: Singapore contextualisation guardrail ───────────────────────────
-const SG_GUARDRAIL = `You are a Singapore Primary School Chinese writing coach.
-All names must be Singapore names: 小明, 小红, 小华, 阿明, Ali, Siti, Muthu, Wei Liang.
-All settings must be Singapore settings: 组屋 (HDB flat), 食阁 (hawker centre),
-民众俱乐部 (community centre), 图书馆 (public library), CCA, PSLE,
-组屋走廊 (HDB corridor), 巴刹 (wet market), 学校操场 (school field).
-Never reference 祖国, 长城, 北京, 天安门, 故宫, or any China-specific landmark.
-Every suggestion must feel like it was written by a Singapore child about their Singapore life.`
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -154,7 +145,6 @@ export default function CoachingFlow({
     restoredDraft?.sections ?? { opening: '', trigger: '', event1: '', event2: '', result: '', reflection: '' }
   )
   const [isEnhancing, setIsEnhancing] = useState(false)
-  const [apiLock, setApiLock] = useState(false)
   const [suggestedIdioms, setSuggestedIdioms] = useState<Idiom[]>([])
   const [museExpanded, setMuseExpanded] = useState(false)
   const [museTriggered, setMuseTriggered] = useState(false) // true = keyword hit, false = default
@@ -279,19 +269,18 @@ export default function CoachingFlow({
       const base64 = dataUrl.split(',')[1]
       setUploadedImage(dataUrl) // keep full data URL for <img> preview
       setIsAnalysingImage(true)
-      setApiLock(true)
       try {
-        const analysis = await callGeminiWithImage(
-          '你是一位新加坡小学华文作文老师。请用简单的小学华文描述这张图片里发生的事情，包括人物、动作、表情和背景。避免生僻字。请控制在150字以内。请用好词好句，确保每个字都是小学生能认识的常用字。',
-          base64
-        )
-        setImageAnalysis(applyGender(analysis, gender))
-        setShowImageAnalysis(true)
-      } catch (err) {
+        const result = await analyseImage(base64)
+        if (result.error) {
+          setImageAnalysis('图片分析失败，请继续手动写作。')
+        } else {
+          setImageAnalysis(applyGender(result.text, gender))
+          setShowImageAnalysis(true)
+        }
+      } catch {
         setImageAnalysis('图片分析失败，请继续手动写作。')
       } finally {
         setIsAnalysingImage(false)
-        setApiLock(isApiLocked()) // sync local state with module lock
       }
     }
     reader.readAsDataURL(file)
@@ -301,7 +290,6 @@ export default function CoachingFlow({
   const handleEnhance = async () => {
     if (!currentText.trim() || isEnhancing || comparisonMode) return
     setIsEnhancing(true)
-    setApiLock(true)
     setEnhanceError('')
     const previousSectionsText = SECTION_KEYS
       .slice(0, currentIdx)
@@ -309,29 +297,16 @@ export default function CoachingFlow({
       .join('\n')
     const charCount = currentText.replace(/\s/g, '').length
     const needsExpansion = charCount < 50
-    const enhancePrompt = `你是一位新加坡小学华文老师，正在帮助学生润色作文。
-
-作文题目：${topic.titleCn}
-作文体裁：记叙文（六段式）
-学生年级：${level}
-
-${previousSectionsText ? `已完成的段落：\n${previousSectionsText}\n\n` : ''}当前段落（${SECTION_LABELS[currentKey].cn}）学生原文：
-${currentText}
-
-要求：
-1. 保留并改写学生原文的所有内容，不得遗漏任何句子或意思。
-${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继续发展这段的情节，让段落更完整生动。' : '2. 在学生原有内容基础上适当扩充，使段落更完整。'}
-3. 改写后的段落应为80至120个汉字，句子完整，不得在句子中间截断。
-4. 使用${level}水平的词汇，句子自然流畅，适合小学生写作风格，避免生僻字。
-5. 内容必须与作文题目"${topic.titleCn}"紧密相关。
-6. 如果已有前面段落，内容必须与前文自然衔接。
-7. 直接输出改写后的段落，不要解释，不要标题，不要多余符号。`
     setIdiomSuggestion(null)
-    const result = await callGemini(
-      `${SG_GUARDRAIL}\n\n你是一位专业的新加坡小学华文作文老师。`,
-      enhancePrompt,
-      { maxOutputTokens: 2048, temperature: 0.75, thinkingConfig: { thinkingBudget: 0 } }
-    )
+    const result = await enhanceSection({
+      topic:            topic.titleCn,
+      level,
+      sectionKey:       currentKey,
+      sectionLabel:     SECTION_LABELS[currentKey].cn,
+      previousSections: previousSectionsText,
+      currentText,
+      needsExpansion,
+    })
     if (result.error) {
       setEnhanceError('AI 润色失败，请稍后再试。')
     } else {
@@ -359,12 +334,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
       setEnhancedText(applyGender(enhanced, gender))
       // Fetch English translation for parent/student reference
       try {
-        const translationPrompt = `Translate this Chinese text into exactly 2 simple English sentences for a Singapore primary school parent. Simple everyday words only. Return only the English translation, no explanation.\n\n${enhanced}`
-        const translationResult = await callGemini(
-          'You are a helpful translator.',
-          translationPrompt,
-          { maxOutputTokens: 256, temperature: 0.3, thinkingConfig: { thinkingBudget: 0 } }
-        )
+        const translationResult = await translateText(enhanced)
         setEnhancedTranslation(translationResult.text.trim())
       } catch {
         setEnhancedTranslation('')
@@ -372,7 +342,6 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
       setComparisonMode(true)
     }
     setIsEnhancing(false)
-    setApiLock(false)
   }
 
   /** Accept the AI suggestion: replace textarea content. */
@@ -817,10 +786,10 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
               <button
                 className="enhance-btn"
                 onClick={handleEnhance}
-                disabled={isEnhancing || apiLock || comparisonMode || !currentText.trim()}
+                disabled={isEnhancing || comparisonMode || !currentText.trim()}
                 aria-label="AI 帮我写得更好"
               >
-                {(isEnhancing || apiLock) ? <><LoadingDots /> {isEnhancing ? '润色中…' : 'AI 处理中…'}</> : '✨ AI 帮我写得更好'}
+                {isEnhancing ? <><LoadingDots /> 润色中…</> : '✨ AI 帮我写得更好'}
               </button>
               {enhanceError && (
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-primary)', marginTop: '6px' }}>{enhanceError}</p>
