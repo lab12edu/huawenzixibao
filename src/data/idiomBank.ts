@@ -8,6 +8,8 @@
 //     (KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES, detectTone and
 //      their dependencies: ToneValue, TONE_DISPLAY, TONE_KEYWORD_MAP,
 //      BODY_LANGUAGE_MAP)
+//   • IDIOM_CATEGORIES — 11-item static metadata array (no IP, used for
+//      category pills in IdiomBankPage)
 //
 // Components that need the idiom data array must use:
 //   import { fetchIdioms } from '../../utils/vocabApi'
@@ -24,4 +26,5 @@ export {
   TONE_KEYWORD_MAP,
   BODY_LANGUAGE_MAP,
   detectTone,
+  IDIOM_CATEGORIES,
 } from '../server/data/idiomBank'

@@ -1,12 +1,16 @@
 // src/pages/IdiomBankPage.tsx
 // Standalone Idiom Bank showroom page.
-// idiomBank data is loaded via dynamic import() so Vite splits it into
-// its own lazy chunk — the initial bundle stays under 210 kB gzip.
+// Idiom data is fetched from /api/idioms (server vault) via fetchIdioms()
+// so the 400-entry array never appears in the browser bundle.
+// IDIOM_CATEGORIES is a 11-item static metadata list imported from the shim —
+// it contains no IP and is used only to build the category filter pills.
 
 import React, { useState, useEffect, useCallback } from 'react'
 import Toast from '../components/Toast'
 import { speak, speakPassage } from '../utils/tts'
 import { useDragScroll } from '../hooks/useDragScroll'
+import { fetchIdioms } from '../utils/vocabApi'
+import { IDIOM_CATEGORIES } from '../data/idiomBank'
 
 // ── Types (duplicated lightweight shape to avoid top-level static import) ──
 interface Idiom {
@@ -26,10 +30,7 @@ interface Idiom {
   subCategoryZh?: string
 }
 
-interface IdiomCategory {
-  en: string
-  zh: string
-}
+type IdiomCategory = typeof IDIOM_CATEGORIES[number]
 
 // ── localStorage key for saved idioms ────────────────────────────────────
 const SAVED_KEY = 'hwzxb_saved_idioms'
@@ -57,7 +58,6 @@ function toggleSavedId(id: string): boolean {
 
 export default function IdiomBankPage() {
   const [idioms, setIdioms]             = useState<Idiom[]>([])
-  const [categories, setCategories]     = useState<IdiomCategory[]>([])
   const [searchQuery, setSearchQuery]   = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [savedIds, setSavedIds]         = useState<string[]>([])
@@ -69,13 +69,12 @@ export default function IdiomBankPage() {
   // ── Drag-to-scroll on the category pill row (callback ref fires when element mounts)
   const dragScrollRef = useDragScroll<HTMLDivElement>()
 
-  // ── Load idiom bank lazily on mount ─────────────────────────────────────
+  // ── Load idiom bank from server vault on mount ───────────────────────────
   useEffect(() => {
     let cancelled = false
-    import('../data/idiomBank').then(mod => {
+    fetchIdioms().then(data => {
       if (cancelled) return
-      setIdioms(mod.IDIOM_BANK as unknown as Idiom[])
-      setCategories(mod.IDIOM_CATEGORIES as unknown as IdiomCategory[])
+      setIdioms(data as Idiom[])
       setLoading(false)
     })
     setSavedIds(getSavedIds())
@@ -157,7 +156,7 @@ export default function IdiomBankPage() {
           >
             全部 All
           </button>
-          {categories.map(cat => (
+          {IDIOM_CATEGORIES.map((cat: IdiomCategory) => (
             <button
               key={cat.en}
               className={`cat-pill${activeCategory === cat.en ? ' cat-pill--active' : ''}`}
