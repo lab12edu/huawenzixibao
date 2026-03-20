@@ -4094,3 +4094,39 @@ export const SECTION_DEFAULT_THEMES: Record<string, string[]> = {
   result:     ['坚持努力', '友谊互助', '为人处世'],
   reflection: ['智慧哲理', '为人处世', '学习成长'],
 }
+
+// ── Fine-grained tone map: keyword → exact idiom IDs ─────────────────────
+// Tier-1 lookup — bypasses the category shuffle for precise emotional tone.
+// IDs verified from the 21 心情感受 entries in IDIOM_BANK.
+export const TONE_KEYWORD_MAP: Record<string, string[]> = {
+  // Fear / Nervous
+  '害怕':   ['idiom_118', 'idiom_277', 'idiom_124'],
+  '恐惧':   ['idiom_118', 'idiom_277', 'idiom_124'],
+  '紧张':   ['idiom_124', 'idiom_118', 'idiom_277'],
+  '发抖':   ['idiom_118', 'idiom_127', 'idiom_277'],
+  '颤抖':   ['idiom_118', 'idiom_127', 'idiom_277'],
+  '心跳':   ['idiom_124', 'idiom_118', 'idiom_127'],
+  '惶':     ['idiom_124', 'idiom_277', 'idiom_118'],
+  // Sad / Crying
+  '难过':   ['idiom_116', 'idiom_121', 'idiom_126'],
+  '伤心':   ['idiom_121', 'idiom_116', 'idiom_126'],
+  '哭':     ['idiom_121', 'idiom_116', 'idiom_126'],
+  '悲':     ['idiom_116', 'idiom_126', 'idiom_121'],
+  '泪':     ['idiom_121', 'idiom_126', 'idiom_120'],
+  '失望':   ['idiom_116', 'idiom_120', 'idiom_126'],
+  // Happy / Excited
+  '高兴':   ['idiom_115', 'idiom_117', 'idiom_125'],
+  '开心':   ['idiom_128', 'idiom_115', 'idiom_125'],
+  '兴奋':   ['idiom_115', 'idiom_128', 'idiom_117'],
+  '快乐':   ['idiom_115', 'idiom_128', 'idiom_125'],
+  '欢喜':   ['idiom_117', 'idiom_125', 'idiom_128'],
+  '自豪':   ['idiom_115', 'idiom_267', 'idiom_117'],
+  // Angry
+  '生气':   ['idiom_129'],
+  '愤怒':   ['idiom_129'],
+  '发火':   ['idiom_129'],
+  // Gratitude / Reluctance
+  '感激':   ['idiom_263'],
+  '留恋':   ['idiom_244'],
+  '舍不得': ['idiom_244'],
+}

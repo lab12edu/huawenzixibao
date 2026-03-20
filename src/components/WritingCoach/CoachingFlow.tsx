@@ -10,7 +10,7 @@ import type { CompositionTopic } from '../../data/compositionTopics'
 import type { PhraseCategory, Phrase } from '../../data/phraseBank'
 import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
-import { IDIOM_BANK, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES } from '../../data/idiomBank'
+import { IDIOM_BANK, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES, TONE_KEYWORD_MAP } from '../../data/idiomBank'
 import { callGemini, callGeminiWithImage, isApiLocked } from '../../utils/aiApi'
 import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
@@ -228,9 +228,25 @@ export default function CoachingFlow({
   // Derived: whether the current level is P5/P6 (for idiom difficulty filter)
   const selectedLevel = level
 
-  // ── WS2: Dynamic Muse — suggest idioms based on text content ─────────────
+  // ── WS2: Dynamic Muse — three-tier idiom lookup ──────────────────────────
   useEffect(() => {
-    // Try keyword match first
+    // ── Tier 1: Exact tone match (highest precision) ──────────────────────
+    for (const [keyword, ids] of Object.entries(TONE_KEYWORD_MAP)) {
+      if (currentText.includes(keyword)) {
+        const toneMatches = ids
+          .map(id => IDIOM_BANK.find(i => i.id === id))
+          .filter((i): i is Idiom => !!i)
+          .slice(0, 3)
+        if (toneMatches.length > 0) {
+          setSuggestedIdioms(toneMatches)
+          setMuseTriggered(true)
+          console.log('[Muse T1]', keyword, '→', toneMatches.map(i => i.chinese))
+          return
+        }
+      }
+    }
+
+    // ── Tier 2: Category match (medium precision) ─────────────────────────
     for (const [catZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
       const hit = (keywords as string[]).find(kw => currentText.includes(kw))
       if (hit) {
@@ -240,12 +256,12 @@ export default function CoachingFlow({
           .slice(0, 3)
         setSuggestedIdioms(matches)
         setMuseTriggered(true)
-        console.log('[Muse] currentText:', currentText.slice(0, 20), '| suggested:', matches.length)
+        console.log('[Muse T2]', hit, '→', catZh, matches.map(i => i.chinese))
         return
       }
     }
 
-    // Fall back to section defaults
+    // ── Tier 3: Section default (fallback) ────────────────────────────────
     const defaults = SECTION_DEFAULT_THEMES[currentKey] ?? ['生动形容']
     const defaultMatches = IDIOM_BANK
       .filter(i => defaults.includes(i.categoryZh))
@@ -253,7 +269,7 @@ export default function CoachingFlow({
       .slice(0, 3)
     setSuggestedIdioms(defaultMatches)
     setMuseTriggered(false)
-    console.log('[Muse] currentText:', currentText.slice(0, 20), '| suggested:', defaultMatches.length)
+    console.log('[Muse T3] default →', defaultMatches.map(i => i.chinese))
   }, [currentText, currentKey])
 
   // ── Image upload handler ─────────────────────────────────────────────────
