@@ -4498,3 +4498,15 @@ mark.diff-highlight {
   line-height: 1.4;
 }
 /* ── End idiom card v4 fields ────────────────────────────────────────── */
+
+/* Fix: allow horizontal drag-to-scroll on pill rows — override overflow-x: clip */
+.idiom-bank-categories,
+.muse-chips,
+.level-chips-scroll {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.idiom-bank-categories-wrapper {
+  overflow: visible !important;
+}
