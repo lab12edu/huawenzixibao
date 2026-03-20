@@ -16,6 +16,8 @@ interface Idiom {
   meaningChinese: string
   meaningEnglish: string
   example: string
+  literalMeaning?: string   // 字面意思
+  exampleEnglish?: string   // 例句英译
   difficulty: 'P3P4' | 'P5P6'
   themes: string[]
   category: string
@@ -106,6 +108,8 @@ export default function IdiomBankPage() {
       idiom.meaningChinese.includes(searchQuery) ||
       idiom.meaningEnglish.toLowerCase().includes(q) ||
       idiom.example.includes(searchQuery) ||
+      (idiom.literalMeaning ? idiom.literalMeaning.toLowerCase().includes(q) : false) ||
+      (idiom.exampleEnglish ? idiom.exampleEnglish.toLowerCase().includes(q) : false) ||
       idiom.categoryZh.includes(searchQuery) ||
       idiom.category.toLowerCase().includes(q)
     )
@@ -195,19 +199,34 @@ export default function IdiomBankPage() {
               <div className="ibc-meaning-cn">{idiom.meaningChinese}</div>
               <div className="ibc-meaning-en">{idiom.meaningEnglish}</div>
 
-              {/* Example + TTS */}
-              <div className="ibc-example-row">
-                <p className="ibc-example">{idiom.example}</p>
-                <button
-                  className="ibc-tts-btn"
-                  aria-label={`朗读成语和例句 ${idiom.chinese}`}
-                  onClick={() => {
-                    speak(idiom.chinese)
-                    speakPassage(idiom.example)
-                  }}
-                >
-                  🔊
-                </button>
+              {/* Literal meaning — only when non-empty */}
+              {idiom.literalMeaning && (
+                <div className="ibc-literal">
+                  🔤 字面意思：{idiom.literalMeaning}
+                </div>
+              )}
+
+              {/* Example sentence + TTS */}
+              <div className="ibc-example-section">
+                <p className="ibc-example-label">例句 Example:</p>
+                <div className="ibc-example-row">
+                  <p className="ibc-example">{idiom.example}</p>
+                  <button
+                    className="ibc-tts-btn"
+                    aria-label={`朗读成语和例句 ${idiom.chinese}`}
+                    onClick={() => {
+                      speak(idiom.chinese)
+                      speakPassage(idiom.example)
+                    }}
+                  >
+                    🔊
+                  </button>
+                </div>
+
+                {/* Example English translation — only when non-empty */}
+                {idiom.exampleEnglish && (
+                  <p className="ibc-example-en">{idiom.exampleEnglish}</p>
+                )}
               </div>
 
               {/* Save button */}
