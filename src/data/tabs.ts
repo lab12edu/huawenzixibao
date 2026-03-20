@@ -47,20 +47,20 @@ export const TABS: TabDef[] = [
     colorLight: '#E3F2FD',
   },
   {
-    id: 'oral',
-    labelCn: '口试',
-    labelEn: 'Oral',
-    icon: 'fa-solid fa-microphone',
-    color: '#00695C',
-    colorLight: '#E0F2F1',
-  },
-  {
     id: 'idioms',
     labelCn: '成语库',
     labelEn: 'Idioms',
     icon: 'fa-solid fa-book-open',
     color: '#1565C0',
     colorLight: '#E3F2FD',
+  },
+  {
+    id: 'oral',
+    labelCn: '口试',
+    labelEn: 'Oral',
+    icon: 'fa-solid fa-microphone',
+    color: '#00695C',
+    colorLight: '#E0F2F1',
   },
   {
     id: 'profile',

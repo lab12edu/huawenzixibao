@@ -4431,3 +4431,16 @@ mark.diff-highlight {
   user-select: none;
 }
 /* ── End FIX 2 ───────────────────────────────────────────────────────── */
+
+/* ── FIX 1: Desktop drag-to-scroll cursor states ────────────────────── */
+.drag-scrolling { cursor: grabbing !important; user-select: none; }
+.idiom-bank-categories { cursor: grab; }
+.muse-chips { cursor: grab; }
+.muse-chips.drag-scrolling { cursor: grabbing !important; }
+/* ── End FIX 1 ───────────────────────────────────────────────────────── */
+
+/* ── FIX 2: Category pills must never wrap ───────────────────────────── */
+.idiom-bank-categories { flex-wrap: nowrap; white-space: nowrap; }
+/* Level filter pills in WritingCoachLanding must not wrap ────────────── */
+.wc-chip-row:not(.wc-chip-row-wrap) { flex-wrap: nowrap; overflow-x: auto; }
+/* ── End FIX 2 ───────────────────────────────────────────────────────── */

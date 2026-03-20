@@ -39,20 +39,20 @@ const QUICK_CARDS = [
     en: 'Composition',
   },
   {
-    tab: 'oral' as const,
-    icon: '🎤',
-    color: '#00695C',
-    colorLight: '#E0F2F1',
-    cn: '口试',
-    en: 'Oral',
-  },
-  {
     tab: 'idioms' as const,
     icon: '📚',
     color: '#1565C0',
     colorLight: '#E3F2FD',
     cn: '成语库',
     en: 'Idiom Bank',
+  },
+  {
+    tab: 'oral' as const,
+    icon: '🎤',
+    color: '#00695C',
+    colorLight: '#E0F2F1',
+    cn: '口试',
+    en: 'Oral',
   },
   {
     tab: 'profile' as const,

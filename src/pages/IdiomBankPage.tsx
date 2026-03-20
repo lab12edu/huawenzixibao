@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import Toast from '../components/Toast'
 import { speak, speakPassage } from '../utils/tts'
+import { useDragScroll } from '../hooks/useDragScroll'
 
 // ── Types (duplicated lightweight shape to avoid top-level static import) ──
 interface Idiom {
@@ -60,6 +61,9 @@ export default function IdiomBankPage() {
   const [toastVisible, setToastVisible] = useState(false)
   const [loading, setLoading]           = useState(true)
   const [hasScrolledPills, setHasScrolledPills] = useState(false)
+
+  // ── Drag-to-scroll on the category pill row ───────────────────────────────
+  const pillsRef = useDragScroll<HTMLDivElement>()
 
   // ── Load idiom bank lazily on mount ─────────────────────────────────────
   useEffect(() => {
@@ -137,6 +141,7 @@ export default function IdiomBankPage() {
       <div className="idiom-bank-categories-wrapper">
         <div
           className="idiom-bank-categories"
+          ref={pillsRef}
           aria-label="Filter by category"
           onScroll={() => { if (!hasScrolledPills) setHasScrolledPills(true) }}
         >

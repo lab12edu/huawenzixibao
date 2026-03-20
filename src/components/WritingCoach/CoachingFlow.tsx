@@ -14,6 +14,7 @@ import { IDIOM_BANK, getIdiomsByCategory, KEYWORD_THEME_MAP, SECTION_DEFAULT_THE
 import { callGemini, callGeminiWithImage, isApiLocked } from '../../utils/aiApi'
 import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
+import { useDragScroll } from '../../hooks/useDragScroll'
 
 // ── Draft persistence ────────────────────────────────────────────────────
 const DRAFT_KEY = 'hwzxb_wc_draft'
@@ -174,6 +175,8 @@ export default function CoachingFlow({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const idiomCloseRef = useRef<HTMLButtonElement>(null)
+  // ── WS Drag-scroll on the Muse chips row ─────────────────────────────────
+  const museChipsRef = useDragScroll<HTMLDivElement>()
 
   // ── Auto-save draft to localStorage on every write ────────────────────────
   useEffect(() => {
@@ -656,7 +659,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
                 <div className="muse-subtitle">
                   {museTriggered ? '根据你的内容推荐' : '本段推荐成语'}
                 </div>
-                <div className="muse-chips">
+                <div className="muse-chips" ref={museChipsRef}>
                   {suggestedIdioms.map(idiom => (
                     <button
                       key={idiom.id}
