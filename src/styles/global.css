@@ -4522,3 +4522,41 @@ mark.diff-highlight {
 .muse-chips { cursor: grab; }
 .muse-chips.drag-scrolling { cursor: grabbing; }
 /* End drag-scroll utility */
+
+/* ── Cat-pill English sub-label ─────────────────────────────────────── */
+.cat-pill-en {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  opacity: 0.75;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+.cat-pill--active .cat-pill-en,
+.cat-pill:hover .cat-pill-en {
+  opacity: 0.9;
+}
+/* ── End cat-pill English sub-label ─────────────────────────────────── */
+
+/* ── Pointer-event drag-scroll: ensure pill container is scrollable ─── */
+.idiom-bank-categories {
+  overflow-x: auto !important;
+  overflow-y: visible;
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  user-select: none;
+}
+.idiom-bank-categories.drag-scrolling {
+  cursor: grabbing;
+}
+/* touch-action is set imperatively by useDragScroll; CSS fallback: */
+.muse-chips {
+  overflow-x: auto !important;
+  scroll-behavior: auto;
+  cursor: grab;
+}
+.muse-chips.drag-scrolling {
+  cursor: grabbing;
+}
+/* ── End pointer-event drag-scroll ─────────────────────────────────── */

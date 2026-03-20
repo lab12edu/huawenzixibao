@@ -161,7 +161,7 @@ export default function IdiomBankPage() {
               className={`cat-pill${activeCategory === cat.en ? ' cat-pill--active' : ''}`}
               onClick={() => setActiveCategory(prev => prev === cat.en ? null : cat.en)}
             >
-              {cat.zh}
+              {cat.zh} <span className="cat-pill-en">{cat.en}</span>
             </button>
           ))}
         </div>
