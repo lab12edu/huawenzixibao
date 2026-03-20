@@ -230,19 +230,17 @@ export default function CoachingFlow({
 
   // ── WS2: Dynamic Muse — suggest idioms based on text content ─────────────
   useEffect(() => {
-    const isHigherLevel = ['P5', 'P6', 'PSLE'].includes(selectedLevel)
-    const difficulty = isHigherLevel ? 'P5P6' : 'P3P4'
-
     // Try keyword match first
     for (const [catZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
       const hit = (keywords as string[]).find(kw => currentText.includes(kw))
       if (hit) {
         const matches = IDIOM_BANK
-          .filter(i => i.categoryZh === catZh && i.difficulty === difficulty)
+          .filter(i => i.categoryZh === catZh)
           .sort(() => Math.random() - 0.5)
           .slice(0, 3)
         setSuggestedIdioms(matches)
         setMuseTriggered(true)
+        console.log('[Muse] currentText:', currentText.slice(0, 20), '| suggested:', matches.length)
         return
       }
     }
@@ -250,12 +248,13 @@ export default function CoachingFlow({
     // Fall back to section defaults
     const defaults = SECTION_DEFAULT_THEMES[currentKey] ?? ['生动形容']
     const defaultMatches = IDIOM_BANK
-      .filter(i => defaults.includes(i.categoryZh) && i.difficulty === difficulty)
+      .filter(i => defaults.includes(i.categoryZh))
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
     setSuggestedIdioms(defaultMatches)
     setMuseTriggered(false)
-  }, [currentText, selectedLevel, currentKey])
+    console.log('[Muse] currentText:', currentText.slice(0, 20), '| suggested:', defaultMatches.length)
+  }, [currentText, currentKey])
 
   // ── Image upload handler ─────────────────────────────────────────────────
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
