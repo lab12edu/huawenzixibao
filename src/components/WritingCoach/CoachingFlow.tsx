@@ -319,8 +319,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
 4. 使用${level}水平的词汇，句子自然流畅，适合小学生写作风格，避免生僻字。
 5. 内容必须与作文题目"${topic.titleCn}"紧密相关。
 6. 如果已有前面段落，内容必须与前文自然衔接。
-7. 直接输出改写后的段落，不要解释，不要标题，不要多余符号。
-8. 在改写段落之后，另起一行，找出学生原文中一个可以用成语加强的普通句子，建议一个适合${level}水平的成语，格式：💡 成语建议：[成语] ([意思]) — "[用本地名字和新加坡生活场景写的例句]"`
+7. 直接输出改写后的段落，不要解释，不要标题，不要多余符号。`
     setIdiomSuggestion(null)
     const result = await callGemini(
       `${SG_GUARDRAIL}\n\n你是一位专业的新加坡小学华文作文老师。`,
@@ -330,23 +329,27 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
     if (result.error) {
       setEnhanceError('AI 润色失败，请稍后再试。')
     } else {
-      const fullResponse = result.text.trim()
-      // Split off the 💡 成语建议 line if present
-      const suggestionMatch = fullResponse.match(/💡\s*成语建议[：:].+/)
-      let enhanced = fullResponse
-      let suggestionLine = ''
-      let suggestionExample = ''
-      if (suggestionMatch) {
-        const idx = fullResponse.indexOf(suggestionMatch[0])
-        enhanced = fullResponse.slice(0, idx).trim()
-        suggestionLine = suggestionMatch[0]
-        // Extract example sentence between the last "—" and end
-        const dashIdx = suggestionLine.lastIndexOf('—')
-        if (dashIdx !== -1) {
-          suggestionExample = suggestionLine.slice(dashIdx + 1).trim().replace(/^["「]/, '').replace(/["」]$/, '')
+      const enhanced = result.text.trim()
+      // Pick a relevant idiom locally from the 285-idiom bank
+      const isHigherLevel = ['P5', 'P6', 'PSLE'].includes(level)
+      let localSuggestion: { line: string; example: string } | null = null
+      for (const [categoryZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
+        const hit = (keywords as string[]).find(kw => enhanced.includes(kw))
+        if (hit) {
+          const candidates = IDIOM_BANK
+            .filter(i => i.categoryZh === categoryZh)
+            .filter(i => i.difficulty === (isHigherLevel ? 'P5P6' : 'P3P4'))
+          if (candidates.length > 0) {
+            const picked = candidates[Math.floor(Math.random() * candidates.length)]
+            localSuggestion = {
+              line: `💡 成语建议：${picked.chinese} (${picked.meaningChinese}) — 「${picked.example}」`,
+              example: picked.example,
+            }
+          }
+          break
         }
-        setIdiomSuggestion({ line: suggestionLine, example: suggestionExample })
       }
+      setIdiomSuggestion(localSuggestion)
       setEnhancedText(applyGender(enhanced, gender))
       // Fetch English translation for parent/student reference
       try {
@@ -772,8 +775,11 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
                     <button
                       className="muse-use-btn"
                       onClick={() => {
-                        insertAtCursor(idiomSuggestion.example)
-                        setIdiomSuggestion(null)
+                        handleAcceptSuggestion()
+                        setTimeout(() => {
+                          insertAtCursor(idiomSuggestion.example)
+                          setIdiomSuggestion(null)
+                        }, 50)
                       }}
                     >
                       ✍️ 用这个
