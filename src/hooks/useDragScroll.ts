@@ -1,7 +1,7 @@
 // src/hooks/useDragScroll.ts
 // Enables click-and-drag horizontal scrolling on desktop.
-// Uses getBoundingClientRect() — NOT offsetLeft — for correct position
-// calculation regardless of DOM nesting depth.
+// mousemove and mouseup listeners are attached to window during a drag
+// so fast mouse movement outside the container does not break the drag.
 import { useRef, useEffect } from 'react'
 
 export function useDragScroll<T extends HTMLElement = HTMLElement>() {
@@ -13,56 +13,57 @@ export function useDragScroll<T extends HTMLElement = HTMLElement>() {
 
     let isDown = false
     let startX = 0
-    let scrollLeft = 0
+    let startScrollLeft = 0
     let hasDragged = false
 
     const onMouseDown = (e: MouseEvent) => {
+      // Only respond to left mouse button
+      if (e.button !== 0) return
       isDown = true
       hasDragged = false
-      startX = e.pageX - el.getBoundingClientRect().left
-      scrollLeft = el.scrollLeft
+      startX = e.clientX
+      startScrollLeft = el.scrollLeft
       el.classList.add('drag-scrolling')
+      // Attach move and up to window so fast drags are not lost
+      window.addEventListener('mousemove', onMouseMove)
+      window.addEventListener('mouseup', onMouseUp)
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDown) return
+      const dx = e.clientX - startX
+      if (Math.abs(dx) > 3) {
+        hasDragged = true
+        e.preventDefault()
+      }
+      el.scrollLeft = startScrollLeft - dx
     }
 
     const onMouseUp = () => {
+      isDown = false
+      el.classList.remove('drag-scrolling')
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
       if (hasDragged) {
-        const suppressClick = (ev: MouseEvent) => {
+        // Suppress the click that fires immediately after mouseup
+        const suppressClick = (ev: Event) => {
           ev.stopPropagation()
           ev.preventDefault()
           el.removeEventListener('click', suppressClick, true)
         }
         el.addEventListener('click', suppressClick, true)
+        setTimeout(() => {
+          el.removeEventListener('click', suppressClick, true)
+        }, 300)
       }
-      isDown = false
-      el.classList.remove('drag-scrolling')
-    }
-
-    const onMouseLeave = () => {
-      isDown = false
-      el.classList.remove('drag-scrolling')
-    }
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDown) return
-      const x = e.pageX - el.getBoundingClientRect().left
-      const walk = (x - startX) * 1.2
-      if (Math.abs(walk) > 4) {
-        hasDragged = true
-        e.preventDefault()
-      }
-      el.scrollLeft = scrollLeft - walk
     }
 
     el.addEventListener('mousedown', onMouseDown)
-    el.addEventListener('mouseup', onMouseUp)
-    el.addEventListener('mouseleave', onMouseLeave)
-    el.addEventListener('mousemove', onMouseMove)
 
     return () => {
       el.removeEventListener('mousedown', onMouseDown)
-      el.removeEventListener('mouseup', onMouseUp)
-      el.removeEventListener('mouseleave', onMouseLeave)
-      el.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
     }
   }, [])
 
