@@ -6,7 +6,7 @@
 
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { serveStatic } from 'hono/cloudflare-workers'
+import { getVocabFromVault, searchVault } from './server/vocabVault'
 
 // ── Cloudflare bindings ───────────────────────────────────────────────────────
 type Bindings = {
@@ -291,16 +291,59 @@ app.post('/api/ai', async (c) => {
   return c.json({ error: true, text: '', message: `Unknown task: ${task}` }, 400)
 })
 
+// ── /api/vocab ────────────────────────────────────────────────────────────────
+// Returns the word list for one semester of a given level.
+// Query params:
+//   level  — e.g. "P1", "P1new", "K1"  (required)
+//   sem    — "A" or "B"                 (default: "A")
+//
+// Examples:
+//   GET /api/vocab?level=P3&sem=A
+//   GET /api/vocab?level=P1new&sem=B
+app.get('/api/vocab', (c) => {
+  const level = c.req.query('level') || ''
+  const sem   = ((c.req.query('sem') || 'A').toUpperCase()) as 'A' | 'B'
+
+  if (!level) {
+    return c.json({ error: true, message: 'Missing required query param: level' }, 400)
+  }
+  if (sem !== 'A' && sem !== 'B') {
+    return c.json({ error: true, message: 'sem must be "A" or "B"' }, 400)
+  }
+
+  const result = getVocabFromVault(level, sem)
+  if (!result.exists) {
+    return c.json({ error: true, message: `No vocab found for level="${level}" sem="${sem}"` }, 404)
+  }
+  return c.json({ level, sem, total: result.items.length, items: result.items })
+})
+
+// ── /api/search ───────────────────────────────────────────────────────────────
+// Global dictionary search across ALL levels simultaneously.
+// Query params:
+//   q — search string (required, min 1 char)
+//
+// Example:
+//   GET /api/search?q=快乐
+//   GET /api/search?q=happy
+app.get('/api/search', (c) => {
+  const q = (c.req.query('q') || '').trim()
+  if (q.length < 1) {
+    return c.json([])
+  }
+  const results = searchVault(q)
+  return c.json(results)
+})
+
 // ── /api/health ───────────────────────────────────────────────────────────────
 app.get('/api/health', (c) => {
   return c.json({ status: 'ok', app: '华文自习宝', version: '0.3.1' })
 })
 
-// ── Static assets ─────────────────────────────────────────────────────────────
-app.use('/assets/*', serveStatic({ root: './' }))
-app.use('/static/*',  serveStatic({ root: './' }))
-
-// SPA fallback
-app.get('/*', serveStatic({ path: './index.html' }))
+// ── Static files & SPA fallback ──────────────────────────────────────────────
+// Static assets (dist/assets/*, dist/static/*) and index.html are served
+// automatically by Cloudflare Pages and by `wrangler pages dev`.
+// The worker only needs to handle /api/* routes — do NOT use serveStatic
+// here because __STATIC_CONTENT_MANIFEST is not available in local dev.
 
 export default app
