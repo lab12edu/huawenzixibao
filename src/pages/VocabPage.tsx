@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import VocabCard from '../components/VocabCard'
-import { getVocabForLevel, getChaptersForLevel, searchVocab, getLevelStats, GRADE_LEVELS } from '../data/allVocab'
+import { getVocabForLevel, getChaptersForLevel, searchVocab, getLevelStats, GRADE_LEVELS } from '../utils/vocabApi'
 import { VocabItem } from '../data/vocabTypes'
 
 // ── Constants ────────────────────────────────────────────────

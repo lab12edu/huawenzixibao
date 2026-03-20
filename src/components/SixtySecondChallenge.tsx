@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import type { VocabItem } from '../data/vocabTypes'
 import { useApp } from '../context/AppContext'
-import { getVocabForLevel } from '../data/allVocab'
+import { getVocabForLevel } from '../utils/vocabApi'
 import {
   buildChallengePool,
   getPersonalBest,

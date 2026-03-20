@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useApp } from '../context/AppContext'
 import {
   getVocabForLevel, getChaptersForLevel,
-} from '../data/allVocab'
+} from '../utils/vocabApi'
 import { VocabItem } from '../data/vocabTypes'
 import StrokeDemoModal from '../components/StrokeDemoModal'
 
