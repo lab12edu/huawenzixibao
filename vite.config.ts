@@ -16,5 +16,13 @@ export default defineConfig({
       '.sandbox.novita.ai',
       'localhost',
     ],
+    // Proxy /api/* to the Hono Worker running via `wrangler pages dev dist`
+    // on port 8788 (wrangler default). The frontend never calls Gemini directly.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8788',
+        changeOrigin: true,
+      },
+    },
   },
 })
