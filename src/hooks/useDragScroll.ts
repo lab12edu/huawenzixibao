@@ -13,10 +13,7 @@ export function useDragScroll<T extends HTMLElement = HTMLElement>() {
     // Detach from previous element if any
     if (elRef.current) {
       const prev = elRef.current
-      prev.removeEventListener('pointerdown',   prev._ds_down   as EventListener)
-      prev.removeEventListener('pointermove',   prev._ds_move   as EventListener)
-      prev.removeEventListener('pointerup',     prev._ds_up     as EventListener)
-      prev.removeEventListener('pointercancel', prev._ds_up     as EventListener)
+      prev.removeEventListener('pointerdown', prev._ds_down as EventListener)
       prev.style.touchAction = ''
       prev.style.overflowX   = ''
       prev.style.cursor      = ''
@@ -32,27 +29,35 @@ export function useDragScroll<T extends HTMLElement = HTMLElement>() {
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return
-      el.setPointerCapture(e.pointerId)
       pointerId       = e.pointerId
       startX          = e.clientX
       startScrollLeft = el.scrollLeft
       hasDragged      = false
-      el.classList.add('drag-scrolling')
+      window.addEventListener('pointermove', onPointerMove, { passive: false })
+      window.addEventListener('pointerup',   onPointerUp)
     }
 
     const onPointerMove = (e: PointerEvent) => {
       if (e.pointerId !== pointerId) return
-      if (!el.hasPointerCapture(e.pointerId)) return
       const dx = e.clientX - startX
       if (Math.abs(dx) > 4) {
-        hasDragged = true
+        if (!hasDragged) {
+          // Only capture pointer once drag threshold is crossed
+          el.setPointerCapture(e.pointerId)
+          el.classList.add('drag-scrolling')
+          hasDragged = true
+        }
         e.preventDefault()
       }
-      el.scrollLeft = startScrollLeft - dx
+      if (hasDragged) {
+        el.scrollLeft = startScrollLeft - dx
+      }
     }
 
     const onPointerUp = (e: PointerEvent) => {
       if (e.pointerId !== pointerId) return
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup',   onPointerUp)
       el.classList.remove('drag-scrolling')
       pointerId = -1
       if (hasDragged) {
@@ -65,19 +70,14 @@ export function useDragScroll<T extends HTMLElement = HTMLElement>() {
       }
     }
 
-    // Store handlers on element so detach closure can reach them
+    // Store handler on element so detach closure can reach it
     ;(el as any)._ds_down = onPointerDown
-    ;(el as any)._ds_move = onPointerMove
-    ;(el as any)._ds_up   = onPointerUp
 
     el.style.touchAction = 'pan-y'
     el.style.overflowX   = 'auto'
     el.style.cursor      = 'grab'
 
-    el.addEventListener('pointerdown',   onPointerDown)
-    el.addEventListener('pointermove',   onPointerMove, { passive: false })
-    el.addEventListener('pointerup',     onPointerUp)
-    el.addEventListener('pointercancel', onPointerUp)
+    el.addEventListener('pointerdown', onPointerDown)
   }, [])
 
   // Clean up on unmount
