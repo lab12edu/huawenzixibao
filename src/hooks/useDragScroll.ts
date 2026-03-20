@@ -1,9 +1,7 @@
 // src/hooks/useDragScroll.ts
-// Reusable hook that enables mouse-drag-to-scroll on any horizontally-scrollable element.
-// Usage:
-//   const ref = useDragScroll<HTMLDivElement>()
-//   return <div ref={ref} className="my-scroll-row">…</div>
-
+// Enables click-and-drag horizontal scrolling on desktop.
+// Uses getBoundingClientRect() — NOT offsetLeft — for correct position
+// calculation regardless of DOM nesting depth.
 import { useRef, useEffect } from 'react'
 
 export function useDragScroll<T extends HTMLElement = HTMLElement>() {
@@ -16,12 +14,27 @@ export function useDragScroll<T extends HTMLElement = HTMLElement>() {
     let isDown = false
     let startX = 0
     let scrollLeft = 0
+    let hasDragged = false
 
     const onMouseDown = (e: MouseEvent) => {
       isDown = true
-      startX = e.pageX - el.offsetLeft
+      hasDragged = false
+      startX = e.pageX - el.getBoundingClientRect().left
       scrollLeft = el.scrollLeft
       el.classList.add('drag-scrolling')
+    }
+
+    const onMouseUp = () => {
+      if (hasDragged) {
+        const suppressClick = (ev: MouseEvent) => {
+          ev.stopPropagation()
+          ev.preventDefault()
+          el.removeEventListener('click', suppressClick, true)
+        }
+        el.addEventListener('click', suppressClick, true)
+      }
+      isDown = false
+      el.classList.remove('drag-scrolling')
     }
 
     const onMouseLeave = () => {
@@ -29,28 +42,26 @@ export function useDragScroll<T extends HTMLElement = HTMLElement>() {
       el.classList.remove('drag-scrolling')
     }
 
-    const onMouseUp = () => {
-      isDown = false
-      el.classList.remove('drag-scrolling')
-    }
-
     const onMouseMove = (e: MouseEvent) => {
       if (!isDown) return
-      e.preventDefault()
-      const x = e.pageX - el.offsetLeft
-      const walk = (x - startX) * 1.5 // scroll-speed multiplier
+      const x = e.pageX - el.getBoundingClientRect().left
+      const walk = (x - startX) * 1.2
+      if (Math.abs(walk) > 4) {
+        hasDragged = true
+        e.preventDefault()
+      }
       el.scrollLeft = scrollLeft - walk
     }
 
     el.addEventListener('mousedown', onMouseDown)
-    el.addEventListener('mouseleave', onMouseLeave)
     el.addEventListener('mouseup', onMouseUp)
+    el.addEventListener('mouseleave', onMouseLeave)
     el.addEventListener('mousemove', onMouseMove)
 
     return () => {
       el.removeEventListener('mousedown', onMouseDown)
-      el.removeEventListener('mouseleave', onMouseLeave)
       el.removeEventListener('mouseup', onMouseUp)
+      el.removeEventListener('mouseleave', onMouseLeave)
       el.removeEventListener('mousemove', onMouseMove)
     }
   }, [])
