@@ -4011,6 +4011,31 @@ export const IDIOM_BANK: Idiom[] = [
   },
 ]
 
+// ── Canonical English → Chinese category mapping ─────────────────────────
+// The v4 JSON import assigned categoryZh incorrectly for many entries.
+// This map corrects every entry using the reliable English category field.
+export const CATEGORY_ZH_MAP: Record<string, string> = {
+  'Actions':      '行为动作',
+  'Wisdom':       '智慧哲理',
+  'Descriptions': '生动形容',
+  'Emotions':     '心情感受',
+  'Friendship':   '友谊互助',
+  'Learning':     '学习成长',
+  'Character':    '为人处世',
+  'Perseverance': '坚持努力',
+  'Scenery':      '写景状物',
+  'Time':         '时间流逝',
+  'Warnings':     '警示提醒',
+  'Philosophy':   '智慧哲理',
+}
+
+// Repair categoryZh using the canonical English category field
+IDIOM_BANK.forEach(i => {
+  if (CATEGORY_ZH_MAP[i.category]) {
+    i.categoryZh = CATEGORY_ZH_MAP[i.category]
+  }
+})
+
 export function getIdiomsByCategory(category: string): Idiom[] {
   return IDIOM_BANK.filter(i => i.category === category)
 }
@@ -4046,29 +4071,26 @@ export function searchIdioms(query: string): Idiom[] {
 }
 
 // ── WS2: Keyword-to-theme map for dynamic Muse suggestions ───────────────
-// Keys MUST match actual categoryZh values stored on every Idiom object.
-// Real categoryZh set (10 values): 心情感受 · 行为动作 · 写景状物 · 坚持努力 ·
-//   学习成长 · 智慧哲理 · 友谊互助 · 为人处世 · 时间流逝 · 生动形容
+// Keys MUST match actual categoryZh values (corrected by CATEGORY_ZH_MAP above).
 export const KEYWORD_THEME_MAP: Record<string, string[]> = {
-  '心情感受': ['害怕','紧张','抖','哭','难过','伤心','高兴','开心','激动','惊','愤怒','生气','担心','失望','兴奋'],
-  '行为动作': ['跑','跳','摔','推','拉','举','搬','爬','冲','抓','踢','打','走','站','坐'],
-  '智慧哲理': ['想','以为','觉得','认为','明白','懂','发现','忘','记得','学','思考','计划'],
-  '友谊互助': ['一起','帮','合作','队','朋友','同学','互相','支持','鼓励'],
-  '坚持努力': ['努力','坚持','练习','不放弃','继续','加油','拼命','认真','刻苦'],
-  '时间流逝': ['突然','忽然','慢慢','渐渐','终于','最后','开始','结束','后来','接着'],
-  '写景状物': ['雨','风','太阳','天','云','树','花','草','河','山','月','星'],
-  '为人处世': ['妈','爸','奶','爷','家','父母','孩子','兄','弟','姐','妹','亲','诚实','勇敢','善良','礼貌','感恩','孝顺','负责','正直'],
-  '学习成长': ['老师','同学','课','考试','学校','操场','班','功课','补习'],
-  '生动形容': ['邻居','组屋','走廊','图书馆','社区','市场','食阁','民众'],
+  '心情感受': ['害怕','紧张','哭','难过','伤心','高兴','开心','激动','惊','愤怒','生气','担心','失望','兴奋','委屈','后悔','羞愧','自豪'],
+  '行为动作': ['跑','跳','摔','推','拉','举','搬','爬','冲','抓','踢','打','急','飞快','慌忙'],
+  '智慧哲理': ['想','以为','觉得','认为','明白','懂','发现','忘','记得','学','明智','聪明','道理'],
+  '友谊互助': ['朋友','同学','帮','合作','一起','互相','团队','友好','关心','支持'],
+  '坚持努力': ['努力','坚持','练习','不放弃','继续','加油','拼命','认真','刻苦','勤奋','不懈'],
+  '时间流逝': ['突然','忽然','慢慢','渐渐','终于','最后','开始','结束','转眼','不知不觉'],
+  '写景状物': ['雨','风','太阳','天','云','树','花','草','河','山','景色','美丽','自然'],
+  '为人处世': ['诚实','勇敢','善良','礼貌','感恩','孝顺','负责','谦虚','宽容'],
+  '学习成长': ['学习','读书','温习','练习','进步','成长','考试','课文'],
+  '生动形容': ['非常','特别','十分','极','像','仿佛','简直','真是'],
 }
 
 // ── WS2: Default themes to show when no keyword is detected ──────────────
-// Values MUST match actual categoryZh values (see note above KEYWORD_THEME_MAP).
 export const SECTION_DEFAULT_THEMES: Record<string, string[]> = {
-  opening:    ['写景状物', '时间流逝'],
-  trigger:    ['心情感受', '时间流逝'],
+  opening:    ['写景状物', '生动形容'],
+  trigger:    ['心情感受', '行为动作'],
   event1:     ['行为动作', '友谊互助'],
-  event2:     ['行为动作', '坚持努力'],
-  result:     ['心情感受', '友谊互助'],
-  reflection: ['为人处世', '坚持努力'],
+  event2:     ['行为动作', '心情感受'],
+  result:     ['坚持努力', '友谊互助', '为人处世'],
+  reflection: ['智慧哲理', '为人处世', '学习成长'],
 }

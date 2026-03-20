@@ -231,36 +231,31 @@ export default function CoachingFlow({
   // ── WS2: Dynamic Muse — suggest idioms based on text content ─────────────
   useEffect(() => {
     const isHigherLevel = ['P5', 'P6', 'PSLE'].includes(selectedLevel)
-    const difficultyFilter = isHigherLevel ? 'P5P6' : 'P3P4'
+    const difficulty = isHigherLevel ? 'P5P6' : 'P3P4'
 
-    // Helper: filter IDIOM_BANK directly by categoryZh (avoids English-key mismatch)
-    const matchByZh = (zh: string) =>
-      IDIOM_BANK.filter(i => i.categoryZh === zh)
-
-    if (currentText.length < 4) {
-      const defaultThemes = SECTION_DEFAULT_THEMES[currentKey] ?? []
-      const defaults = defaultThemes
-        .flatMap((theme: string) => matchByZh(theme))
-        .filter((i: Idiom) => i.difficulty === difficultyFilter)
-        .slice(0, 3)
-      setSuggestedIdioms(defaults)
-      setMuseTriggered(false)
-      return
-    }
-    for (const [categoryZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
-      const hit = (keywords as string[]).find((kw: string) => currentText.includes(kw))
+    // Try keyword match first
+    for (const [catZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
+      const hit = (keywords as string[]).find(kw => currentText.includes(kw))
       if (hit) {
-        const matches = matchByZh(categoryZh)
-          .filter((i: Idiom) => i.difficulty === difficultyFilter)
+        const matches = IDIOM_BANK
+          .filter(i => i.categoryZh === catZh && i.difficulty === difficulty)
+          .sort(() => Math.random() - 0.5)
           .slice(0, 3)
         setSuggestedIdioms(matches)
         setMuseTriggered(true)
         return
       }
     }
-    setSuggestedIdioms([])
+
+    // Fall back to section defaults
+    const defaults = SECTION_DEFAULT_THEMES[currentKey] ?? ['生动形容']
+    const defaultMatches = IDIOM_BANK
+      .filter(i => defaults.includes(i.categoryZh) && i.difficulty === difficulty)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+    setSuggestedIdioms(defaultMatches)
     setMuseTriggered(false)
-  }, [currentText, currentKey, selectedLevel])
+  }, [currentText, selectedLevel, currentKey])
 
   // ── Image upload handler ─────────────────────────────────────────────────
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
