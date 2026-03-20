@@ -4560,3 +4560,36 @@ mark.diff-highlight {
   cursor: grabbing;
 }
 /* ── End pointer-event drag-scroll ─────────────────────────────────── */
+
+/* ── DRAG-SCROLL ROOT FIX ────────────────────────────────────────────── */
+/* The pill container must be width-constrained so its content can        */
+/* overflow it. Without max-width/width, a flex child just grows and      */
+/* scrollLeft never has anywhere to go.                                   */
+.idiom-bank-categories-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+.idiom-bank-categories {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto !important;
+  box-sizing: border-box;
+}
+/* Same fix for muse chips row */
+.muse-bar {
+  min-width: 0;
+  width: 100%;
+}
+.muse-chips {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto !important;
+  box-sizing: border-box;
+}
+/* ── END DRAG-SCROLL ROOT FIX ────────────────────────────────────────── */

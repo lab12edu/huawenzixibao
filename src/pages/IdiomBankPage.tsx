@@ -64,8 +64,8 @@ export default function IdiomBankPage() {
   const [loading, setLoading]           = useState(true)
   const [hasScrolledPills, setHasScrolledPills] = useState(false)
 
-  // ── Drag-to-scroll on the category pill row ───────────────────────────────
-  const pillsRef = useDragScroll<HTMLDivElement>()
+  // ── Drag-to-scroll on the category pill row (callback ref fires when element mounts)
+  const dragScrollRef = useDragScroll<HTMLDivElement>()
 
   // ── Load idiom bank lazily on mount ─────────────────────────────────────
   useEffect(() => {
@@ -145,7 +145,7 @@ export default function IdiomBankPage() {
       <div className="idiom-bank-categories-wrapper">
         <div
           className="idiom-bank-categories"
-          ref={pillsRef}
+          ref={dragScrollRef}
           aria-label="Filter by category"
           onScroll={() => { if (!hasScrolledPills) setHasScrolledPills(true) }}
         >
