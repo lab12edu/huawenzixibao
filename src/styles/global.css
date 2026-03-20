@@ -4607,3 +4607,20 @@ mark.diff-highlight {
   letter-spacing: 0.01em;
 }
 /* End IdiomBank tone badge */
+
+/* ── Writing Coach: early-level notice (K1/K2/P1/P2) ───────────────────────── */
+.wc-early-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #e8f4fd;
+  border: 1px solid #90caf9;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.83rem;
+  color: #1565c0;
+  line-height: 1.5;
+  margin: 0 0 4px 0;
+}
+.wc-early-notice-icon { font-size: 1.05rem; flex-shrink: 0; margin-top: 1px; }
+.wc-early-notice em   { font-style: italic; color: #1976d2; }

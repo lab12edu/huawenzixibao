@@ -105,6 +105,30 @@ async function callGeminiWithImage(
   return { error: true, rateLimited: true, text: '' }
 }
 
+// ── Level helpers ────────────────────────────────────────────────────────────
+const isLowerPrimary = (level: string) => ['P3', 'P4'].includes(level)
+
+/** Word-count target for one section paragraph, calibrated by level. */
+function sectionWordCount(level: string, needsExpansion: boolean): string {
+  if (level === 'P3') return needsExpansion ? '30至50个汉字' : '40至60个汉字'
+  if (level === 'P4') return needsExpansion ? '50至70个汉字' : '60至80个汉字'
+  return needsExpansion ? '60至90个汉字' : '80至120个汉字'
+}
+
+/** Full-essay word-count target, calibrated by level. */
+function essayWordCount(level: string): string {
+  if (level === 'P3') return '180至280个汉字'
+  if (level === 'P4') return '250至350个汉字'
+  return '350至500个汉字'
+}
+
+/** Words-per-paragraph target for full-enhance, calibrated by level. */
+function paraWordCount(level: string): string {
+  if (level === 'P3') return '每段40至55字'
+  if (level === 'P4') return '每段55至70字'
+  return '每段80至100字'
+}
+
 // ── /api/ai — task-based secure proxy ────────────────────────────────────────
 //
 // Accepted task names and their required data fields:
@@ -165,8 +189,8 @@ app.post('/api/ai', async (c) => {
       (needsExpansion
         ? '2. 学生写得太少，请在保留原意的基础上，继续发展这段的情节，让段落更完整生动。\n'
         : '2. 在学生原有内容基础上适当扩充，使段落更完整。\n') +
-      `3. 改写后的段落应为80至120个汉字，句子完整，不得在句子中间截断。\n` +
-      `4. 使用${level}水平的词汇，句子自然流畅，适合小学生写作风格，避免生僻字。\n` +
+      `3. 改写后的段落应为${sectionWordCount(level, needsExpansion)}，句子完整，不得在句子中间截断。\n` +
+      `4. 使用${level}水平的词汇，句子自然流畅，适合小学生写作风格，避免生僻字${isLowerPrimary(level) ? "，用词简单易懂，每个字小学低年级学生都能认识" : ""}。\n` +
       `5. 内容必须与作文题目"${topic}"紧密相关。\n` +
       (previousSections ? `6. 内容必须与前文自然衔接。\n` : '') +
       `7. 直接输出改写后的段落，不要解释，不要标题，不要多余符号。`
@@ -201,23 +225,37 @@ app.post('/api/ai', async (c) => {
     const topicTitle = body.topicTitle as string
     const fullEssay  = body.fullEssay as string
 
-    const userPrompt =
-      `你是新加坡小学华文作文评卷老师。请根据以下14个维度为这篇小学作文评分，` +
-      `每个维度满分为5分（1=很弱，5=非常好）。` +
-      `只返回合法JSON，格式：` +
-      `{"dimensions":[{"name":"内容","score":4},...], "totalScore":52, "feedback":"CN总评 / EN summary",` +
-      `"idiomFeedback":{"idiom":"成语词","feedbackCn":"中文评语","feedbackEn":"English feedback"}}。` +
-      `成语运用 (Idiom Usage)：检查学生是否正确使用了成语。如果有，填写 idiomFeedback，` +
-      `feedbackCn 中须提及好词好句及语文评分，feedbackEn 须提及 Language marks 和 PSLE rubric。` +
-      `如果没有使用成语，idiomFeedback 设为 null。` +
-      `14个维度：内容、结构、开头、结尾、心理描写、动作描写、对话描写、场景描写、` +
-      `成语运用、比喻句、词汇量、句子变化、标点符号、整体流畅度。\n\n` +
-      `作文题目：${topicTitle}\n学生年级：${level}\n\n` +
-      `作文内容：\n${fullEssay}`
+    // P3/P4 use a simplified 8-dimension rubric; P5/P6/PSLE use the full 14-dimension PSLE rubric.
+    const isLower = isLowerPrimary(level)
+    const scoreSystem = isLower
+      ? `${SG_GUARDRAIL}\n\n你是一位专业的小学华文作文评分老师。请用${level}年级学生能理解的简单华文，避免生僻字。`
+      : SG_SCORING_TEACHER
+    const userPrompt = isLower
+      ? `你是新加坡小学华文作文评卷老师。请根据以下8个维度为这篇${level}作文评分，` +
+        `每个维度满分为5分（1=很弱，5=非常好）。` +
+        `只返回合法JSON，格式：` +
+        `{"dimensions":[{"name":"内容","score":4},...], "totalScore":28, "feedback":"CN总评 / EN summary",` +
+        `"idiomFeedback":null}。` +
+        `评分请依据${level}年级程度，用鼓励性的语气，标准不应与高年级相同。` +
+        `8个维度：内容、结构、开头、结尾、描写细节、词汇量、句子流畅度、标点符号。\n\n` +
+        `作文题目：${topicTitle}\n学生年级：${level}\n\n` +
+        `作文内容：\n${fullEssay}`
+      : `你是新加坡小学华文作文评卷老师。请根据以下14个维度为这篇小学作文评分，` +
+        `每个维度满分为5分（1=很弱，5=非常好）。` +
+        `只返回合法JSON，格式：` +
+        `{"dimensions":[{"name":"内容","score":4},...], "totalScore":52, "feedback":"CN总评 / EN summary",` +
+        `"idiomFeedback":{"idiom":"成语词","feedbackCn":"中文评语","feedbackEn":"English feedback"}}。` +
+        `成语运用 (Idiom Usage)：检查学生是否正确使用了成语。如果有，填写 idiomFeedback，` +
+        `feedbackCn 中须提及好词好句及语文评分，feedbackEn 须提及 Language marks 和 PSLE rubric。` +
+        `如果没有使用成语，idiomFeedback 设为 null。` +
+        `14个维度：内容、结构、开头、结尾、心理描写、动作描写、对话描写、场景描写、` +
+        `成语运用、比喻句、词汇量、句子变化、标点符号、整体流畅度。\n\n` +
+        `作文题目：${topicTitle}\n学生年级：${level}\n\n` +
+        `作文内容：\n${fullEssay}`
 
     const result = await callGemini(
       apiKey,
-      SG_SCORING_TEACHER,
+      scoreSystem,
       userPrompt,
       { maxOutputTokens: 2048, temperature: 0.3, thinkingConfig: { thinkingBudget: 0 } },
     )
@@ -235,10 +273,10 @@ app.post('/api/ai', async (c) => {
       `作文题目：${topicTitle}\n学生年级：${level}\n\n` +
       `学生原文：\n${fullEssay}\n\n` +
       `要求：\n` +
-      `1. 改写后的作文应为350至500个汉字，五段式记叙文结构。\n` +
+      `1. 改写后的作文应为${essayWordCount(level)}，五段式记叙文结构。\n` +
       `2. 保留学生原文的所有主要情节和意思。\n` +
-      `3. 使用${level}水平的词汇，句子自然流畅。\n` +
-      `4. 每段80至100字，段落之间衔接自然。\n` +
+      `3. 使用${level}水平的词汇，句子自然流畅${isLowerPrimary(level) ? '，用词简单，适合低年级小学生' : ''}。\n` +
+      `4. ${paraWordCount(level)}，段落之间衔接自然。\n` +
       `5. 直接输出完整作文，不要解释，不要标题，不要多余符号。`
 
     const result = await callGemini(
@@ -255,7 +293,7 @@ app.post('/api/ai', async (c) => {
 
 // ── /api/health ───────────────────────────────────────────────────────────────
 app.get('/api/health', (c) => {
-  return c.json({ status: 'ok', app: '华文自习宝', version: '0.3.0' })
+  return c.json({ status: 'ok', app: '华文自习宝', version: '0.3.1' })
 })
 
 // ── Static assets ─────────────────────────────────────────────────────────────

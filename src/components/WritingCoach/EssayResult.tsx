@@ -300,9 +300,11 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
           </div>
         )}
 
-        {scoreResult && (
+        {scoreResult && (() => {
+            const maxScore = (scoreResult.dimensions?.length ?? 14) * 5
+            return (
           <>
-            <div className="score-total">{scoreResult.totalScore} <span style={{ fontSize: '1.2rem', fontWeight: 400 }}>/ 70</span></div>
+            <div className="score-total">{scoreResult.totalScore} <span style={{ fontSize: '1.2rem', fontWeight: 400 }}>/ {maxScore}</span></div>
             <div className="score-total-label">综合得分 Overall Score</div>
             <div className="score-feedback">{scoreResult.feedback}</div>
 
@@ -338,7 +340,9 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
               ))}
             </div>
           </>
-        )}
+            )
+          })()
+        }
       </div>
     </div>
   )

@@ -18,10 +18,10 @@ interface Props {
   onViewSaved: () => void
 }
 
-const LEVELS: CompositionLevel[] = ['P5', 'P6', 'PSLE']
+const LEVELS: CompositionLevel[] = ['P3', 'P4', 'P5', 'P6', 'PSLE']
 
 export default function WritingCoachLanding({ onSelectTopic, onViewSaved }: Props) {
-  const [selectedLevel, setSelectedLevel] = useState<CompositionLevel>('P6')
+  const [selectedLevel, setSelectedLevel] = useState<CompositionLevel>('P4')
   const [selectedTheme, setSelectedTheme] = useState<CompositionTheme | 'all'>('all')
   const [showInfo, setShowInfo]           = useState(false)
   const [studentName, setStudentName]     = useState('')
@@ -270,6 +270,16 @@ export default function WritingCoachLanding({ onSelectTopic, onViewSaved }: Prop
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Early-level notice ── */}
+      <div className="wc-early-notice">
+        <span className="wc-early-notice-icon">ℹ️</span>
+        <span>
+          <strong>K1 · K2 · P1 · P2</strong> — 写作教练适合 P3 及以上年级。
+          低年级同学请使用词汇练习和口语练习功能。
+          {' '}<em>Writing Coach is designed for P3 and above. Younger learners, please use Vocab and Oral practice.</em>
+        </span>
       </div>
 
       {/* ── Level selector ── */}

@@ -296,7 +296,9 @@ export default function CoachingFlow({
       .map((key, i) => `第${i + 1}段（${SECTION_LABELS[key].cn}）：${sections[key] || '（未填写）'}`)
       .join('\n')
     const charCount = currentText.replace(/\s/g, '').length
-    const needsExpansion = charCount < 50
+    // Expansion threshold is lower for P3 (shorter expected paragraphs)
+    const expansionThreshold = level === 'P3' ? 25 : level === 'P4' ? 35 : 50
+    const needsExpansion = charCount < expansionThreshold
     setIdiomSuggestion(null)
     const result = await enhanceSection({
       topic:            topic.titleCn,
@@ -313,13 +315,14 @@ export default function CoachingFlow({
       const enhanced = result.text.trim()
       // Pick a relevant idiom locally from the 285-idiom bank
       const isHigherLevel = ['P5', 'P6', 'PSLE'].includes(level)
+      const targetDifficulty = isHigherLevel ? 'P5P6' : 'P3P4'
       let localSuggestion: { line: string; example: string } | null = null
       for (const [categoryZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
         const hit = (keywords as string[]).find(kw => enhanced.includes(kw))
         if (hit) {
           const candidates = IDIOM_BANK
             .filter(i => i.categoryZh === categoryZh)
-            .filter(i => i.difficulty === (isHigherLevel ? 'P5P6' : 'P3P4'))
+            .filter(i => i.difficulty === targetDifficulty)
           if (candidates.length > 0) {
             const picked = candidates[Math.floor(Math.random() * candidates.length)]
             localSuggestion = {
@@ -867,7 +870,7 @@ export default function CoachingFlow({
       <PhrasePickerModal
         category={phraseModalCategory}
         gender={gender}
-        difficulty={level === 'P5' || level === 'P6' || level === 'PSLE' ? 'P5P6' : 'P3P4'}
+        difficulty={['P5', 'P6', 'PSLE'].includes(level) ? 'P5P6' : 'P3P4'}
         onSelect={handlePhraseSelect}
         onClose={() => setPhraseModalCategory(null)}
       />

@@ -17,7 +17,7 @@ export type CompositionType =
   | 'person'        // 写人
   | 'object'        // 写物
 
-export type CompositionLevel = 'P5' | 'P6' | 'PSLE'
+export type CompositionLevel = 'P3' | 'P4' | 'P5' | 'P6' | 'PSLE'
 
 export interface ScaffoldQuestion {
   sectionIndex: 0 | 1 | 2 | 3 | 4
@@ -37,6 +37,318 @@ export interface CompositionTopic {
 }
 
 export const COMPOSITION_TOPICS: CompositionTopic[] = [
+
+  // ─── P3 ─────────────────────────────────────────────────
+  {
+    id: 'p3-family-a',
+    level: 'P3',
+    type: 'event',
+    theme: 'family',
+    titleCn: '一次难忘的家庭活动',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你们去了哪里或做了什么' },
+      { sectionIndex: 1, questionCn: '活动是怎么开始的' },
+      { sectionIndex: 2, questionCn: '活动中发生了什么事' },
+      { sectionIndex: 3, questionCn: '出现了什么问题或有趣的情况' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
+  {
+    id: 'p3-family-b',
+    level: 'P3',
+    type: 'event',
+    theme: 'family',
+    titleCn: '我帮家人做了一件事',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你帮了家人做什么' },
+      { sectionIndex: 1, questionCn: '你为什么决定帮忙' },
+      { sectionIndex: 2, questionCn: '帮忙的过程是怎样的' },
+      { sectionIndex: 3, questionCn: '家人有什么反应' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
+  {
+    id: 'p3-friendship-a',
+    level: 'P3',
+    type: 'event',
+    theme: 'friendship',
+    titleCn: '我帮助了一位同学',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '那位同学遇到了什么困难' },
+      { sectionIndex: 1, questionCn: '你是怎么发现他需要帮助的' },
+      { sectionIndex: 2, questionCn: '你怎么帮助他' },
+      { sectionIndex: 3, questionCn: '结果怎么样' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
+  {
+    id: 'p3-friendship-b',
+    level: 'P3',
+    type: 'event',
+    theme: 'friendship',
+    titleCn: '我和朋友一起玩耍',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你们在哪里玩' },
+      { sectionIndex: 1, questionCn: '你们玩了什么游戏' },
+      { sectionIndex: 2, questionCn: '玩耍时发生了什么有趣的事' },
+      { sectionIndex: 3, questionCn: '玩耍结束时你们有什么感受' },
+      { sectionIndex: 4, questionCn: '这件事让你明白了什么' },
+    ],
+  },
+  {
+    id: 'p3-school-a',
+    level: 'P3',
+    type: 'event',
+    theme: 'growth',
+    titleCn: '我学会了一件新事情',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你学的是什么' },
+      { sectionIndex: 1, questionCn: '为什么你想学这件事' },
+      { sectionIndex: 2, questionCn: '学习的过程是怎样的' },
+      { sectionIndex: 3, questionCn: '你遇到了什么困难，怎样克服' },
+      { sectionIndex: 4, questionCn: '学会后你有什么感受' },
+    ],
+  },
+  {
+    id: 'p3-school-b',
+    level: 'P3',
+    type: 'event',
+    theme: 'growth',
+    titleCn: '我在学校犯了一个错误',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你犯了什么错误' },
+      { sectionIndex: 1, questionCn: '你是怎么犯这个错误的' },
+      { sectionIndex: 2, questionCn: '老师或同学有什么反应' },
+      { sectionIndex: 3, questionCn: '你怎么改正这个错误' },
+      { sectionIndex: 4, questionCn: '你从中学到了什么' },
+    ],
+  },
+  {
+    id: 'p3-values-a',
+    level: 'P3',
+    type: 'event',
+    theme: 'values',
+    titleCn: '一次让我感到开心的事',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '是什么事让你开心' },
+      { sectionIndex: 1, questionCn: '这件事是怎么发生的' },
+      { sectionIndex: 2, questionCn: '发生了哪些事情' },
+      { sectionIndex: 3, questionCn: '哪些人跟这件事有关' },
+      { sectionIndex: 4, questionCn: '你为什么感到开心' },
+    ],
+  },
+  {
+    id: 'p3-open-a',
+    level: 'P3',
+    type: 'event',
+    theme: 'open',
+    titleCn: '一件令我难忘的事',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '这是一件什么事' },
+      { sectionIndex: 1, questionCn: '事情是怎样发生的' },
+      { sectionIndex: 2, questionCn: '经过是怎样的' },
+      { sectionIndex: 3, questionCn: '哪些人跟这件事有关' },
+      { sectionIndex: 4, questionCn: '为什么这件事令你难忘' },
+    ],
+  },
+  {
+    id: 'p3-community-a',
+    level: 'P3',
+    type: 'event',
+    theme: 'community',
+    titleCn: '我认识了一位新朋友',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你在哪里认识这位新朋友的' },
+      { sectionIndex: 1, questionCn: '你们是怎么开始交谈的' },
+      { sectionIndex: 2, questionCn: '你们一起做了什么事' },
+      { sectionIndex: 3, questionCn: '这位新朋友给你留下什么印象' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
+  {
+    id: 'p3-perseverance-a',
+    level: 'P3',
+    type: 'event',
+    theme: 'perseverance',
+    titleCn: '我努力做到了一件难事',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '那件难事是什么' },
+      { sectionIndex: 1, questionCn: '为什么它对你来说很难' },
+      { sectionIndex: 2, questionCn: '你是怎么努力去做的' },
+      { sectionIndex: 3, questionCn: '结果怎么样' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
+
+  // ─── P4 ─────────────────────────────────────────────────
+  {
+    id: 'p4-family-a',
+    level: 'P4',
+    type: 'event',
+    theme: 'family',
+    titleCn: '一次难忘的家庭旅行',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你们去了哪里' },
+      { sectionIndex: 1, questionCn: '旅行是怎么开始的' },
+      { sectionIndex: 2, questionCn: '途中发生了什么事' },
+      { sectionIndex: 3, questionCn: '有什么让你印象最深的' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
+  {
+    id: 'p4-family-b',
+    level: 'P4',
+    type: 'event',
+    theme: 'family',
+    titleCn: '这件事让我更了解父母的辛苦',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '发生了什么事' },
+      { sectionIndex: 1, questionCn: '父母是怎么辛苦的' },
+      { sectionIndex: 2, questionCn: '你是怎么发现这件事的' },
+      { sectionIndex: 3, questionCn: '事情的经过是怎样的' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
+  {
+    id: 'p4-friendship-a',
+    level: 'P4',
+    type: 'event',
+    theme: 'friendship',
+    titleCn: '这件事让我更珍惜朋友',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '这是一件什么事' },
+      { sectionIndex: 1, questionCn: '哪些人跟这件事有关' },
+      { sectionIndex: 2, questionCn: '事情的经过是怎样的' },
+      { sectionIndex: 3, questionCn: '这件事对你和朋友的关系有什么影响' },
+      { sectionIndex: 4, questionCn: '你从中明白了什么' },
+    ],
+  },
+  {
+    id: 'p4-friendship-b',
+    level: 'P4',
+    type: 'event',
+    theme: 'friendship',
+    titleCn: '我和同学合作完成了一件事',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你们要合作完成什么' },
+      { sectionIndex: 1, questionCn: '合作的过程是怎样的' },
+      { sectionIndex: 2, questionCn: '你们遇到了什么困难' },
+      { sectionIndex: 3, questionCn: '你们是怎么解决困难的' },
+      { sectionIndex: 4, questionCn: '你从中学到了什么' },
+    ],
+  },
+  {
+    id: 'p4-growth-a',
+    level: 'P4',
+    type: 'event',
+    theme: 'growth',
+    titleCn: '这件事让我改掉了一个坏习惯',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你有什么坏习惯' },
+      { sectionIndex: 1, questionCn: '发生了什么让你决定改变' },
+      { sectionIndex: 2, questionCn: '事情的经过是怎样的' },
+      { sectionIndex: 3, questionCn: '你是如何改变的' },
+      { sectionIndex: 4, questionCn: '你从这件事学到了什么' },
+    ],
+  },
+  {
+    id: 'p4-growth-b',
+    level: 'P4',
+    type: 'event',
+    theme: 'growth',
+    titleCn: '一次让我感到骄傲的经历',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '发生了什么事' },
+      { sectionIndex: 1, questionCn: '你做了什么让自己感到骄傲的事' },
+      { sectionIndex: 2, questionCn: '别人有什么反应' },
+      { sectionIndex: 3, questionCn: '事情的经过是怎样的' },
+      { sectionIndex: 4, questionCn: '你有什么感想' },
+    ],
+  },
+  {
+    id: 'p4-values-a',
+    level: 'P4',
+    type: 'event',
+    theme: 'values',
+    titleCn: '这件事让我学会了诚实',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '发生了什么事' },
+      { sectionIndex: 1, questionCn: '你当时有什么选择' },
+      { sectionIndex: 2, questionCn: '你选择怎么做，为什么' },
+      { sectionIndex: 3, questionCn: '事情的结果是怎样的' },
+      { sectionIndex: 4, questionCn: '你从中明白了什么' },
+    ],
+  },
+  {
+    id: 'p4-values-b',
+    level: 'P4',
+    type: 'event',
+    theme: 'values',
+    titleCn: '我做了一件好事',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你做了什么好事' },
+      { sectionIndex: 1, questionCn: '事情是怎么发生的' },
+      { sectionIndex: 2, questionCn: '事情的经过是怎样的' },
+      { sectionIndex: 3, questionCn: '对方有什么反应' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
+  {
+    id: 'p4-perseverance-a',
+    level: 'P4',
+    type: 'event',
+    theme: 'perseverance',
+    titleCn: '这件事让我明白了坚持的重要',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你在做什么事' },
+      { sectionIndex: 1, questionCn: '你遇到了什么困难' },
+      { sectionIndex: 2, questionCn: '你有没有想过放弃，为什么没有放弃' },
+      { sectionIndex: 3, questionCn: '事情最后怎样了' },
+      { sectionIndex: 4, questionCn: '你从中学到了什么' },
+    ],
+  },
+  {
+    id: 'p4-open-a',
+    level: 'P4',
+    type: 'event',
+    theme: 'open',
+    titleCn: '一件让我感动的事',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '这是一件什么事' },
+      { sectionIndex: 1, questionCn: '哪些人跟这件事有关' },
+      { sectionIndex: 2, questionCn: '事情是怎样发生的' },
+      { sectionIndex: 3, questionCn: '这件事为什么让你感动' },
+      { sectionIndex: 4, questionCn: '你有什么感想' },
+    ],
+  },
+  {
+    id: 'p4-community-a',
+    level: 'P4',
+    type: 'event',
+    theme: 'community',
+    titleCn: '我帮助了一个陌生人',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '那个陌生人是谁，遇到了什么困难' },
+      { sectionIndex: 1, questionCn: '你是怎么发现他需要帮助的' },
+      { sectionIndex: 2, questionCn: '你是怎么帮助他的' },
+      { sectionIndex: 3, questionCn: '对方有什么反应' },
+      { sectionIndex: 4, questionCn: '你从这件事明白了什么' },
+    ],
+  },
+  {
+    id: 'p4-teachers-a',
+    level: 'P4',
+    type: 'event',
+    theme: 'teachers',
+    titleCn: '我的老师帮助了我',
+    scaffoldQuestions: [
+      { sectionIndex: 0, questionCn: '你遇到了什么困难' },
+      { sectionIndex: 1, questionCn: '老师发现了你的困难' },
+      { sectionIndex: 2, questionCn: '老师怎么帮助你' },
+      { sectionIndex: 3, questionCn: '结果怎么样' },
+      { sectionIndex: 4, questionCn: '你有什么感受' },
+    ],
+  },
 
   // ─── PSLE ───────────────────────────────────────────────
   {
@@ -961,6 +1273,8 @@ export const THEME_LABELS: Record<CompositionTheme, { cn: string; en: string }> 
 }
 
 export const LEVEL_LABELS: Record<CompositionLevel, { cn: string; en: string }> = {
+  P3:   { cn: '小学三年级', en: 'Primary 3' },
+  P4:   { cn: '小学四年级', en: 'Primary 4' },
   P5:   { cn: '小学五年级', en: 'Primary 5' },
   P6:   { cn: '小学六年级', en: 'Primary 6' },
   PSLE: { cn: 'PSLE 真题',  en: 'PSLE Past Years' },
