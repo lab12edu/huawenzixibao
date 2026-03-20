@@ -4122,9 +4122,9 @@ export const TONE_KEYWORD_MAP: Record<string, string[]> = {
   '欢喜':   ['idiom_117', 'idiom_125', 'idiom_128'],
   '自豪':   ['idiom_115', 'idiom_267', 'idiom_117'],
   // Angry
-  '生气':   ['idiom_129'],
-  '愤怒':   ['idiom_129'],
-  '发火':   ['idiom_129'],
+  '生气':   ['idiom_129', 'idiom_119'],
+  '愤怒':   ['idiom_129', 'idiom_119'],
+  '发火':   ['idiom_129', 'idiom_119'],
   // Gratitude / Reluctance
   '感激':   ['idiom_263'],
   '留恋':   ['idiom_244'],

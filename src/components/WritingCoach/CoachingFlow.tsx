@@ -240,7 +240,6 @@ export default function CoachingFlow({
         if (toneMatches.length > 0) {
           setSuggestedIdioms(toneMatches)
           setMuseTriggered(true)
-          console.log('[Muse T1]', keyword, '→', toneMatches.map(i => i.chinese))
           return
         }
       }
@@ -256,7 +255,6 @@ export default function CoachingFlow({
           .slice(0, 3)
         setSuggestedIdioms(matches)
         setMuseTriggered(true)
-        console.log('[Muse T2]', hit, '→', catZh, matches.map(i => i.chinese))
         return
       }
     }
@@ -269,7 +267,6 @@ export default function CoachingFlow({
       .slice(0, 3)
     setSuggestedIdioms(defaultMatches)
     setMuseTriggered(false)
-    console.log('[Muse T3] default →', defaultMatches.map(i => i.chinese))
   }, [currentText, currentKey])
 
   // ── Image upload handler ─────────────────────────────────────────────────
