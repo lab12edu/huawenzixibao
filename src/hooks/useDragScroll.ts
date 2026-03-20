@@ -24,6 +24,7 @@ export function useDragScroll<T extends HTMLElement = HTMLElement>() {
       startX = e.clientX
       startScrollLeft = el.scrollLeft
       el.classList.add('drag-scrolling')
+      e.preventDefault()
       // Attach move and up to window so fast drags are not lost
       window.addEventListener('mousemove', onMouseMove)
       window.addEventListener('mouseup', onMouseUp)

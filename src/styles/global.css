@@ -4510,3 +4510,15 @@ mark.diff-highlight {
 .idiom-bank-categories-wrapper {
   overflow: visible !important;
 }
+
+/* Drag-scroll utility — prevents text selection during drag */
+.drag-scrolling,
+.drag-scrolling * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.idiom-bank-categories { cursor: grab; }
+.idiom-bank-categories.drag-scrolling { cursor: grabbing; }
+.muse-chips { cursor: grab; }
+.muse-chips.drag-scrolling { cursor: grabbing; }
+/* End drag-scroll utility */
