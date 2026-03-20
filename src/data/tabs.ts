@@ -55,12 +55,12 @@ export const TABS: TabDef[] = [
     colorLight: '#E0F2F1',
   },
   {
-    id: 'tools',
-    labelCn: '工具',
-    labelEn: 'Tools',
-    icon: 'fa-solid fa-toolbox',
-    color: '#E65100',
-    colorLight: '#FFF3E0',
+    id: 'idioms',
+    labelCn: '成语库',
+    labelEn: 'Idioms',
+    icon: 'fa-solid fa-book-open',
+    color: '#1565C0',
+    colorLight: '#E3F2FD',
   },
   {
     id: 'profile',

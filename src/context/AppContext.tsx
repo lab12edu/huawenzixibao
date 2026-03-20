@@ -16,7 +16,7 @@ export type Tab =
   | 'games'
   | 'composition'
   | 'oral'
-  | 'tools'
+  | 'idioms'
   | 'profile'
 
 export interface AppState {

@@ -59,6 +59,7 @@ export default function IdiomBankPage() {
   const [toastMessage, setToastMessage] = useState('')
   const [toastVisible, setToastVisible] = useState(false)
   const [loading, setLoading]           = useState(true)
+  const [hasScrolledPills, setHasScrolledPills] = useState(false)
 
   // ── Load idiom bank lazily on mount ─────────────────────────────────────
   useEffect(() => {
@@ -133,22 +134,33 @@ export default function IdiomBankPage() {
       </div>
 
       {/* ── Category pills ── */}
-      <div className="idiom-bank-categories" aria-label="Filter by category">
-        <button
-          className={`cat-pill${!activeCategory ? ' cat-pill--active' : ''}`}
-          onClick={() => setActiveCategory(null)}
+      <div className="idiom-bank-categories-wrapper">
+        <div
+          className="idiom-bank-categories"
+          aria-label="Filter by category"
+          onScroll={() => { if (!hasScrolledPills) setHasScrolledPills(true) }}
         >
-          全部 All
-        </button>
-        {categories.map(cat => (
           <button
-            key={cat.en}
-            className={`cat-pill${activeCategory === cat.en ? ' cat-pill--active' : ''}`}
-            onClick={() => setActiveCategory(prev => prev === cat.en ? null : cat.en)}
+            className={`cat-pill${!activeCategory ? ' cat-pill--active' : ''}`}
+            onClick={() => setActiveCategory(null)}
           >
-            {cat.zh}
+            全部 All
           </button>
-        ))}
+          {categories.map(cat => (
+            <button
+              key={cat.en}
+              className={`cat-pill${activeCategory === cat.en ? ' cat-pill--active' : ''}`}
+              onClick={() => setActiveCategory(prev => prev === cat.en ? null : cat.en)}
+            >
+              {cat.zh}
+            </button>
+          ))}
+        </div>
+        {!hasScrolledPills && (
+          <p className="pills-scroll-hint">
+            ← 左右滑动查看全部分类 Swipe to see all categories →
+          </p>
+        )}
       </div>
 
       {/* ── Results count ── */}

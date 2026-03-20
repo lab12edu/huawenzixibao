@@ -47,12 +47,12 @@ const QUICK_CARDS = [
     en: 'Oral',
   },
   {
-    tab: 'tools' as const,
-    icon: '🧰',
-    color: '#E65100',
-    colorLight: '#FFF3E0',
-    cn: '工具',
-    en: 'Tools',
+    tab: 'idioms' as const,
+    icon: '📚',
+    color: '#1565C0',
+    colorLight: '#E3F2FD',
+    cn: '成语库',
+    en: 'Idiom Bank',
   },
   {
     tab: 'profile' as const,

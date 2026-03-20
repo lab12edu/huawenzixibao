@@ -11,7 +11,6 @@ const FlashcardPage    = React.lazy(() => import('./pages/FlashcardPage'))
 const GamesPage        = React.lazy(() => import('./pages/GamesPage'))
 const CompositionPage  = React.lazy(() => import('./pages/CompositionPage'))
 const OralPracticePage = React.lazy(() => import('./pages/OralPracticePage'))
-const ToolsPage        = React.lazy(() => import('./pages/ToolsPage'))
 const ProfilePage      = React.lazy(() => import('./pages/ProfilePage'))
 const IdiomBankPage    = React.lazy(() => import('./pages/IdiomBankPage'))
 
@@ -102,25 +101,8 @@ function TabContent() {
     case 'oral':
       return <OralPracticePage />
 
-    case 'tools':
-      return (
-        <>
-          <PageHeader
-            icon="fa-solid fa-toolbox"
-            cn="工具"
-            en="Tools"
-            color="#E65100"
-          />
-          <ToolsPage />
-          <PageHeader
-            icon="fa-solid fa-book-open"
-            cn="成语宝库"
-            en="Idiom Bank"
-            color="#1565C0"
-          />
-          <IdiomBankPage />
-        </>
-      )
+    case 'idioms':
+      return <IdiomBankPage />
 
     case 'profile':
       return (
