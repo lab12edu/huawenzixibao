@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const raw = JSON.parse(fs.readFileSync(path.join(__dirname, '../idioms_sg_v5.json'), 'utf8'))
+const raw = JSON.parse(fs.readFileSync(path.join(__dirname, '../idioms_sg_v6.json'), 'utf8'))
 
 // Dedup by id first, then by chinese word
 const seenIds = new Set()

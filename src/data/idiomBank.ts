@@ -1,7 +1,6 @@
 // src/data/idiomBank.ts
-// Singapore-appropriate Chinese idioms for P3–P6 and S1–S2 composition — 385 entries.
-// Updated from idioms_sg_v5.json; adds tone, subCategoryZh, and S1S2 difficulty level.
-// Source data is clean at source — no runtime correction patch needed.
+// Singapore-appropriate Chinese idioms — 400 entries, v6 source, clean data.
+// Fields: tone and subCategoryZh are required; S1S2 difficulty supported.
 
 export interface Idiom {
   id: string
@@ -10,14 +9,14 @@ export interface Idiom {
   meaningChinese: string
   meaningEnglish: string
   example: string
-  literalMeaning?: string    // 字面意思 — literal meaning of the characters
-  exampleEnglish?: string    // 例句英译 — English translation of the example sentence
+  literalMeaning?: string
+  exampleEnglish?: string
   difficulty: 'P3P4' | 'P5P6' | 'S1S2'
   themes: string[]
   category: string
   categoryZh: string
-  tone: string               // fine-grained emotional / situational tone
-  subCategoryZh: string      // e.g. 心情感受·恐惧
+  tone: string
+  subCategoryZh: string
 }
 
 export const IDIOM_BANK: Idiom[] = [
@@ -2196,6 +2195,22 @@ export const IDIOM_BANK: Idiom[] = [
     categoryZh: "坚持努力",
     tone: "hardwork",
     subCategoryZh: "坚持努力·刻苦",
+  },
+  {
+    id: "idiom_136",
+    chinese: "磨杵成针",
+    pinyin: "mó chǔ chéng zhēn",
+    meaningChinese: "比喻只要有恒心，再难的事情都能做到。",
+    meaningEnglish: "To grind an iron pestle into a needle; where there is a will, there is a way.",
+    example: "阿强华文底子差，但他磨杵成针，每天坚持抄写成语例句，两年后作文成绩大有进步。",
+    literalMeaning: "把铁杵磨成细针",
+    exampleEnglish: "Ah Qiang had a weak foundation in Chinese, but with the determination to grind iron into a needle, he copied idiom example sentences every single day — two years later his composition results had improved enormously.",
+    difficulty: "P5P6",
+    themes: ["Perseverance"],
+    category: "Perseverance",
+    categoryZh: "坚持努力",
+    tone: "persist",
+    subCategoryZh: "坚持努力·坚持",
   },
   {
     id: "idiom_137",
@@ -4566,6 +4581,150 @@ export const IDIOM_BANK: Idiom[] = [
     subCategoryZh: "心情感受·紧张",
   },
   {
+    id: "idiom_285",
+    chinese: "骇然失色",
+    pinyin: "hài rán shī sè",
+    meaningChinese: "形容受到惊吓，脸色大变，极度恐惧。",
+    meaningEnglish: "To turn pale with shock; horrified and drained of colour.",
+    example: "火警铃突然大响，在场的同学骇然失色，纷纷往门口冲去。",
+    literalMeaning: "惊骇得脸色都变了",
+    exampleEnglish: "When the fire alarm suddenly blared, the pupils in the room turned pale with shock and rushed towards the exits.",
+    difficulty: "S1S2",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "fear",
+    subCategoryZh: "生动形容·恐惧",
+  },
+  {
+    id: "idiom_286",
+    chinese: "瞠目结舌",
+    pinyin: "chēng mù jié shé",
+    meaningChinese: "形容受到惊吓或震惊，眼睛瞪大，说不出话来。",
+    meaningEnglish: "Wide-eyed and tongue-tied; struck speechless with astonishment.",
+    example: "魔术师从空帽子里掏出一只活兔，台下观众瞠目结舌，半晌说不出一句话。",
+    literalMeaning: "眼睛瞪大舌头打结",
+    exampleEnglish: "The magician pulled a live rabbit from an empty hat, leaving the audience wide-eyed and tongue-tied, unable to say a word for a long moment.",
+    difficulty: "P5P6",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "sudden",
+    subCategoryZh: "生动形容·突然",
+  },
+  {
+    id: "idiom_287",
+    chinese: "黯然失色",
+    pinyin: "àn rán shī sè",
+    meaningChinese: "形容因悲伤或失意而神情黯淡，失去光彩。",
+    meaningEnglish: "To lose one's lustre; crestfallen and diminished.",
+    example: "得知好友转校的消息，小丽黯然失色，整个下午都提不起精神来。",
+    literalMeaning: "暗淡无光失去色彩",
+    exampleEnglish: "Learning that her best friend was transferring schools, Xiao Li was crestfallen and lost her sparkle for the entire afternoon.",
+    difficulty: "S1S2",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "sad",
+    subCategoryZh: "生动形容·悲伤",
+  },
+  {
+    id: "idiom_288",
+    chinese: "乐不可支",
+    pinyin: "lè bù kě zhī",
+    meaningChinese: "形容高兴得无法控制自己，笑个不停。",
+    meaningEnglish: "Beside oneself with joy; laughing uncontrollably.",
+    example: "弟弟看到爸爸买回来的新玩具，乐不可支，在客厅里跑来跑去。",
+    literalMeaning: "快乐到无法支撑自己",
+    exampleEnglish: "When younger brother saw the new toy Dad had brought home, he was beside himself with joy, running back and forth all around the living room.",
+    difficulty: "P5P6",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "joy",
+    subCategoryZh: "生动形容·喜悦",
+  },
+  {
+    id: "idiom_289",
+    chinese: "心神不定",
+    pinyin: "xīn shén bù dìng",
+    meaningChinese: "形容心里不踏实，思想不集中，坐立不安。",
+    meaningEnglish: "Unsettled and distracted; unable to concentrate.",
+    example: "临近PSLE，小明心神不定，坐在书桌前看了半小时书，一个字都没记住。",
+    literalMeaning: "心思神情都不安定",
+    exampleEnglish: "With the PSLE approaching, Xiao Ming was unsettled and distracted — he sat at his desk for half an hour without retaining a single word.",
+    difficulty: "P5P6",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "nervous",
+    subCategoryZh: "生动形容·紧张",
+  },
+  {
+    id: "idiom_290",
+    chinese: "郁郁寡欢",
+    pinyin: "yù yù guǎ huān",
+    meaningChinese: "心情郁闷，闷闷不乐，很少感到欢乐。",
+    meaningEnglish: "Gloomy and melancholy; joyless and downcast.",
+    example: "小玲因为成绩不理想，连续几天郁郁寡欢，妈妈见状便带她去东海岸公园散心。",
+    literalMeaning: "心情郁闷很少欢笑",
+    exampleEnglish: "Xiao Ling was gloomy and downcast for several days over her disappointing results, and Mum took her to East Coast Park for a walk to lift her spirits.",
+    difficulty: "P5P6",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "sad",
+    subCategoryZh: "生动形容·悲伤",
+  },
+  {
+    id: "idiom_291",
+    chinese: "怒目而视",
+    pinyin: "nù mù ér shì",
+    meaningChinese: "用愤怒的眼光瞪着对方，表示极度不满。",
+    meaningEnglish: "To glare at someone with fury; to fix someone with an angry stare.",
+    example: "小明发现有人故意弄坏他的模型，怒目而视，但最终还是忍住没有发作。",
+    literalMeaning: "用愤怒的眼神看着",
+    exampleEnglish: "Xiao Ming discovered that someone had deliberately broken his model and fixed them with an angry glare, but ultimately held himself back from lashing out.",
+    difficulty: "P5P6",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "angry",
+    subCategoryZh: "生动形容·愤怒",
+  },
+  {
+    id: "idiom_292",
+    chinese: "潸然泪下",
+    pinyin: "shān rán lèi xià",
+    meaningChinese: "形容眼泪不由自主地缓缓流下，多因感动或悲伤。",
+    meaningEnglish: "To shed quiet tears; to be moved to silent weeping.",
+    example: "听到老师在毕业典礼上诵读六年来陪伴我们的往事，小丽不禁潸然泪下。",
+    literalMeaning: "眼泪悄然流下脸颊",
+    exampleEnglish: "As the teacher recounted the six years they had shared together at the graduation ceremony, Xiao Li shed quiet tears, unable to hold them back.",
+    difficulty: "S1S2",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "sad",
+    subCategoryZh: "生动形容·悲伤",
+  },
+  {
+    id: "idiom_293",
+    chinese: "喜笑颜开",
+    pinyin: "xǐ xiào yán kāi",
+    meaningChinese: "形容满脸喜悦，笑容灿烂。",
+    meaningEnglish: "Beaming with happiness; all smiles.",
+    example: "爷爷看到从外地回来的孙子，喜笑颜开，连忙下厨做了一桌好菜。",
+    literalMeaning: "喜悦笑容展现脸上",
+    exampleEnglish: "Grandfather was all smiles when he saw his grandchildren returning from out of town, immediately heading to the kitchen to cook a table full of dishes.",
+    difficulty: "P3P4",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "joy",
+    subCategoryZh: "生动形容·喜悦",
+  },
+  {
     id: "idiom_294",
     chinese: "惊慌失措",
     pinyin: "jīng huāng shī cuò",
@@ -4724,6 +4883,38 @@ export const IDIOM_BANK: Idiom[] = [
     categoryZh: "生动形容",
     tone: "angry",
     subCategoryZh: "生动形容·愤怒",
+  },
+  {
+    id: "idiom_304",
+    chinese: "勃然大怒",
+    pinyin: "bó rán dà nù",
+    meaningChinese: "形容突然非常愤怒，大发脾气。",
+    meaningEnglish: "To fly into a sudden rage; to flare up in fury.",
+    example: "小峰得知有人在背后散布关于他的谣言，当下勃然大怒，立刻找对方当面说清楚。",
+    literalMeaning: "突然之间大发雷霆",
+    exampleEnglish: "Xiao Feng learnt that someone had been spreading rumours about him behind his back and flew into a sudden fury, immediately confronting the person to set the record straight.",
+    difficulty: "P5P6",
+    themes: ["Descriptions"],
+    category: "Descriptions",
+    categoryZh: "生动形容",
+    tone: "angry",
+    subCategoryZh: "生动形容·愤怒",
+  },
+  {
+    id: "idiom_305",
+    chinese: "一蹶不振",
+    pinyin: "yī jué bù zhèn",
+    meaningChinese: "遭受失败或挫折后，一直消沉，无法重新振作。",
+    meaningEnglish: "To be laid low by a single setback and never recover; to fall and not get up.",
+    example: "小明第一次参加作文比赛没有获奖，一蹶不振，老师鼓励他失败是成功之母，要再接再厉。",
+    literalMeaning: "一次跌倒就再也振作不起",
+    exampleEnglish: "Xiao Ming failed to win a prize at his first composition competition and was laid low by the setback — the teacher encouraged him that failure is the mother of success and urged him to keep trying.",
+    difficulty: "P5P6",
+    themes: ["Warnings"],
+    category: "Warnings",
+    categoryZh: "警示提醒",
+    tone: "failure",
+    subCategoryZh: "警示提醒·警示",
   },
   {
     id: "idiom_306",
@@ -4966,6 +5157,22 @@ export const IDIOM_BANK: Idiom[] = [
     subCategoryZh: "行为动作·负责",
   },
   {
+    id: "idiom_321",
+    chinese: "路见不平，拔刀相助",
+    pinyin: "lù jiàn bù píng bá dāo xiāng zhù",
+    meaningChinese: "遇到不公平的事情，勇敢地出手帮助弱者。",
+    meaningEnglish: "To come to the aid of the weak when faced with injustice; to stand up for those who are wronged.",
+    example: "阿强路见不平，拔刀相助，主动上前帮助被高年级同学欺负的小同学。",
+    literalMeaning: "路上见到不平事就拔刀帮忙",
+    exampleEnglish: "Ah Qiang could not stand by in the face of injustice — he stepped forward to help the younger pupil who was being bullied by an older student.",
+    difficulty: "S1S2",
+    themes: ["Actions"],
+    category: "Actions",
+    categoryZh: "行为动作",
+    tone: "brave",
+    subCategoryZh: "行为动作·勇敢",
+  },
+  {
     id: "idiom_322",
     chinese: "滴水穿石",
     pinyin: "dī shuǐ chuān shí",
@@ -5007,6 +5214,22 @@ export const IDIOM_BANK: Idiom[] = [
     literalMeaning: "脚踩在踏实的地上",
     exampleEnglish: "Xiao Ming never looked for shortcuts — he worked through every practice question in a steady, down-to-earth manner, and his results improved steadily.",
     difficulty: "P3P4",
+    themes: ["Perseverance"],
+    category: "Perseverance",
+    categoryZh: "坚持努力",
+    tone: "hardwork",
+    subCategoryZh: "坚持努力·刻苦",
+  },
+  {
+    id: "idiom_325",
+    chinese: "夙兴夜寐",
+    pinyin: "sù xīng yè mèi",
+    meaningChinese: "早起晚睡，形容非常勤奋刻苦。",
+    meaningEnglish: "Up at dawn and to bed late; to work tirelessly from morning to night.",
+    example: "备考期间，小慧夙兴夜寐，每天六点起床温书，深夜才休息，终于在PSLE取得佳绩。",
+    literalMeaning: "早起晚睡辛勤工作",
+    exampleEnglish: "During the exam preparation period, Xiao Hui was up at dawn and to bed late — waking at six every morning to revise and not resting until late at night, she finally achieved excellent PSLE results.",
+    difficulty: "S1S2",
     themes: ["Perseverance"],
     category: "Perseverance",
     categoryZh: "坚持努力",
@@ -5412,6 +5635,22 @@ export const IDIOM_BANK: Idiom[] = [
     categoryZh: "学习成长",
     tone: "hardwork",
     subCategoryZh: "学习成长·刻苦",
+  },
+  {
+    id: "idiom_351",
+    chinese: "心无旁骛",
+    pinyin: "xīn wú páng wù",
+    meaningChinese: "心思专一，没有任何杂念或旁顾，全神贯注。",
+    meaningEnglish: "Single-minded; focused without any distracting thoughts.",
+    example: "考试时，小丽心无旁骛，把注意力全放在试卷上，连时钟的滴答声都没留意。",
+    literalMeaning: "心中没有其他杂念",
+    exampleEnglish: "During the exam, Xiao Li was completely single-minded, devoting all her attention to her paper — she did not even notice the ticking of the clock.",
+    difficulty: "P5P6",
+    themes: ["Learning"],
+    category: "Learning",
+    categoryZh: "学习成长",
+    tone: "study",
+    subCategoryZh: "学习成长·学习",
   },
   {
     id: "idiom_352",
@@ -6183,7 +6422,6 @@ export const IDIOM_BANK: Idiom[] = [
   },
 ]
 
-
 export function getIdiomsByCategory(category: string): Idiom[] {
   return IDIOM_BANK.filter(i => i.category === category)
 }
@@ -6312,6 +6550,7 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '不敢':       'fear',
   '担心':       'fear',
   '心惊':       'fear',
+  '骇然失色':   'fear',
 
   // ── sad ───────────────────────────────────────────────────────────────────
   '痛哭流涕':   'sad',
@@ -6327,6 +6566,10 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '悲':         'sad',
   '泪':         'sad',
   '痛苦':       'sad',
+  '黯然失色':   'sad',
+  '郁郁寡欢':   'sad',
+  '潸然泪下':   'sad',
+  '闷闷不乐':   'sad',
 
   // ── joy ───────────────────────────────────────────────────────────────────
   '欣喜若狂':   'joy',
@@ -6343,6 +6586,8 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '喜':         'joy',
   '笑':         'joy',
   '欢':         'joy',
+  '乐不可支':   'joy',
+  '喜笑颜开':   'joy',
 
   // ── angry ─────────────────────────────────────────────────────────────────
   '义愤填膺':   'angry',
@@ -6353,6 +6598,8 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '发火':       'angry',
   '怒':         'angry',
   '不满':       'angry',
+  '怒目而视':   'angry',
+  '勃然大怒':   'angry',
 
   // ── grateful ──────────────────────────────────────────────────────────────
   '感激涕零':   'grateful',
@@ -6377,6 +6624,7 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '不安':       'nervous',
   '考试前':     'nervous',
   '上台前':     'nervous',
+  '心神不定':   'nervous',
 
   // ── proud ─────────────────────────────────────────────────────────────────
   '扬眉吐气':   'proud',
@@ -6409,6 +6657,7 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '勇气':       'brave',
   '胆量':       'brave',
   '冒险':       'brave',
+  '路见不平，拔刀相助': 'brave',
 
   // ── rush ──────────────────────────────────────────────────────────────────
   '马不停蹄':   'rush',
@@ -6487,7 +6736,7 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '专心致志':   'study',
   '开卷有益':   'study',
   '厚积薄发':   'study',
-  '勤学苦练':   'study',
+  '勤学苦练':   'hardwork',
   '读书':       'study',
   '学习':       'study',
   '温习':       'study',
@@ -6495,6 +6744,7 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '上课':       'study',
   '作业':       'study',
   '温书':       'study',
+  '心无旁骛':   'study',
 
   // ── progress ──────────────────────────────────────────────────────────────
   '突飞猛进':   'progress',
@@ -6515,6 +6765,7 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '错误':       'failure',
   '落后':       'failure',
   '不及格':     'failure',
+  '一蹶不振':   'failure',
 
   // ── persist ───────────────────────────────────────────────────────────────
   '勇往直前':   'persist',
@@ -6528,6 +6779,7 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '继续努力':   'persist',
   '坚韧':       'persist',
   '训练':       'persist',
+  '磨杵成针':   'persist',
 
   // ── hardwork ──────────────────────────────────────────────────────────────
   '精益求精':   'hardwork',
@@ -6539,6 +6791,7 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '废寝忘食':   'hardwork',
   '夜以继日':   'hardwork',
   '努力':       'hardwork',
+  '夙兴夜寐':   'hardwork',
 
   // ── lesson ────────────────────────────────────────────────────────────────
   '知足常乐':   'lesson',
@@ -6626,6 +6879,8 @@ export const TONE_KEYWORD_MAP: Record<string, ToneValue> = {
   '没想到':     'sudden',
   '一下子':     'sudden',
   '猛然':       'sudden',
+  '瞠目结舌':   'sudden',
+  '大吃一惊':   'sudden',
 
   // ── gradual ───────────────────────────────────────────────────────────────
   '岁月如梭':   'gradual',
@@ -6864,4 +7119,3 @@ export function detectTone(text: string): ToneValue | undefined {
 //
 // Reset shownIdiomIds when the student starts a new composition.
 // ─────────────────────────────────────────────────────────────────────────────
-
