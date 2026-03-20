@@ -13,6 +13,7 @@ const CompositionPage  = React.lazy(() => import('./pages/CompositionPage'))
 const OralPracticePage = React.lazy(() => import('./pages/OralPracticePage'))
 const ToolsPage        = React.lazy(() => import('./pages/ToolsPage'))
 const ProfilePage      = React.lazy(() => import('./pages/ProfilePage'))
+const IdiomBankPage    = React.lazy(() => import('./pages/IdiomBankPage'))
 
 // ── Suspense fallback ─────────────────────────────────────────────────────
 const PageLoader: React.FC = () => (
@@ -111,6 +112,13 @@ function TabContent() {
             color="#E65100"
           />
           <ToolsPage />
+          <PageHeader
+            icon="fa-solid fa-book-open"
+            cn="成语宝库"
+            en="Idiom Bank"
+            color="#1565C0"
+          />
+          <IdiomBankPage />
         </>
       )
 

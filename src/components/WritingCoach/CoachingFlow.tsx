@@ -10,13 +10,22 @@ import type { CompositionTopic } from '../../data/compositionTopics'
 import type { PhraseCategory, Phrase } from '../../data/phraseBank'
 import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
-import { IDIOM_BANK } from '../../data/idiomBank'
-import { callGemini, callGeminiWithImage } from '../../utils/aiApi'
+import { IDIOM_BANK, getIdiomsByCategory, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES } from '../../data/idiomBank'
+import { callGemini, callGeminiWithImage, isApiLocked } from '../../utils/aiApi'
 import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
 
 // ── Draft persistence ────────────────────────────────────────────────────
 const DRAFT_KEY = 'hwzxb_wc_draft'
+
+// ── WS4: Singapore contextualisation guardrail ───────────────────────────
+const SG_GUARDRAIL = `You are a Singapore Primary School Chinese writing coach.
+All names must be Singapore names: 小明, 小红, 小华, 阿明, Ali, Siti, Muthu, Wei Liang.
+All settings must be Singapore settings: 组屋 (HDB flat), 食阁 (hawker centre),
+民众俱乐部 (community centre), 图书馆 (public library), CCA, PSLE,
+组屋走廊 (HDB corridor), 巴刹 (wet market), 学校操场 (school field).
+Never reference 祖国, 长城, 北京, 天安门, 故宫, or any China-specific landmark.
+Every suggestion must feel like it was written by a Singapore child about their Singapore life.`
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -70,15 +79,7 @@ const SECTION_PHRASE_CATEGORIES: Record<SectionKey, PhraseCategory[]> = {
   reflection: ['closing', 'psychology', 'emotion_happy'],
 }
 
-// Per-section idiom ID suggestions
-const SECTION_IDIOM_IDS: Record<SectionKey, string[]> = {
-  opening:    ['idiom_014', 'idiom_010', 'idiom_025'],
-  trigger:    ['idiom_006', 'idiom_020', 'idiom_009'],
-  event1:     ['idiom_008', 'idiom_012', 'idiom_000', 'idiom_030'],
-  event2:     ['idiom_023', 'idiom_015', 'idiom_265', 'idiom_277'],
-  result:     ['idiom_022', 'idiom_026', 'idiom_002'],
-  reflection: ['idiom_003', 'idiom_019', 'idiom_031', 'idiom_017'],
-}
+// Per-section idiom ID suggestions — removed in WS2; replaced by dynamic Muse UI
 
 export interface EssayData {
   topicId: string
@@ -152,6 +153,10 @@ export default function CoachingFlow({
     restoredDraft?.sections ?? { opening: '', trigger: '', event1: '', event2: '', result: '', reflection: '' }
   )
   const [isEnhancing, setIsEnhancing] = useState(false)
+  const [apiLock, setApiLock] = useState(false)
+  const [suggestedIdioms, setSuggestedIdioms] = useState<Idiom[]>([])
+  const [museExpanded, setMuseExpanded] = useState(false)
+  const [museTriggered, setMuseTriggered] = useState(false) // true = keyword hit, false = default
   const [enhancedText, setEnhancedText] = useState<string>('')
   const [comparisonMode, setComparisonMode] = useState<boolean>(false)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
@@ -165,6 +170,7 @@ export default function CoachingFlow({
   const [enhanceError, setEnhanceError] = useState('')
   const [enhancedTranslation, setEnhancedTranslation] = useState<string>('')
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
+  const [idiomSuggestion, setIdiomSuggestion] = useState<{ line: string; example: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const idiomCloseRef = useRef<HTMLButtonElement>(null)
@@ -188,6 +194,7 @@ export default function CoachingFlow({
     setComparisonMode(false)
     setEnhanceError('')
     setEnhancedTranslation('')
+    setIdiomSuggestion(null)
     cancelSpeak()
     setIsSpeaking(false)
   }, [currentIdx])
@@ -214,6 +221,39 @@ export default function CoachingFlow({
   const currentKey = SECTION_KEYS[currentIdx]
   const currentText = sections[currentKey]
 
+  // Derived: whether the current level is P5/P6 (for idiom difficulty filter)
+  const selectedLevel = level
+
+  // ── WS2: Dynamic Muse — suggest idioms based on text content ─────────────
+  useEffect(() => {
+    const isHigherLevel = ['P5', 'P6', 'PSLE'].includes(selectedLevel)
+    const difficultyFilter = isHigherLevel ? 'P5P6' : 'P3P4'
+
+    if (currentText.length < 4) {
+      const defaultThemes = SECTION_DEFAULT_THEMES[currentKey] ?? []
+      const defaults = defaultThemes
+        .flatMap((theme: string) => getIdiomsByCategory(theme))
+        .filter((i: Idiom) => i.difficulty === difficultyFilter)
+        .slice(0, 3)
+      setSuggestedIdioms(defaults)
+      setMuseTriggered(false)
+      return
+    }
+    for (const [category, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
+      const hit = (keywords as string[]).find((kw: string) => currentText.includes(kw))
+      if (hit) {
+        const matches = getIdiomsByCategory(category)
+          .filter((i: Idiom) => i.difficulty === difficultyFilter)
+          .slice(0, 3)
+        setSuggestedIdioms(matches)
+        setMuseTriggered(true)
+        return
+      }
+    }
+    setSuggestedIdioms([])
+    setMuseTriggered(false)
+  }, [currentText, currentKey, selectedLevel])
+
   // ── Image upload handler ─────────────────────────────────────────────────
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -225,6 +265,7 @@ export default function CoachingFlow({
       const base64 = dataUrl.split(',')[1]
       setUploadedImage(dataUrl) // keep full data URL for <img> preview
       setIsAnalysingImage(true)
+      setApiLock(true)
       try {
         const analysis = await callGeminiWithImage(
           '你是一位新加坡小学华文作文老师。请用简单的小学华文描述这张图片里发生的事情，包括人物、动作、表情和背景。避免生僻字。请控制在150字以内。请用好词好句，确保每个字都是小学生能认识的常用字。',
@@ -236,6 +277,7 @@ export default function CoachingFlow({
         setImageAnalysis('图片分析失败，请继续手动写作。')
       } finally {
         setIsAnalysingImage(false)
+        setApiLock(isApiLocked()) // sync local state with module lock
       }
     }
     reader.readAsDataURL(file)
@@ -245,6 +287,7 @@ export default function CoachingFlow({
   const handleEnhance = async () => {
     if (!currentText.trim() || isEnhancing || comparisonMode) return
     setIsEnhancing(true)
+    setApiLock(true)
     setEnhanceError('')
     const previousSectionsText = SECTION_KEYS
       .slice(0, currentIdx)
@@ -268,17 +311,35 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
 4. 使用${level}水平的词汇，句子自然流畅，适合小学生写作风格，避免生僻字。
 5. 内容必须与作文题目"${topic.titleCn}"紧密相关。
 6. 如果已有前面段落，内容必须与前文自然衔接。
-7. 直接输出改写后的段落，不要解释，不要标题，不要多余符号。`
+7. 直接输出改写后的段落，不要解释，不要标题，不要多余符号。
+8. 在改写段落之后，另起一行，找出学生原文中一个可以用成语加强的普通句子，建议一个适合${level}水平的成语，格式：💡 成语建议：[成语] ([意思]) — "[用本地名字和新加坡生活场景写的例句]"`
+    setIdiomSuggestion(null)
     const result = await callGemini(
-      '你是一位专业的新加坡小学华文作文老师。',
+      `${SG_GUARDRAIL}\n\n你是一位专业的新加坡小学华文作文老师。`,
       enhancePrompt,
       { maxOutputTokens: 2048, temperature: 0.75, thinkingConfig: { thinkingBudget: 0 } }
     )
     if (result.error) {
       setEnhanceError('AI 润色失败，请稍后再试。')
     } else {
-      const enhanced = applyGender(result.text.trim(), gender)
-      setEnhancedText(enhanced)
+      const fullResponse = result.text.trim()
+      // Split off the 💡 成语建议 line if present
+      const suggestionMatch = fullResponse.match(/💡\s*成语建议[：:].+/)
+      let enhanced = fullResponse
+      let suggestionLine = ''
+      let suggestionExample = ''
+      if (suggestionMatch) {
+        const idx = fullResponse.indexOf(suggestionMatch[0])
+        enhanced = fullResponse.slice(0, idx).trim()
+        suggestionLine = suggestionMatch[0]
+        // Extract example sentence between the last "—" and end
+        const dashIdx = suggestionLine.lastIndexOf('—')
+        if (dashIdx !== -1) {
+          suggestionExample = suggestionLine.slice(dashIdx + 1).trim().replace(/^["「]/, '').replace(/["」]$/, '')
+        }
+        setIdiomSuggestion({ line: suggestionLine, example: suggestionExample })
+      }
+      setEnhancedText(applyGender(enhanced, gender))
       // Fetch English translation for parent/student reference
       try {
         const translationPrompt = `Translate this Chinese text into exactly 2 simple English sentences for a Singapore primary school parent. Simple everyday words only. Return only the English translation, no explanation.\n\n${enhanced}`
@@ -294,9 +355,8 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
       setComparisonMode(true)
     }
     setIsEnhancing(false)
+    setApiLock(false)
   }
-
-  // ── Comparison action handlers ───────────────────────────────────────────
 
   /** Accept the AI suggestion: replace textarea content. */
   const handleAcceptSuggestion = () => {
@@ -306,6 +366,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
     setEnhancedText('')
     setComparisonMode(false)
     setEnhancedTranslation('')
+    setIdiomSuggestion(null)
   }
 
   /** Copy AI suggestion to textarea for further editing, then focus it. */
@@ -316,6 +377,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
     setEnhancedText('')
     setComparisonMode(false)
     setEnhancedTranslation('')
+    setIdiomSuggestion(null)
     // Focus textarea after React re-render
     requestAnimationFrame(() => textareaRef.current?.focus())
   }
@@ -327,6 +389,25 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
     setEnhancedText('')
     setComparisonMode(false)
     setEnhancedTranslation('')
+    setIdiomSuggestion(null)
+  }
+
+  // ── WS3: Cursor Surgeon — insert text at textarea cursor position ────────
+  const insertAtCursor = (textToInsert: string) => {
+    const textarea = textareaRef.current
+    if (!textarea) {
+      setSections(prev => ({ ...prev, [currentKey]: prev[currentKey] + textToInsert }))
+      return
+    }
+    const start = textarea.selectionStart
+    const end   = textarea.selectionEnd
+    const current = textarea.value
+    const newText = current.substring(0, start) + textToInsert + current.substring(end)
+    setSections(prev => ({ ...prev, [currentKey]: newText }))
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + textToInsert.length, start + textToInsert.length)
+    }, 0)
   }
 
   // ── Phrase selected ──────────────────────────────────────────────────────
@@ -334,11 +415,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
     setSelectedPhrases(prev =>
       prev.find(p => p.id === phrase.id) ? prev : [...prev, phrase]
     )
-    const example = applyGender(phrase.example, gender)
-    setSections(prev => ({
-      ...prev,
-      [currentKey]: prev[currentKey] + (prev[currentKey] ? '\n' : '') + example,
-    }))
+    insertAtCursor(applyGender(phrase.example, gender))
   }
 
   // ── Idiom overlay — rendered inline; IdiomPopup.tsx exists on disk but is not used here ──
@@ -346,11 +423,7 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
     setSelectedIdioms(prev =>
       prev.find(i => i.id === idiom.id) ? prev : [...prev, idiom]
     )
-    const example = applyGender(idiom.example, gender)
-    setSections(prev => ({
-      ...prev,
-      [currentKey]: prev[currentKey] + (prev[currentKey] ? '\n' : '') + example,
-    }))
+    insertAtCursor(applyGender(idiom.example, gender))
     setActiveIdiom(null)
   }
 
@@ -401,11 +474,6 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
     }
   }
 
-  // Idiom objects for current section
-  const sectionIdioms = SECTION_IDIOM_IDS[currentKey]
-    .map(id => IDIOM_BANK.find(i => i.id === id))
-    .filter((i): i is Idiom => !!i)
-
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <>
@@ -445,13 +513,13 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
             </div>
           </div>
 
-          {/* Idiom chips */}
+          {/* Idiom chips — now powered by Muse / KEYWORD_THEME_MAP */}
           <div style={{ marginBottom: '10px' }}>
             <div className="chip-section-header">
               📖 成语 <span className="chip-section-header-en">Idioms</span>
             </div>
             <div className="chip-bar">
-              {sectionIdioms.map(idiom => (
+              {suggestedIdioms.map(idiom => (
                 <button
                   key={idiom.id}
                   className="chip idiom-chip"
@@ -460,6 +528,11 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
                   {idiom.chinese}
                 </button>
               ))}
+              {suggestedIdioms.length === 0 && (
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                  继续写作，成语建议将出现在这里…
+                </span>
+              )}
             </div>
           </div>
 
@@ -566,6 +639,38 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
             <p className="section-instruction-en">{SECTION_INSTRUCTIONS[currentKey].en}</p>
           </div>
 
+          {/* ── WS2: Muse bar — dynamic idiom inspiration ── */}
+          {suggestedIdioms.length > 0 && (
+            <div className="muse-bar">
+              {/* Toggle button visible only on mobile (CSS hides it on ≥768px) */}
+              <button
+                className="muse-toggle-btn"
+                onClick={() => setMuseExpanded(v => !v)}
+                aria-expanded={museExpanded}
+              >
+                💡 灵感 {museExpanded ? '▲' : '▼'}
+              </button>
+              {/* Content: always visible on desktop; toggle-controlled on mobile */}
+              <div className="muse-content" style={{ display: museExpanded ? 'block' : undefined }}>
+                <div className="muse-header">💡 灵感助手</div>
+                <div className="muse-subtitle">
+                  {museTriggered ? '根据你的内容推荐' : '本段推荐成语'}
+                </div>
+                <div className="muse-chips">
+                  {suggestedIdioms.map(idiom => (
+                    <button
+                      key={idiom.id}
+                      className="muse-chip"
+                      onClick={() => setActiveIdiom(idiom)}
+                    >
+                      {idiom.chinese}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ── Comparison view (Phase 5D) ── */}
           {comparisonMode ? (
             <div className="comparison-container">
@@ -647,6 +752,24 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
                   ✕ 保留原文
                 </button>
               </div>
+
+              {/* WS4: Reverse-lookup idiom suggestion */}
+              {idiomSuggestion && (
+                <div className="muse-suggestion-bar">
+                  <span style={{ flex: 1 }}>{idiomSuggestion.line}</span>
+                  {idiomSuggestion.example && (
+                    <button
+                      className="muse-use-btn"
+                      onClick={() => {
+                        insertAtCursor(idiomSuggestion.example)
+                        setIdiomSuggestion(null)
+                      }}
+                    >
+                      ✍️ 用这个
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -660,14 +783,14 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
                 aria-label={SECTION_LABELS[currentKey].cn}
               />
 
-              {/* Enhance button — disabled while enhancing or in comparison mode */}
+              {/* Enhance button — disabled while enhancing, locked, or in comparison mode */}
               <button
                 className="enhance-btn"
                 onClick={handleEnhance}
-                disabled={isEnhancing || comparisonMode || !currentText.trim()}
+                disabled={isEnhancing || apiLock || comparisonMode || !currentText.trim()}
                 aria-label="AI 帮我写得更好"
               >
-                {isEnhancing ? <><LoadingDots /> 润色中…</> : '✨ AI 帮我写得更好'}
+                {(isEnhancing || apiLock) ? <><LoadingDots /> {isEnhancing ? '润色中…' : 'AI 处理中…'}</> : '✨ AI 帮我写得更好'}
               </button>
               {enhanceError && (
                 <p style={{ fontSize: '0.85rem', color: 'var(--color-primary)', marginTop: '6px' }}>{enhanceError}</p>

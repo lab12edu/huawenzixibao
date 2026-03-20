@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react'
 import type { EssayData } from './CoachingFlow'
-import { callGemini } from '../../utils/aiApi'
+import { callGemini, isApiLocked } from '../../utils/aiApi'
 import { speakPassage, cancelSpeak } from '../../utils/tts'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -14,10 +14,17 @@ interface DimensionScore {
   score: number
 }
 
+interface IdiomFeedback {
+  idiom: string
+  feedbackCn: string
+  feedbackEn: string
+}
+
 interface ScoreResult {
   dimensions: DimensionScore[]
   totalScore: number
   feedback: string
+  idiomFeedback?: IdiomFeedback | null
 }
 
 export interface SavedEssay {
@@ -90,17 +97,33 @@ export default function EssayResult({ essayData, onSave, onBack, alreadySaved }:
   ].filter(Boolean).join('\n\n')
   const fullEssay = applyGender(rawEssay, gender)
 
+  // ── WS4: Singapore guardrail ────────────────────────────────────────────
+  const SG_GUARDRAIL = [
+    'You are a Singapore Primary School Chinese writing coach.',
+    'All names must be Singapore names: 小明, 小红, 小华, 阿明, Ali, Siti, Muthu, Wei Liang.',
+    'All settings must be Singapore settings: 组屋 (HDB flat), 食阁 (hawker centre),',
+    '民众俱乐部 (community centre), 图书馆 (public library), CCA, PSLE,',
+    '组屋走廊 (HDB corridor), 巴刹 (wet market), 学校操场 (school field).',
+    'Never reference 祖国, 长城, 北京, 天安门, 故宫, or any China-specific landmark.',
+    'Every suggestion must feel like it was written by a Singapore child about their Singapore life.',
+  ].join('\n')
+
   // ── Scoring prompt — extracted so both auto-score and retry reuse it ──
   const scoringPrompt =
     '你是新加坡小学华文作文评卷老师。请根据以下14个维度为这篇小学作文评分，' +
     '每个维度满分为5分（1=很弱，5=非常好）。' +
-    '只返回合法JSON，格式：{"dimensions":[{"name":"内容","score":4},...],"totalScore":52,"feedback":"CN总评 / EN summary"}。' +
+    '只返回合法JSON，格式：' +
+    '{"dimensions":[{"name":"内容","score":4},...], "totalScore":52, "feedback":"CN总评 / EN summary",' +
+    '"idiomFeedback":{"idiom":"成语词","feedbackCn":"中文评语","feedbackEn":"English feedback"}}。' +
+    '成语运用 (Idiom Usage)：检查学生是否正确使用了成语。如果有，填写 idiomFeedback，' +
+    'feedbackCn 中须提及好词好句及语文评分，feedbackEn 须提及 Language marks 和 PSLE rubric。' +
+    '如果没有使用成语，idiomFeedback 设为 null。' +
     '14个维度：内容、结构、开头、结尾、心理描写、动作描写、对话描写、场景描写、' +
     '成语运用、比喻句、词汇量、句子变化、标点符号、整体流畅度。\n\n' +
     `作文内容：\n${fullEssay}`
 
   const scoringConfig = { maxOutputTokens: 2048, temperature: 0.3, thinkingConfig: { thinkingBudget: 0 } }
-  const scoringSystem = '你是一位专业的小学华文作文评分老师。请用简单的新加坡小学华文，避免生僻字。'
+  const scoringSystem = `${SG_GUARDRAIL}\n\n你是一位专业的小学华文作文评分老师。请用简单的新加坡小学华文，避免生僻字。`
 
   // ── Auto-score on mount — delayed 4 s to avoid rate-limit collision ──
   useEffect(() => {
@@ -194,7 +217,7 @@ ${fullEssay}
 4. 每段80至100字，段落之间衔接自然。
 5. 直接输出完整作文，不要解释，不要标题，不要多余符号。`
       const result = await callGemini(
-        '你是一位专业的新加坡小学华文作文老师。',
+        `${SG_GUARDRAIL}\n\n你是一位专业的新加坡小学华文作文老师。`,
         fullPrompt,
         { maxOutputTokens: 3000, temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } }
       )
@@ -242,9 +265,9 @@ ${fullEssay}
         <button
           className="btn-full-enhance"
           onClick={handleFullEnhance}
-          disabled={fullEnhancing}
+          disabled={fullEnhancing || isApiLocked()}
         >
-          {fullEnhancing ? '✨ 提升中…' : '✨ AI 提升全文  Enhance Full Essay'}
+          {fullEnhancing || isApiLocked() ? '⏳ AI 处理中…' : '✨ AI 提升全文  Enhance Full Essay'}
         </button>
       </div>
 
@@ -284,7 +307,9 @@ ${fullEssay}
             <button
               className="btn-secondary"
               style={{ marginTop: '8px', fontSize: '0.85rem', padding: '6px 16px' }}
+              disabled={isApiLocked()}
               onClick={() => {
+                if (isApiLocked()) return
                 setScoreError('')
                 setScoreResult(null)
                 setIsScoring(true)
@@ -306,7 +331,7 @@ ${fullEssay}
                 })
               }}
             >
-              🔄 重试评分 Retry Score
+              {isApiLocked() ? '⏳ AI 处理中…' : '🔄 重试评分 Retry Score'}
             </button>
           </div>
         )}
@@ -316,6 +341,24 @@ ${fullEssay}
             <div className="score-total">{scoreResult.totalScore} <span style={{ fontSize: '1.2rem', fontWeight: 400 }}>/ 70</span></div>
             <div className="score-total-label">综合得分 Overall Score</div>
             <div className="score-feedback">{scoreResult.feedback}</div>
+
+            {/* WS4: Idiom trophy block */}
+            {scoreResult.idiomFeedback && (
+              <div className="idiom-trophy-block">
+                <div className="idiom-trophy-idiom">
+                  🏆 成语运用加分！「{scoreResult.idiomFeedback.idiom}」
+                </div>
+                <div className="idiom-trophy-cn">
+                  {scoreResult.idiomFeedback.feedbackCn}
+                  &ensp;这直接提升你作文的【语文】部分评分。
+                </div>
+                <div className="idiom-trophy-en">
+                  {scoreResult.idiomFeedback.feedbackEn}
+                  &ensp;Using precise 成语 targets the Language component of your PSLE 作文, worth 15 out of 40 marks.
+                </div>
+              </div>
+            )}
+
             <div className="score-grid">
               {scoreResult.dimensions.map(dim => (
                 <div key={dim.name} className="score-dim">

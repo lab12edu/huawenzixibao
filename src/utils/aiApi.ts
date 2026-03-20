@@ -2,6 +2,7 @@
 // Model-agnostic Gemini utility — uses native fetch only, no SDK.
 // All calls are wrapped in try/catch to degrade gracefully.
 // Automatic single retry on HTTP 429 (rate limit) after a 6-second wait.
+// Module-level lock prevents concurrent calls from colliding.
 
 const MODEL = 'gemini-2.5-flash'
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
@@ -18,11 +19,17 @@ export interface AiApiResult {
   rateLimited?: boolean
 }
 
+// ── API Lock — prevents concurrent AI calls ───────────────────────────────
+let apiLocked = false
+export const isApiLocked = (): boolean => apiLocked
+
 export async function callGemini(
   systemPrompt: string,
   userPrompt: string,
   generationConfig?: Record<string, unknown>
 ): Promise<AiApiResult> {
+  if (apiLocked) return { text: '', error: true, rateLimited: true }
+  apiLocked = true
   try {
     const key = getKey()
     const url = `${API_BASE}/${MODEL}:generateContent?key=${key}`
@@ -58,6 +65,8 @@ export async function callGemini(
     return { text: '', error: true, rateLimited: true }
   } catch (e) {
     return { text: '', error: true }
+  } finally {
+    apiLocked = false
   }
 }
 
@@ -76,43 +85,50 @@ export async function smokeTest(): Promise<string> {
 // ── Image + text call ────────────────────────────────────────────────────────
 // base64Image: raw base64 string (JPEG or PNG), no data URI prefix.
 // Returns the text response string, or throws on HTTP error.
+// Respects the module-level API lock.
 export async function callGeminiWithImage(
   prompt: string,
   base64Image: string
 ): Promise<string> {
-  const key = getKey()
-  // Strip data URI prefix if caller passed a full data URL
-  const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, '')
-  const url = `${API_BASE}/${MODEL}:generateContent?key=${key}`
-  const body = JSON.stringify({
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          { inline_data: { mime_type: 'image/jpeg', data: cleanBase64 } },
-          { text: prompt },
-        ],
-      },
-    ],
-    generationConfig: { temperature: 0.6, maxOutputTokens: 1024 },
-  })
-
-  // One automatic retry on 429 after a 6-second wait
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
+  if (apiLocked) throw new Error('API is busy — please wait and try again.')
+  apiLocked = true
+  try {
+    const key = getKey()
+    // Strip data URI prefix if caller passed a full data URL
+    const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, '')
+    const url = `${API_BASE}/${MODEL}:generateContent?key=${key}`
+    const body = JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { inline_data: { mime_type: 'image/jpeg', data: cleanBase64 } },
+            { text: prompt },
+          ],
+        },
+      ],
+      generationConfig: { temperature: 0.6, maxOutputTokens: 1024 },
     })
-    if (res.status === 429 && attempt === 0) {
-      await new Promise(resolve => setTimeout(resolve, 6000))
-      continue
+
+    // One automatic retry on 429 after a 6-second wait
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+      if (res.status === 429 && attempt === 0) {
+        await new Promise(resolve => setTimeout(resolve, 6000))
+        continue
+      }
+      if (!res.ok) {
+        throw new Error(`Gemini image API error ${res.status}: ${res.statusText}`)
+      }
+      const data = await res.json()
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
     }
-    if (!res.ok) {
-      throw new Error(`Gemini image API error ${res.status}: ${res.statusText}`)
-    }
-    const data = await res.json()
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    throw new Error('Gemini image API error: rate limited after retry')
+  } finally {
+    apiLocked = false
   }
-  throw new Error('Gemini image API error: rate limited after retry')
 }
