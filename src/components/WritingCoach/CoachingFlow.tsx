@@ -10,7 +10,7 @@ import type { CompositionTopic } from '../../data/compositionTopics'
 import type { PhraseCategory, Phrase } from '../../data/phraseBank'
 import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
-import { IDIOM_BANK, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES, TONE_KEYWORD_MAP } from '../../data/idiomBank'
+import { IDIOM_BANK, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES, detectTone } from '../../data/idiomBank'
 import { callGemini, callGeminiWithImage, isApiLocked } from '../../utils/aiApi'
 import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
@@ -230,18 +230,17 @@ export default function CoachingFlow({
 
   // ── WS2: Dynamic Muse — three-tier idiom lookup ──────────────────────────
   useEffect(() => {
-    // ── Tier 1: Exact tone match (highest precision) ──────────────────────
-    for (const [keyword, ids] of Object.entries(TONE_KEYWORD_MAP)) {
-      if (currentText.includes(keyword)) {
-        const toneMatches = ids
-          .map(id => IDIOM_BANK.find(i => i.id === id))
-          .filter((i): i is Idiom => !!i)
-          .slice(0, 3)
-        if (toneMatches.length > 0) {
-          setSuggestedIdioms(toneMatches)
-          setMuseTriggered(true)
-          return
-        }
+    // ── Tier 1: tone-precise match via detectTone (explicit + body-language) ─
+    const tone = detectTone(currentText)
+    if (tone) {
+      const matches = IDIOM_BANK
+        .filter(i => i.tone === tone)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+      if (matches.length > 0) {
+        setSuggestedIdioms(matches)
+        setMuseTriggered(true)
+        return
       }
     }
 

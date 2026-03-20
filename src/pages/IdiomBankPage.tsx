@@ -18,10 +18,12 @@ interface Idiom {
   example: string
   literalMeaning?: string   // 字面意思
   exampleEnglish?: string   // 例句英译
-  difficulty: 'P3P4' | 'P5P6'
+  difficulty: 'P3P4' | 'P5P6' | 'S1S2'
   themes: string[]
   category: string
   categoryZh: string
+  tone?: string
+  subCategoryZh?: string
 }
 
 interface IdiomCategory {
@@ -188,9 +190,14 @@ export default function IdiomBankPage() {
               <div className="ibc-header">
                 <span className="ibc-chinese">{idiom.chinese}</span>
                 <span className="ibc-difficulty">
-                  {idiom.difficulty === 'P3P4' ? 'P3–P4' : 'P5–P6'}
+                  {idiom.difficulty === 'P3P4' ? 'P3–P4' : idiom.difficulty === 'P5P6' ? 'P5–P6' : 'S1–S2'}
                 </span>
               </div>
+
+              {/* subCategoryZh tone badge */}
+              {idiom.subCategoryZh && (
+                <div className="ibc-subcategory">{idiom.subCategoryZh}</div>
+              )}
 
               {/* Pinyin */}
               <div className="ibc-pinyin">{idiom.pinyin}</div>
