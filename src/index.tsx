@@ -6,7 +6,7 @@
 
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { getVocabFromVault, searchVault } from './server/vocabVault'
+import { getVocabFromVault, searchVault, getIdiomsFromVault, getComposFromVault, getOralDataFromVault } from './server/vocabVault'
 
 // ── Cloudflare bindings ───────────────────────────────────────────────────────
 type Bindings = {
@@ -334,6 +334,15 @@ app.get('/api/search', (c) => {
   const results = searchVault(q)
   return c.json(results)
 })
+
+// ── /api/idioms ───────────────────────────────────────────────────────────────
+app.get('/api/idioms', (c) => c.json(getIdiomsFromVault()))
+
+// ── /api/compositions ─────────────────────────────────────────────────────────
+app.get('/api/compositions', (c) => c.json(getComposFromVault()))
+
+// ── /api/oral ─────────────────────────────────────────────────────────────────
+app.get('/api/oral', (c) => c.json(getOralDataFromVault()))
 
 // ── /api/health ───────────────────────────────────────────────────────────────
 app.get('/api/health', (c) => {

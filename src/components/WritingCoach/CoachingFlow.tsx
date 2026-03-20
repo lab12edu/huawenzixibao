@@ -10,7 +10,8 @@ import type { CompositionTopic } from '../../data/compositionTopics'
 import type { PhraseCategory, Phrase } from '../../data/phraseBank'
 import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
-import { IDIOM_BANK, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES, detectTone } from '../../data/idiomBank'
+import { KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES, detectTone } from '../../data/idiomBank'
+import { fetchIdioms } from '../../utils/vocabApi'
 import { analyseImage, enhanceSection, translateText } from '../../utils/aiApi'
 import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
@@ -163,6 +164,10 @@ export default function CoachingFlow({
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
   const [idiomSuggestion, setIdiomSuggestion] = useState<{ line: string; example: string } | null>(null)
   const [insertFlash, setInsertFlash] = useState(false)
+
+  // ── Idiom bank — fetched from server, never bundled in frontend ───────────
+  const [idiomBank, setIdiomBank] = useState<Idiom[]>([])
+  useEffect(() => { fetchIdioms().then(d => setIdiomBank(d as Idiom[])) }, [])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const idiomCloseRef = useRef<HTMLButtonElement>(null)
@@ -223,7 +228,7 @@ export default function CoachingFlow({
     // ── Tier 1: tone-precise match via detectTone (explicit + body-language) ─
     const tone = detectTone(currentText)
     if (tone) {
-      const matches = IDIOM_BANK
+      const matches = idiomBank
         .filter(i => i.tone === tone)
         .sort(() => Math.random() - 0.5)
         .slice(0, 3)
@@ -238,7 +243,7 @@ export default function CoachingFlow({
     for (const [catZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
       const hit = (keywords as string[]).find(kw => currentText.includes(kw))
       if (hit) {
-        const matches = IDIOM_BANK
+        const matches = idiomBank
           .filter(i => i.categoryZh === catZh)
           .sort(() => Math.random() - 0.5)
           .slice(0, 3)
@@ -250,7 +255,7 @@ export default function CoachingFlow({
 
     // ── Tier 3: Section default (fallback) ────────────────────────────────
     const defaults = SECTION_DEFAULT_THEMES[currentKey] ?? ['生动形容']
-    const defaultMatches = IDIOM_BANK
+    const defaultMatches = idiomBank
       .filter(i => defaults.includes(i.categoryZh))
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
@@ -320,7 +325,7 @@ export default function CoachingFlow({
       for (const [categoryZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
         const hit = (keywords as string[]).find(kw => enhanced.includes(kw))
         if (hit) {
-          const candidates = IDIOM_BANK
+          const candidates = idiomBank
             .filter(i => i.categoryZh === categoryZh)
             .filter(i => i.difficulty === targetDifficulty)
           if (candidates.length > 0) {

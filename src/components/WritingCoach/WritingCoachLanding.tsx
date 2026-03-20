@@ -1,12 +1,12 @@
 // src/components/WritingCoach/WritingCoachLanding.tsx
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { CompositionLevel, CompositionTheme, CompositionTopic } from '../../data/compositionTopics'
 import {
   THEME_LABELS,
   LEVEL_LABELS,
-  getTopicsByLevel,
 } from '../../data/compositionTopics'
+import { fetchCompositions } from '../../utils/vocabApi'
 
 interface Props {
   onSelectTopic: (
@@ -27,13 +27,18 @@ export default function WritingCoachLanding({ onSelectTopic, onViewSaved }: Prop
   const [studentName, setStudentName]     = useState('')
   const [gender, setGender]               = useState<'male' | 'female'>('male')
 
-  const filtered = getTopicsByLevel(selectedLevel).filter(
+  // ── Fetch topics from secure server API ─────────────────────
+  const [allTopics, setAllTopics] = useState<CompositionTopic[]>([])
+  useEffect(() => {
+    fetchCompositions().then(d => setAllTopics(d as CompositionTopic[]))
+  }, [])
+
+  // Derive filtered list and available themes from fetched data
+  const topicsForLevel = allTopics.filter(t => t.level === selectedLevel)
+  const filtered = topicsForLevel.filter(
     t => selectedTheme === 'all' || t.theme === selectedTheme
   )
-
-  const themesForLevel = Array.from(
-    new Set(getTopicsByLevel(selectedLevel).map(t => t.theme))
-  )
+  const themesForLevel = Array.from(new Set(topicsForLevel.map(t => t.theme)))
 
   const handleTopicClick = (topic: CompositionTopic) => {
     const name = studentName.trim() || '学生'

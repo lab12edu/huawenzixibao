@@ -11,7 +11,7 @@ import CoachingFlow from '../components/WritingCoach/CoachingFlow'
 import EssayResult from '../components/WritingCoach/EssayResult'
 import SavedEssays from '../components/WritingCoach/SavedEssays'
 import type { CompositionTopic } from '../data/compositionTopics'
-import { getTopicById } from '../data/compositionTopics'
+import { fetchCompositions } from '../utils/vocabApi'
 import type { EssayData } from '../components/WritingCoach/CoachingFlow'
 
 type View = 'landing' | 'coaching' | 'result' | 'saved'
@@ -44,13 +44,16 @@ export default function CompositionPage() {
       )
       if (restore) {
         // Attempt to look up the topic so the coaching view can render
-        const restoredTopic = getTopicById(draft.topicId as string)
-        if (restoredTopic) {
-          setSelectedTopic(restoredTopic)
-          setLevel((draft.level as string) || 'P6')
-        }
-        setRestoredDraft(draft)
-        setView('coaching')
+        void (async () => {
+          const allTopics = await fetchCompositions() as CompositionTopic[]
+          const restoredTopic = allTopics.find(t => t.id === (draft.topicId as string))
+          if (restoredTopic) {
+            setSelectedTopic(restoredTopic)
+            setLevel((draft.level as string) || 'P6')
+          }
+          setRestoredDraft(draft)
+          setView('coaching')
+        })()
       } else {
         localStorage.removeItem(DRAFT_KEY)
       }

@@ -1,5 +1,6 @@
-import React from 'react';
-import { oralSets, OralSet } from '../../data/oralData';
+import React, { useState, useEffect } from 'react';
+import type { OralSet } from '../../data/oralData';
+import { fetchOralData } from '../../utils/vocabApi';
 import { useApp } from '../../context/AppContext';
 
 interface Props {
@@ -23,6 +24,9 @@ const OralSetSelector: React.FC<Props> = ({ onSelectSet }) => {
   const { selectedLevel } = useApp();
   // Strip semester suffix so 'P3A' → 'P3', 'P4B' → 'P4', etc.
   const baseLevel = selectedLevel.replace(/[AB]$/i, '');
+
+  const [oralSets, setOralSets] = useState<OralSet[]>([]);
+  useEffect(() => { fetchOralData().then(d => setOralSets(d as OralSet[])) }, []);
 
   const getProgress = (id: string) => {
     try {

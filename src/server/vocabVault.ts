@@ -11,6 +11,9 @@ import type { VocabItem } from '../data/vocabTypes'
 import * as KG       from './data/kindergarten'
 import * as Std      from './data/primary_std'
 import * as NewSyllabus from './data/primary_new'
+import { IDIOM_BANK } from './data/idiomBank'
+import { COMPOSITION_TOPICS } from './data/compositionTopics'
+import { oralSets } from './data/oralData'
 
 // ── Master registry ──────────────────────────────────────────
 const VAULT: Record<string, VocabItem[]> = {
@@ -83,3 +86,8 @@ export function searchVault(query: string): VocabItem[] {
 
   return results.slice(0, 50)
 }
+
+// ── Secondary IP getters ──────────────────────────────────────
+export function getIdiomsFromVault()  { return IDIOM_BANK }
+export function getComposFromVault()  { return COMPOSITION_TOPICS }
+export function getOralDataFromVault(){ return oralSets }

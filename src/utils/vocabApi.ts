@@ -146,3 +146,31 @@ export const GRADE_LEVELS: Record<string, string[]> = {
   'P1new': ['P1newA', 'P1newB'],
   'P2new': ['P2newA', 'P2newB'],
 }
+
+// ── Secondary IP fetchers ─────────────────────────────────────
+// These replace direct imports of idiomBank / compositionTopics / oralData.
+// Results are cached for the browser session (never re-fetched on same tab).
+
+let _idiomsCache: any[] | null = null
+export async function fetchIdioms(): Promise<any[]> {
+  if (_idiomsCache) return _idiomsCache
+  const resp = await fetch('/api/idioms')
+  _idiomsCache = resp.ok ? await resp.json() : []
+  return _idiomsCache!
+}
+
+let _composCache: any[] | null = null
+export async function fetchCompositions(): Promise<any[]> {
+  if (_composCache) return _composCache
+  const resp = await fetch('/api/compositions')
+  _composCache = resp.ok ? await resp.json() : []
+  return _composCache!
+}
+
+let _oralCache: any[] | null = null
+export async function fetchOralData(): Promise<any[]> {
+  if (_oralCache) return _oralCache
+  const resp = await fetch('/api/oral')
+  _oralCache = resp.ok ? await resp.json() : []
+  return _oralCache!
+}
