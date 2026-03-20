@@ -6,6 +6,7 @@
 
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import type { MiddlewareHandler } from 'hono'
 import { getVocabFromVault, searchVault, getIdiomsFromVault, getComposFromVault, getOralDataFromVault } from './server/vocabVault'
 
 // ── Cloudflare bindings ───────────────────────────────────────────────────────
@@ -16,6 +17,70 @@ type Bindings = {
 const app = new Hono<{ Bindings: Bindings }>()
 
 app.use('/api/*', cors())
+
+// ── Rate limiter ──────────────────────────────────────────────────────────────
+// In-memory sliding-window rate limiter for Cloudflare Workers.
+// Uses Map<ip, { count, windowStart }> stored in module-level scope so it
+// persists across requests within the same Worker isolate.
+//
+// Settings:  30 requests per IP per 60-second window.
+// Key:       cf-connecting-ip  (real client IP injected by Cloudflare CDN).
+//            Falls back to x-forwarded-for, then "unknown".
+//
+// Note: Each Worker isolate has its own in-memory state; across many isolates
+// the effective limit is higher, which is acceptable for DoS deterrence.
+// For strict global limits use Cloudflare Rate Limiting rules in the dashboard.
+
+const RATE_WINDOW_MS  = 60 * 1000   // 1 minute
+const RATE_MAX        = 30           // requests per window
+
+interface RateEntry { count: number; windowStart: number }
+const rateLimitStore = new Map<string, RateEntry>()
+
+// Periodically prune stale entries so the Map doesn't grow unbounded.
+// Workers don't have setInterval, so we piggy-back on each request.
+let lastPrune = Date.now()
+function pruneStore(now: number) {
+  if (now - lastPrune < RATE_WINDOW_MS) return
+  lastPrune = now
+  for (const [key, entry] of rateLimitStore) {
+    if (now - entry.windowStart >= RATE_WINDOW_MS) rateLimitStore.delete(key)
+  }
+}
+
+const apiLimiter: MiddlewareHandler = async (c, next) => {
+  const now = Date.now()
+  pruneStore(now)
+
+  const ip =
+    c.req.header('cf-connecting-ip') ||
+    c.req.header('x-forwarded-for')?.split(',')[0].trim() ||
+    'unknown'
+
+  const entry = rateLimitStore.get(ip)
+
+  if (!entry || now - entry.windowStart >= RATE_WINDOW_MS) {
+    // Start a fresh window for this IP.
+    rateLimitStore.set(ip, { count: 1, windowStart: now })
+    await next()
+    return
+  }
+
+  if (entry.count >= RATE_MAX) {
+    const retryAfter = Math.ceil((RATE_WINDOW_MS - (now - entry.windowStart)) / 1000)
+    return c.json(
+      {
+        error: 'Security Triggered',
+        message: `Too many requests. You have exceeded the limit of ${RATE_MAX} requests per minute. Please wait ${retryAfter} seconds before retrying.`,
+      },
+      429,
+      { 'Retry-After': String(retryAfter), 'X-RateLimit-Limit': String(RATE_MAX), 'X-RateLimit-Remaining': '0' },
+    )
+  }
+
+  entry.count++
+  await next()
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const MODEL    = 'gemini-2.5-flash'
@@ -300,7 +365,7 @@ app.post('/api/ai', async (c) => {
 // Examples:
 //   GET /api/vocab?level=P3&sem=A
 //   GET /api/vocab?level=P1new&sem=B
-app.get('/api/vocab', (c) => {
+app.get('/api/vocab', apiLimiter, (c) => {
   const level = c.req.query('level') || ''
   const sem   = ((c.req.query('sem') || 'A').toUpperCase()) as 'A' | 'B'
 
@@ -326,7 +391,7 @@ app.get('/api/vocab', (c) => {
 // Example:
 //   GET /api/search?q=快乐
 //   GET /api/search?q=happy
-app.get('/api/search', (c) => {
+app.get('/api/search', apiLimiter, (c) => {
   const q = (c.req.query('q') || '').trim()
   if (q.length < 1) {
     return c.json([])
@@ -336,13 +401,13 @@ app.get('/api/search', (c) => {
 })
 
 // ── /api/idioms ───────────────────────────────────────────────────────────────
-app.get('/api/idioms', (c) => c.json(getIdiomsFromVault()))
+app.get('/api/idioms', apiLimiter, (c) => c.json(getIdiomsFromVault()))
 
 // ── /api/compositions ─────────────────────────────────────────────────────────
-app.get('/api/compositions', (c) => c.json(getComposFromVault()))
+app.get('/api/compositions', apiLimiter, (c) => c.json(getComposFromVault()))
 
 // ── /api/oral ─────────────────────────────────────────────────────────────────
-app.get('/api/oral', (c) => c.json(getOralDataFromVault()))
+app.get('/api/oral', apiLimiter, (c) => c.json(getOralDataFromVault()))
 
 // ── /api/health ───────────────────────────────────────────────────────────────
 app.get('/api/health', (c) => {
