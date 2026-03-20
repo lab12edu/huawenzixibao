@@ -10,7 +10,7 @@ import type { CompositionTopic } from '../../data/compositionTopics'
 import type { PhraseCategory, Phrase } from '../../data/phraseBank'
 import { PHRASE_CATEGORY_LABELS } from '../../data/phraseBank'
 import type { Idiom } from '../../data/idiomBank'
-import { IDIOM_BANK, getIdiomsByCategory, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES } from '../../data/idiomBank'
+import { IDIOM_BANK, KEYWORD_THEME_MAP, SECTION_DEFAULT_THEMES } from '../../data/idiomBank'
 import { callGemini, callGeminiWithImage, isApiLocked } from '../../utils/aiApi'
 import { speak, speakPassage, cancelSpeak } from '../../utils/tts'
 import PhrasePickerModal from './PhrasePickerModal'
@@ -172,6 +172,7 @@ export default function CoachingFlow({
   const [enhancedTranslation, setEnhancedTranslation] = useState<string>('')
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
   const [idiomSuggestion, setIdiomSuggestion] = useState<{ line: string; example: string } | null>(null)
+  const [insertFlash, setInsertFlash] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const idiomCloseRef = useRef<HTMLButtonElement>(null)
@@ -232,20 +233,24 @@ export default function CoachingFlow({
     const isHigherLevel = ['P5', 'P6', 'PSLE'].includes(selectedLevel)
     const difficultyFilter = isHigherLevel ? 'P5P6' : 'P3P4'
 
+    // Helper: filter IDIOM_BANK directly by categoryZh (avoids English-key mismatch)
+    const matchByZh = (zh: string) =>
+      IDIOM_BANK.filter(i => i.categoryZh === zh)
+
     if (currentText.length < 4) {
       const defaultThemes = SECTION_DEFAULT_THEMES[currentKey] ?? []
       const defaults = defaultThemes
-        .flatMap((theme: string) => getIdiomsByCategory(theme))
+        .flatMap((theme: string) => matchByZh(theme))
         .filter((i: Idiom) => i.difficulty === difficultyFilter)
         .slice(0, 3)
       setSuggestedIdioms(defaults)
       setMuseTriggered(false)
       return
     }
-    for (const [category, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
+    for (const [categoryZh, keywords] of Object.entries(KEYWORD_THEME_MAP)) {
       const hit = (keywords as string[]).find((kw: string) => currentText.includes(kw))
       if (hit) {
-        const matches = getIdiomsByCategory(category)
+        const matches = matchByZh(categoryZh)
           .filter((i: Idiom) => i.difficulty === difficultyFilter)
           .slice(0, 3)
         setSuggestedIdioms(matches)
@@ -428,6 +433,9 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
     )
     insertAtCursor(applyGender(idiom.example, gender))
     setActiveIdiom(null)
+    // Brief flash on textarea to confirm insertion
+    setInsertFlash(true)
+    setTimeout(() => setInsertFlash(false), 600)
   }
 
   // ── Navigation ───────────────────────────────────────────────────────────
@@ -777,9 +785,16 @@ ${needsExpansion ? '2. 学生写得太少，请在保留原意的基础上，继
           ) : (
             <>
               {/* Main textarea — normal mode */}
+              {/* Cursor-insert hint: visible when section has enough text */}
+              {currentText.length > 10 && (
+                <p className="cursor-insert-hint">
+                  💡 将光标放在句子中间，再点成语，可以插入到指定位置。
+                  <span> Place your cursor anywhere in the text before selecting an idiom to insert it at that exact position.</span>
+                </p>
+              )}
               <textarea
                 ref={textareaRef}
-                className="section-textarea"
+                className={`section-textarea${insertFlash ? ' textarea-flash' : ''}`}
                 value={currentText}
                 onChange={e => setSections(prev => ({ ...prev, [currentKey]: e.target.value }))}
                 placeholder={`在这里写【${SECTION_LABELS[currentKey].cn}】…`}

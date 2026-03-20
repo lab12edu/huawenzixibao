@@ -4444,3 +4444,28 @@ mark.diff-highlight {
 /* Level filter pills in WritingCoachLanding must not wrap ────────────── */
 .wc-chip-row:not(.wc-chip-row-wrap) { flex-wrap: nowrap; overflow-x: auto; }
 /* ── End FIX 2 ───────────────────────────────────────────────────────── */
+
+/* ── BUG FIX 2: Cursor insert hint above textarea ───────────────────── */
+.cursor-insert-hint {
+  font-size: var(--text-2xs, 0.68rem);
+  color: var(--color-text);
+  opacity: 0.55;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
+  font-style: italic;
+}
+.cursor-insert-hint span {
+  display: block;
+  margin-top: 2px;
+}
+/* ── End BUG FIX 2 hint ─────────────────────────────────────────────── */
+
+/* ── BUG FIX 2: Textarea flash on idiom insertion ───────────────────── */
+@keyframes textarea-flash {
+  0%   { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(229,57,53,0.18); }
+  100% { border-color: var(--color-border); box-shadow: none; }
+}
+.textarea-flash {
+  animation: textarea-flash 0.6s ease-out forwards;
+}
+/* ── End BUG FIX 2 flash ─────────────────────────────────────────────── */
