@@ -4767,3 +4767,56 @@ html {
   scrollbar-gutter: stable both-edges;
 }
 /* End scrollbar-gutter lock */
+
+/* ── Scrollbar-gutter correction — remove both-edges which shifts content ──────
+   The previous `scrollbar-gutter: stable both-edges` added a permanent 15px
+   gutter on the LEFT as well as the right. On a left-aligned SPA layout this
+   pushes all content 15px rightward permanently, making the jerk appear worse.
+   Override with plain `stable` (right-side gutter only, matching a normal
+   vertical scrollbar position) so the reserved space is invisible.           */
+html {
+  scrollbar-gutter: stable;
+}
+/* End scrollbar-gutter correction */
+
+/* ── Oral accordion v5 — nuclear grid fix ────────────────────────────────────
+   Root cause of the lateral jerk:
+   1. The base .oral-card-title rule (line 1418) sets `display: flex` on the
+      <span> inside the header button. The button is also a flex container.
+      This nested flex → flex layout triggers sub-pixel recalculation during
+      height animation, causing the title to shift rightward.
+   2. Fix: switch the button to display:grid with fixed column widths so the
+      browser never needs to recalculate the horizontal axis during open/close.
+   3. Kill the nested flex on the span with display:block so only one layout
+      context runs on the horizontal axis.
+   All rules use !important to override the 4+ conflicting layers above.       */
+
+/* Step 1: header button becomes a 2-column grid — text column fluid, arrow fixed */
+.oral-card-header {
+  display: grid !important;
+  grid-template-columns: 1fr 24px !important;
+  align-items: center !important;
+  /* Existing padding/bg/border/cursor already set above — keep them */
+}
+
+/* Step 2: title span occupies grid column 1, becomes a simple block (kills nested flex) */
+button.oral-card-header > span.oral-card-title {
+  grid-column: 1 !important;
+  display: block !important;
+  margin: 0 !important;
+  padding-right: 8px;
+  text-align: left !important;
+  /* overflow guard so long titles never push the arrow column */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Step 3: chevron occupies grid column 2, pinned to end */
+button.oral-card-header > i.oral-chevron {
+  grid-column: 2 !important;
+  justify-self: end !important;
+  pointer-events: none !important;
+  /* width is fixed by grid — chevron can never push the title left */
+}
+/* End Oral accordion v5 */
