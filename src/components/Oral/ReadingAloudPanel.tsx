@@ -43,7 +43,7 @@ function CollapsibleCard({
         aria-expanded={open}
       >
         <span className="oral-card-title">
-          <i className={`fa-solid ${icon}`} style={{ marginRight: '8px' }} />
+          <i className={`fa-solid ${icon} oral-card-icon`} />
           {title}
         </span>
         <i className={`fa-solid fa-chevron-down oral-chevron${open ? ' open' : ''}`} />
@@ -63,7 +63,7 @@ function StarRow({ label, en, value, onChange }: {
     <div className="oral-rating-row">
       <span className="oral-rating-label">
         {label}<br />
-        <span style={{ color: '#999' }}>{en}</span>
+        <span className="oral-card-sublabel">{en}</span>
       </span>
       <div className="oral-stars">
         {[1, 2, 3, 4, 5].map(n => (
@@ -295,7 +295,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
         </div>
         <div className="oral-passage-text">
           {set.passage.paragraphs.map((para, pi) => (
-            <p key={pi} style={{ marginBottom: '0.75rem' }}>
+            <p key={pi} className="oral-passage-para">
               {para.split('').map((char, ci) => {
                 const isChinese = /[\u4e00-\u9fff]/.test(char);
                 if (!isChinese) {
@@ -355,7 +355,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
         {!hasRecognition && (
           <div className="oral-warn-banner">
             <strong>您的浏览器不支持录音 / Browser does not support recording</strong>
-            <p style={{ margin: '0.4rem 0 0' }}>
+            <p className="oral-rec-status-note">
               您仍可以大声朗读并使用自评 / You can still read aloud and self-rate
             </p>
           </div>
@@ -404,8 +404,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
         {/* Show self-rating if browser has no recognition (still allow rating after read-aloud) */}
         {!hasRecognition && (
           <button
-            className="oral-mic-btn idle"
-            style={{ marginTop: '0.75rem' }}
+            className="oral-mic-btn idle oral-skip-btn"
             onClick={() => setRecState('recorded')}
           >
             <i className="fa-solid fa-star" />
@@ -443,19 +442,19 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
       <CollapsibleCard title="朗读技巧 Reading Tips" icon="fa-circle-info">
         <div className="oral-tips-list">
           <div className="oral-tip-item">
-            <i className="fa-solid fa-eye" style={{ color: '#2E7D32', marginTop: '2px' }} />
+            <i className="fa-solid fa-eye oral-tips-icon" />
             <span>预读全文：先快速扫描，了解大意。/ Pre-read: scan for meaning first.</span>
           </div>
           <div className="oral-tip-item">
-            <i className="fa-solid fa-wind" style={{ color: '#2E7D32', marginTop: '2px' }} />
+            <i className="fa-solid fa-wind oral-tips-icon" />
             <span>换气点：在逗号和句号处换气。/ Breathe at commas and full stops.</span>
           </div>
           <div className="oral-tip-item">
-            <i className="fa-solid fa-volume-high" style={{ color: '#2E7D32', marginTop: '2px' }} />
+            <i className="fa-solid fa-volume-high oral-tips-icon" />
             <span>重读关键词：人名、地点、情感词要稍微加重。/ Stress keywords: names, places, emotions.</span>
           </div>
           <div className="oral-tip-item">
-            <i className="fa-solid fa-heart" style={{ color: '#2E7D32', marginTop: '2px' }} />
+            <i className="fa-solid fa-heart oral-tips-icon" />
             <span>情感投入：想象自己是故事中的人物。/ Emotion: imagine you are the character.</span>
           </div>
         </div>

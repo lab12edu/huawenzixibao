@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { OralSet, OralVocabItem } from '../../data/oralData';
+import { speak } from '../../utils/tts';
 
 interface Props { set: OralSet; }
 
@@ -17,14 +18,6 @@ function getToneFromPinyin(pinyin: string): number {
   if (pinyin.includes('à') || pinyin.includes('è') || pinyin.includes('ì') ||
       pinyin.includes('ò') || pinyin.includes('ù') || pinyin.includes('ǜ')) return 4;
   return 0;
-}
-
-function speakChinese(text: string) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'zh-CN'; u.rate = 0.85;
-  window.speechSynthesis.speak(u);
 }
 
 function addToFlashcard(item: OralVocabItem) {
@@ -122,7 +115,7 @@ const VocabPrepPanel: React.FC<Props> = ({ set }) => {
                 <span className="oral-vocab-chinese">{item.chinese}</span>
                 <button
                   className="oral-vocab-tts-btn"
-                  onClick={(e) => { e.stopPropagation(); speakChinese(item.chinese); }}
+                  onClick={(e) => { e.stopPropagation(); speak(item.chinese); }}
                   title="朗读"
                 >
                   <i className="fa-solid fa-volume-high" />
@@ -171,7 +164,7 @@ const VocabPrepPanel: React.FC<Props> = ({ set }) => {
               </span>
               <span className="oral-vocab-starter-text">{s.text}</span>
               <div className="oral-vocab-starter-actions">
-                <button onClick={() => speakChinese(s.text)} title="朗读">
+                <button onClick={() => speak(s.text)} title="朗读">
                   <i className="fa-solid fa-volume-high" />
                 </button>
                 <button onClick={() => handleCopy(s.text, s.key)} title="复制">

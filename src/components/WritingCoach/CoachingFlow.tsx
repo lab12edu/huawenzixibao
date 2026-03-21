@@ -913,7 +913,7 @@ export default function CoachingFlow({
               })()}
             </div>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <button className="idiom-card__tts-btn" onClick={() => { const u = new SpeechSynthesisUtterance(activeIdiom.chinese); u.lang = 'zh-CN'; window.speechSynthesis.speak(u) }}>🔊 朗读</button>
+              <button className="idiom-card__tts-btn" onClick={() => speak(activeIdiom.chinese)}>🔊 朗读</button>
               <button
                 className="btn-primary"
                 style={{ padding: '8px 18px', fontSize: '0.92rem' }}

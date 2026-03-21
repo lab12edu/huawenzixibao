@@ -1,14 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { OralSet, OralQuestion } from '../../data/oralData';
+import { useApp } from '../../context/AppContext';
+import { speak, speakPassage } from '../../utils/tts';
 
-// ─── Speech helper ────────────────────────────────────────────────────────────
-function speakChinese(text: string) {
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'zh-CN';
-  u.rate = 0.85;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
-}
+// speakChinese removed — use tts.ts speak() / speakPassage() throughout
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const FRAME_LABELS = ['第一幅', '第二幅', '第三幅', '第四幅'];
@@ -54,8 +49,7 @@ function Collapsible({
         onClick={() => setOpen(o => !o)}
       >
         <span>{label}</span>
-        <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'}`}
-           style={{ color: '#aaa' }} />
+        <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'} oral-collapsible-chevron`} />
       </div>
       {open && <div>{children}</div>}
     </div>
@@ -99,7 +93,7 @@ function QuestionCard({
         </span>
         <button
           className="oral-q-tts"
-          onClick={() => speakChinese(q.questionChinese)}
+          onClick={() => speak(q.questionChinese)}
           title="Listen"
         >
           <i className="fa-solid fa-volume-high" />
@@ -121,12 +115,12 @@ function QuestionCard({
               <i className="fa-solid fa-copy" />
               {copiedStarter ? ' 已复制 ✓' : ' 复制 Copy'}
             </button>
-            <button className="oral-copy-btn" onClick={() => speakChinese(q.starterChinese)}>
+            <button className="oral-copy-btn" onClick={() => speak(q.starterChinese)}>
               <i className="fa-solid fa-volume-high" /> 听
             </button>
           </div>
           {parentMode && (
-            <p style={{ color: '#666', marginTop: '0.4rem', fontStyle: 'italic' }}>
+            <p className="oral-starter-hint">
               {q.starterEnglish}
             </p>
           )}
@@ -137,14 +131,14 @@ function QuestionCard({
       <Collapsible label="参考答案 Model Answer" defaultOpen={false}>
         {!parentMode ? (
           <div className="oral-lock-note">
-            <i className="fa-solid fa-lock" style={{ color: '#ccc' }} />
+            <i className="fa-solid fa-lock oral-lock-icon" />
             开启家长模式查看 / Enable Parent Mode to reveal
           </div>
         ) : (
           <div className="oral-answer-box">
             {highlightKeyPhrases(q.modelAnswerChinese, q.keyPhrases)}
             {q.modelAnswerEnglish && (
-              <p style={{ marginTop: '0.5rem', color: '#666', fontStyle: 'italic' }}>
+              <p className="oral-answer-en">
                 {q.modelAnswerEnglish}
               </p>
             )}
@@ -179,11 +173,13 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
   };
 
   // Level-adaptive Q3 tip
-  const level = localStorage.getItem('hwzxb_selected_level') || '';
-  const isUpper = level === 'P5' || level === 'P6';
+  const { selectedLevel } = useApp();
+  const baseLevel = selectedLevel.replace(/[AB]$/i, '');
+  const isUpper = baseLevel === 'P5' || baseLevel === 'P6';
+  // q3TipByLevel schema: { advanced: string; standard: string } — matches server data
   const q3Tip = isUpper
-    ? `${set.questions.q3TipByLevel.upper} / ${set.questions.q3TipByLevel.upperEN}`
-    : `${set.questions.q3TipByLevel.lower} / ${set.questions.q3TipByLevel.lowerEN}`;
+    ? set.questions.q3TipByLevel.advanced
+    : set.questions.q3TipByLevel.standard;
 
   const story = set.pictureStory;
   const qs: [OralQuestion, typeof Q_META[0]][] = [
@@ -216,7 +212,7 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
           )}
           <button
             className="oral-listen-btn"
-            onClick={() => speakChinese(story.titleChinese)}
+            onClick={() => speakPassage(story.narratorChinese || story.titleChinese)}
           >
             <i className="fa-solid fa-volume-high" />
             朗读题目 Listen
@@ -227,20 +223,20 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
       {/* C — 2×2 storyboard grid */}
       <div className="oral-frame-grid">
         {story.frames.map((frame, idx) => (
-          <div key={frame.frameNumber} className="oral-frame-card">
+          <div key={idx} className="oral-frame-card">
             <div className="oral-frame-placeholder">
               <i className="fa-solid fa-image" />
-              <span>图片 Frame {frame.frameNumber}</span>
+              <span>图片 Frame {idx + 1}</span>
             </div>
             <div className="oral-frame-body">
-              <div className="oral-frame-badge">{FRAME_LABELS[idx] || `第${frame.frameNumber}幅`}</div>
+              <div className="oral-frame-badge">{FRAME_LABELS[idx] || `第${idx + 1}幅`}</div>
               <p className="oral-frame-cn">{frame.captionChinese}</p>
               <p className={`oral-frame-en${parentMode ? '' : ' oral-hidden-en'}`}>
                 {frame.captionEnglish}
               </p>
               <button
                 className="oral-frame-tts"
-                onClick={() => speakChinese(frame.captionChinese)}
+                onClick={() => speak(frame.captionChinese)}
                 title="Listen"
               >
                 <i className="fa-solid fa-volume-high" /> 听
@@ -257,7 +253,7 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
           {/* E — Level-adaptive tip after Q3 */}
           {idx === 2 && (
             <div className="oral-level-tip">
-              <i className="fa-solid fa-circle-info" style={{ marginRight: '0.4rem' }} />
+              <i className="fa-solid fa-circle-info oral-tip-icon" />
               {q3Tip}
             </div>
           )}

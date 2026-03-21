@@ -4883,3 +4883,63 @@ button.oral-card-header > span.oral-card-title {
   max-width: 100% !important;
 }
 /* End Oral accordion v6 */
+
+/* ── Oral consistency audit – static inline-style extractions (v7) ──────────── */
+
+/* Collapsible chevron icon colour */
+.oral-collapsible-chevron { color: #aaa; pointer-events: none; }
+
+/* Starter English hint text (italic sub-note) */
+.oral-starter-hint {
+  color: #666;
+  margin-top: 0.4rem;
+  font-style: italic;
+}
+
+/* Lock icon (disabled state) */
+.oral-lock-icon { color: #ccc; }
+
+/* Model answer English translation */
+.oral-answer-en {
+  margin-top: 0.5rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Level tip info icon */
+.oral-tip-icon { margin-right: 0.4rem; }
+
+/* Insight banner flex icon */
+.oral-banner-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* CollapsibleCard header icon */
+.oral-card-icon { margin-right: 8px; }
+
+/* CollapsibleCard EN sub-label */
+.oral-card-sublabel { color: #999; }
+
+/* Passage paragraph spacing */
+.oral-passage-para { margin-bottom: 0.75rem; }
+
+/* Recording status sub-text */
+.oral-rec-status-note { margin: 0.4rem 0 0; }
+
+/* Re-record button top margin */
+.oral-rerecord-btn { margin-top: 0.75rem; }
+
+/* Tips list icon (primary green) */
+.oral-tips-icon {
+  color: #2E7D32;
+  margin-top: 2px;
+}
+
+/* html scrollbar gutter stabilisation */
+html { scrollbar-gutter: stable; }
+
+/* End Oral consistency v7 */
+
+/* Skip-to-self-rating button top spacing */
+.oral-skip-btn { margin-top: 0.75rem; }

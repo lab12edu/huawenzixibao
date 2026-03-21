@@ -5,19 +5,7 @@ import {
 } from '../utils/vocabApi'
 import { VocabItem } from '../data/vocabTypes'
 import StrokeDemoModal from '../components/StrokeDemoModal'
-
-// ─────────────────────────────────────────────
-// AUDIO  (exact copy from VocabCard.tsx)
-// ─────────────────────────────────────────────
-function speakChinese(text: string) {
-  if (!('speechSynthesis' in window)) return
-  window.speechSynthesis.cancel()
-  const utt = new SpeechSynthesisUtterance(text)
-  utt.lang = 'zh-CN'
-  utt.rate = 0.85
-  utt.pitch = 1
-  window.speechSynthesis.speak(utt)
-}
+import { speak as speakChinese } from '../utils/tts'
 
 // ─────────────────────────────────────────────
 // SRS  localStorage key: hwzxb_flashcard_srs
