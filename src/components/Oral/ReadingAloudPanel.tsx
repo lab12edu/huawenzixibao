@@ -36,13 +36,15 @@ function CollapsibleCard({
   return (
     <div className="oral-card">
       <button
-        className="oral-card-title oral-card-title--collapsible"
+        className="oral-card-header"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
       >
-        <i className={`fa-solid ${icon}`} />
-        <span style={{ flex: 1, textAlign: 'left' }}>{title}</span>
-        <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'} oral-chevron`} />
+        <span className="oral-card-title">
+          <i className={`fa-solid ${icon}`} style={{ marginRight: '8px' }} />
+          {title}
+        </span>
+        <i className={`fa-solid fa-chevron-down oral-chevron${open ? ' open' : ''}`} />
       </button>
       {open && <div style={{ marginTop: '0.5rem' }}>{children}</div>}
     </div>
