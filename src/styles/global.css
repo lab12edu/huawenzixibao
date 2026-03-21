@@ -4753,3 +4753,17 @@ button.oral-card-header > span.oral-card-title {
   white-space: normal;
 }
 /* End Oral accordion v4 */
+
+/* ── Scrollbar-gutter lock — prevents viewport-width jump when page grows ─────
+   When a collapsible card expands and the page height crosses the scroll
+   threshold, browsers (Windows Chrome/Edge with classic scrollbars) add a
+   ~15 px vertical scrollbar that shrinks the viewport and shifts all content
+   sideways. `scrollbar-gutter: stable` permanently reserves that gutter space,
+   so the layout width never changes whether a scrollbar is present or not.
+   `both-edges` keeps the reservation symmetric on both sides (optional, used
+   here so centred content stays centred on desktop too).
+   Safe to append — property is a no-op on iOS (overlay scrollbars). */
+html {
+  scrollbar-gutter: stable both-edges;
+}
+/* End scrollbar-gutter lock */
