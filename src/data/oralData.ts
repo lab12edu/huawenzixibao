@@ -14,6 +14,8 @@ export type {
   OralVideoFrame,
   OralPictureStory,
   OralSet,
+  OralTheme,
+  ThemeId,
 } from '../server/data/oralData'
 
 export { THEME_COLOURS } from '../server/data/oralData'

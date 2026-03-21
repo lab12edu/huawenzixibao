@@ -4943,3 +4943,210 @@ html { scrollbar-gutter: stable; }
 
 /* Skip-to-self-rating button top spacing */
 .oral-skip-btn { margin-top: 0.75rem; }
+
+/* ── Oral Phase 1 – Geometric Lock & Theme Engine (v8) ─────────────────────── */
+
+/* Viewport grid — locks header, tabs, and content into place with zero jitter */
+.oral-viewport {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Header lock — title left-aligned, right slot 44 px fixed */
+.oral-header-lock {
+  display: grid !important;
+  grid-template-columns: 1fr 44px !important;
+  align-items: center;
+  text-align: left;
+}
+
+/* Card title — block display, no jerk */
+.oral-card-title {
+  display: block !important;
+  margin: 0 !important;
+  font-weight: 700;
+}
+
+/* Tab content scroll area */
+.oral-tab-content {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollable theme grid */
+.oral-theme-grid-wrap,
+.oral-sets-wrap {
+  overflow-y: auto;
+  padding: 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 2-column theme grid on wider screens, 1-column on mobile */
+.oral-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+@media (max-width: 480px) {
+  .oral-theme-grid { grid-template-columns: 1fr; }
+}
+
+/* Theme card */
+.oral-theme-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #eee;
+  border-top: 4px solid #2E7D32;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.oral-theme-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+.oral-theme-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.oral-theme-card-body { flex: 1; min-width: 0; }
+.oral-theme-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #212121;
+  margin: 0 0 0.1rem;
+}
+.oral-theme-card-en {
+  font-size: 0.78rem;
+  color: #555;
+  margin: 0 0 0.25rem;
+}
+.oral-theme-card-desc {
+  font-size: 0.75rem;
+  color: #777;
+  margin: 0;
+}
+.oral-theme-card-desc-en {
+  font-size: 0.7rem;
+  color: #999;
+  margin: 0;
+}
+.oral-theme-card-arrow {
+  color: #ccc;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* Sets theme banner */
+.oral-sets-theme-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-left: 4px solid #2E7D32;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+.oral-sets-instruction {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0 0 0.75rem;
+}
+.oral-sets-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+/* Set summary card */
+.oral-set-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #eee;
+  border-left: 4px solid #2E7D32;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+.oral-set-summary-card:hover:not(:disabled) { background: #F5F5F5; }
+.oral-set-summary-card:disabled { opacity: 0.7; cursor: wait; }
+.oral-set-summary-year-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+.oral-set-summary-theme { font-size: 0.95rem; font-weight: 700; color: #212121; margin: 0; }
+.oral-set-summary-theme-en { font-size: 0.75rem; color: #777; margin: 0; }
+.oral-set-summary-body { flex: 1; }
+
+/* Tab EN sub-label */
+.oral-tab-en {
+  display: block;
+  font-size: 0.65rem;
+  color: inherit;
+  opacity: 0.75;
+  line-height: 1;
+}
+
+/* Skeleton loader */
+.oral-skeleton-wrap { display: flex; flex-direction: column; gap: 0.6rem; }
+.oral-skeleton-card {
+  height: 72px;
+  border-radius: 10px;
+  background: #E0E0E0;
+}
+.oral-skeleton-pulse {
+  animation: oral-pulse 1.4s ease-in-out infinite;
+}
+@keyframes oral-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* SpeechButton */
+.oral-speech-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #E0F2F1;
+  color: #00695C;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+  font-size: 0.8rem;
+}
+.oral-speech-btn:hover { background: #B2DFDB; transform: scale(1.1); }
+.oral-speech-btn--active { background: #00695C; color: #fff; }
+
+/* Spinner */
+.oral-spin { animation: oral-spin-kf 0.8s linear infinite; }
+@keyframes oral-spin-kf {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* End Oral Phase 1 v8 */

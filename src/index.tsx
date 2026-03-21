@@ -8,6 +8,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { MiddlewareHandler } from 'hono'
 import { getVocabFromVault, searchVault, getIdiomsFromVault, getComposFromVault, getOralDataFromVault } from './server/vocabVault'
+import { ORAL_THEMES } from './server/data/oralData'
 
 // ── Cloudflare bindings ───────────────────────────────────────────────────────
 type Bindings = {
@@ -408,6 +409,35 @@ app.get('/api/compositions', apiLimiter, (c) => c.json(getComposFromVault()))
 
 // ── /api/oral ─────────────────────────────────────────────────────────────────
 app.get('/api/oral', apiLimiter, (c) => c.json(getOralDataFromVault()))
+
+// ── /api/oral/themes — 7 theme metadata cards (no IP content) ─────────────────
+app.get('/api/oral/themes', apiLimiter, (c) => c.json(ORAL_THEMES))
+
+// ── /api/oral/sets?theme=xxx — summary cards for one theme ────────────────────
+app.get('/api/oral/sets', apiLimiter, (c) => {
+  const themeId = c.req.query('theme') ?? '';
+  const allSets = getOralDataFromVault();
+  const summaries = allSets
+    .filter(s => !themeId || s.themeId === themeId)
+    .map(s => ({
+      id: s.id,
+      setNumber: s.setNumber,
+      themeId: s.themeId,
+      yearLabel: s.psleYears[0] ?? '',
+      themeChinese: s.themeChinese,
+      themeEnglish: s.themeEnglish,
+      accentColour: s.accentColour,
+    }));
+  return c.json(summaries);
+})
+
+// ── /api/oral/set/:id — full OralSet detail ───────────────────────────────────
+app.get('/api/oral/set/:id', apiLimiter, (c) => {
+  const id = c.req.param('id');
+  const set = getOralDataFromVault().find(s => s.id === id);
+  if (!set) return c.json({ error: 'Not found' }, 404);
+  return c.json(set);
+})
 
 // ── /api/health ───────────────────────────────────────────────────────────────
 app.get('/api/health', (c) => {
