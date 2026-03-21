@@ -4820,3 +4820,66 @@ button.oral-card-header > i.oral-chevron {
   /* width is fixed by grid — chevron can never push the title left */
 }
 /* End Oral accordion v5 */
+
+/* ── Oral accordion v6 — definitive horizontal-jerk fix ──────────────────────
+   DIAGNOSIS (v6)
+   ==============
+   The jerk has two independent sources that must BOTH be resolved:
+
+   Source A — title overflow (introduced by v5's white-space:nowrap)
+     v5 added `white-space:nowrap` to the title span so it wouldn't wrap.
+     When a card title is long (e.g. "为什么自评有效？/ Why self-rating works")
+     the nowrap forces the span wider than the card, causing the card and the
+     .oral-panel flex container to exceed the viewport width.  The browser adds
+     a horizontal scrollbar (or shifts content) as a result.
+     Fix A: revert to `white-space:normal` + add `word-break:break-word` so
+     the title wraps gracefully and never widens the card.
+
+   Source B — card/panel width not clamped
+     Neither .oral-card nor .oral-panel explicitly clamp their width to the
+     parent container.  During the grid-row animation the browser may briefly
+     measure a wider intrinsic size, producing a momentary overflow.
+     Fix B: add `width:100%`, `max-width:100%`, `box-sizing:border-box`, and
+     `overflow:hidden` to .oral-card and .oral-panel so they can never exceed
+     their container regardless of child dimensions.
+
+   All rules use !important to win against the 5 layers of overrides above.   */
+
+/* Fix A: undo v5's nowrap — allow long bilingual titles to wrap */
+button.oral-card-header > span.oral-card-title {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/* Fix B: clamp .oral-card width so no child can make it wider */
+.oral-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Fix B (cont.): clamp .oral-panel width — the flex column that holds all cards */
+.oral-panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+/* Fix B (cont.): clamp .oral-page so nothing inside it creates horizontal scroll */
+.oral-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+/* Ensure the collapsible content wrapper also never overflows horizontally */
+.oral-collapsible-content {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+}
+/* End Oral accordion v6 */

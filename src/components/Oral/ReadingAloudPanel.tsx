@@ -26,7 +26,9 @@ const RATING_CRITERIA = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Collapsible section wrapper — entire header row is the click target */
+/** Collapsible section wrapper — entire header row is the click target.
+ *  Content uses CSS grid 0fr→1fr for a smooth slide-open/close animation
+ *  with no layout jerk: flex:1 + min-width:0 on the title anchors its width. */
 function CollapsibleCard({
   title, icon, defaultOpen = false, children,
 }: {
@@ -46,7 +48,9 @@ function CollapsibleCard({
         </span>
         <i className={`fa-solid fa-chevron-down oral-chevron${open ? ' open' : ''}`} />
       </button>
-      {open && <div style={{ marginTop: '0.5rem' }}>{children}</div>}
+      <div className={`oral-collapsible-content${open ? ' open' : ''}`}>
+        <div>{children}</div>
+      </div>
     </div>
   );
 }
