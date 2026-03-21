@@ -4624,3 +4624,32 @@ mark.diff-highlight {
 }
 .wc-early-notice-icon { font-size: 1.05rem; flex-shrink: 0; margin-top: 1px; }
 .wc-early-notice em   { font-style: italic; color: #1976d2; }
+
+/* ── Oral: collapsible card header — unified full-width click target ──────────
+   .oral-card-title--collapsible overrides the base .oral-card-title so that
+   the entire header row (icon + title text + chevron) is one hit area.
+   The chevron is pinned to the right edge via justify-content: space-between.
+   pointer-events: all ensures the <i> chevron never absorbs clicks silently. */
+.oral-card-title--collapsible {
+  width: 100%;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 0 0.1rem;
+  -webkit-tap-highlight-color: transparent;
+}
+.oral-card-title--collapsible:hover,
+.oral-card-title--collapsible:focus-visible {
+  opacity: 0.8;
+  outline: 2px solid #2E7D3244;
+  border-radius: 4px;
+}
+.oral-chevron {
+  color: #aaa;
+  flex-shrink: 0;
+  pointer-events: none; /* let clicks pass through to the parent button */
+  font-size: 0.85rem;
+}
+/* End Oral collapsible card header fix */

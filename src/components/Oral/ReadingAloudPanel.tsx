@@ -26,7 +26,7 @@ const RATING_CRITERIA = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Collapsible section wrapper */
+/** Collapsible section wrapper — entire header row is the click target */
 function CollapsibleCard({
   title, icon, defaultOpen = false, children,
 }: {
@@ -36,13 +36,13 @@ function CollapsibleCard({
   return (
     <div className="oral-card">
       <button
-        className="oral-card-title"
-        style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+        className="oral-card-title oral-card-title--collapsible"
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
       >
         <i className={`fa-solid ${icon}`} />
-        <span style={{ flex: 1 }}>{title}</span>
-        <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ color: '#aaa' }} />
+        <span style={{ flex: 1, textAlign: 'left' }}>{title}</span>
+        <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'} oral-chevron`} />
       </button>
       {open && <div style={{ marginTop: '0.5rem' }}>{children}</div>}
     </div>
