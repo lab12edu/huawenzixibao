@@ -4691,3 +4691,65 @@ mark.diff-highlight {
   transform: rotate(180deg);
 }
 /* End Oral minimalist accordion header */
+
+/* ── Oral: accordion v3 — layout-jerk fix + smooth slide ─────────────────────
+   Problem 1 (jerk): flex container re-evaluates width when content expands.
+     Fix: flex:1 + min-width:0 on .oral-card-title locks its width so the
+     chevron never moves horizontally.
+   Problem 2 (dead arrow): <i> was absorbing pointer events.
+     Fix: pointer-events:none on the chevron so every click reaches the button.
+   Problem 3 (snap): {isOpen && <div>} teleports content.
+     Fix: grid-template-rows 0fr→1fr on .oral-collapsible-content animates
+     the height without JavaScript — works even for unknown content heights. */
+
+/* Override: title takes all available space and never nudges the chevron */
+.oral-card-header .oral-card-title {
+  flex: 1;
+  min-width: 0;
+  margin-right: 12px;
+}
+
+/* Override: updated hover — subtle background tint, no opacity flicker */
+.oral-card-header {
+  padding: 14px 16px;
+  transition: background-color 0.2s ease;
+}
+.oral-card-header:hover {
+  opacity: 1;
+  background-color: rgba(0, 105, 92, 0.04);
+}
+
+/* Override: chevron gets pointer-events:none so clicks pass to the button */
+.oral-card-header .oral-chevron {
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth slide-open/close via CSS grid row height animation */
+.oral-collapsible-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease-out;
+  overflow: hidden;
+}
+.oral-collapsible-content.open {
+  grid-template-rows: 1fr;
+  padding-bottom: 16px;
+}
+.oral-collapsible-content > div {
+  min-height: 0;
+  padding-top: 0.5rem;
+}
+/* End Oral accordion v3 */
+
+/* ── Oral: accordion v4 — margin-reset fix ────────────────────────────────────
+   The base .oral-card-title rule (line 1418) sets margin:0 0 0.75rem which
+   leaks into the header button and causes a layout jerk when content opens.
+   This selector has higher specificity (button > span) so it wins over line 1418
+   and all the font-size !important overrides leave margin untouched.           */
+button.oral-card-header > span.oral-card-title {
+  margin: 0;
+  line-height: 1.3;
+  white-space: normal;
+}
+/* End Oral accordion v4 */
