@@ -208,7 +208,7 @@ async function callGeminiWithAudio(
     }],
     generationConfig: {
       temperature: 0.1,
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
     },
   }
   const body = JSON.stringify(bodyObj)
@@ -606,42 +606,77 @@ app.post('/api/oral/audit', apiLimiter, async (c) => {
   // STAGE 2 — Gemini Phonetic & Tone Audit
   // ══════════════════════════════════════════════════════════════════
   //
-  // We give Gemini the STT transcript as Ground Truth for WHAT was said.
-  // Its only job is to assess HOW it was pronounced (tones, phonetics).
-  // This prevents hallucination of word presence/absence.
+  // Strategy: send raw STT character stream + timestamps; let Gemini
+  // decide natural word boundaries from the reference passage.
+  // This avoids artificial segmentation artefacts ("的小", "园去" etc.).
   //
-  const sttJson = JSON.stringify(
-    sttResult.words.map(w => ({ word: w.word, startMs: w.startMs, endMs: w.endMs }))
-  )
+  // sttJson: array of [char_or_word, startMs, endMs] from aligned STT.
+  // We also expose the full reference so Gemini knows the target groupings.
+  //
+  const sttTuples = sttResult.words.map(w => [w.word, w.startMs, w.endMs])
+  const sttJson   = JSON.stringify(sttTuples)
+
+  // Build lookup maps for timestamp injection in normalisation step.
+  // word-level map AND char-level map (for when Gemini emits single chars).
+  const sttMap     = new Map<string, { startMs: number; endMs: number }>()
+  const sttCharMap = new Map<string, { startMs: number; endMs: number }>()
+  for (const sw of sttResult.words) {
+    if (!sttMap.has(sw.word)) sttMap.set(sw.word, { startMs: sw.startMs, endMs: sw.endMs })
+    const chars  = sw.word.split('')
+    const perCh  = chars.length > 0 ? Math.max(1, (sw.endMs - sw.startMs) / chars.length) : 1
+    for (let ci = 0; ci < chars.length; ci++) {
+      const ch = chars[ci]
+      if (!sttCharMap.has(ch)) {
+        sttCharMap.set(ch, {
+          startMs: Math.round(sw.startMs + ci * perCh),
+          endMs:   Math.round(sw.startMs + (ci + 1) * perCh),
+        })
+      }
+    }
+  }
+
+  // Build a char-to-time index array for precise timestamp interpolation
+  // when Gemini outputs multi-char words not present in sttMap.
+  // Index: ordered list of { char, startMs, endMs } from sttResult.
+  const sttCharIndex: Array<{ char: string; startMs: number; endMs: number }> = []
+  for (const sw of sttResult.words) {
+    const chars  = sw.word.split('')
+    const perCh  = chars.length > 0 ? Math.max(1, (sw.endMs - sw.startMs) / chars.length) : 1
+    for (let ci = 0; ci < chars.length; ci++) {
+      sttCharIndex.push({
+        char:    chars[ci],
+        startMs: Math.round(sw.startMs + ci * perCh),
+        endMs:   Math.round(sw.startMs + (ci + 1) * perCh),
+      })
+    }
+  }
 
   const auditPrompt = `You are a Singapore primary-school Mandarin phonetic & tone diagnostic engine.
-I provide a DETERMINISTIC timestamped transcript from a speech recognition engine.
-Your ONLY job is to assess TONE ACCURACY and PHONETIC CORRECTNESS.
-Do NOT question whether a word was said — the STT transcript is the ground truth.
-Output ONLY compact JSON. No markdown fences. First char '{', last char '}'.
+The speech recogniser already determined WHAT the student said. Your job: assess pronunciation quality.
+Output ONLY compact JSON. No markdown fences. Start '{', end '}'.
 
-Reference passage the student should read:
+Reference passage (what student SHOULD say):
 ${referenceText}
 
-STT Ground Truth (what the student actually said, with timestamps):
+STT output [token, startMs, endMs] — these are the characters/words the student actually said:
 ${sttJson}
-${sttResult.simulated ? '\n[NOTE: Timestamps are simulated — focus on phonetic/tone assessment only]\n' : ''}
-TASK: For each entry in the STT word list, determine:
-1. Is the word in the reference passage? (if not → status="wrong")
-2. Are the tones correct? (if wrong tone only → "tone_error")
-3. Is the phonetic sound correct? (if wrong sound → "wrong")
-4. Did the student omit a reference word entirely? Add it with status="omitted"
+${sttResult.simulated ? '[Timestamps are simulated — use audio for phonetic/tone assessment]\n' : ''}
+INSTRUCTIONS:
+1. Group STT tokens into natural Chinese words that match the reference passage.
+   Example: STT has ["今",0,300],["天",300,560] → group as word "今天" with startMs=0, endMs=560.
+2. For each word, assess tone and phonetic accuracy by listening to the audio.
+3. Add any reference passage words the student completely omitted (status="omitted", use interpolated timestamps).
+4. Output one entry per word in reading order.
 
-Return EXACTLY this JSON shape (omit p/tip for correct words to save tokens):
-{"words":[{"w":"词","s":"correct|tone_error|wrong|omitted","t":"target_pinyin","p":"spoken_pinyin","startMs":0,"endMs":800,"tip":"English tip for parent or null"}],"proficiency":{"pronunciation":0,"tones":0,"fluency":0},"overallComment":"One English sentence for parents."}
+JSON format (omit "p" and "tip" for correct words to save space):
+{"words":[{"w":"今天","s":"correct","t":"jīn tiān","startMs":0,"endMs":560},{"w":"清晨","s":"tone_error","t":"qīng chén","p":"qing2 chen1","startMs":620,"endMs":1100,"tip":"Brief English tip for parent"}],"proficiency":{"pronunciation":85,"tones":80,"fluency":90},"overallComment":"One sentence for parents in English."}
 
-Rules:
-- pronunciation = overall phonetic accuracy 0-100
-- tones = tone accuracy 0-100  
-- fluency = pacing/smoothness based on gap patterns 0-100
-- Omit "expression" — it requires acoustic variance analysis not available here
-- Be strict: if mǎ vs mā → tone_error. If mǎ vs bā → wrong.
-- CRITICAL: pure JSON only, no code fences`
+Status: correct | tone_error | wrong | omitted
+- pronunciation 0-100 (phoneme accuracy)
+- tones 0-100 (tone accuracy)
+- fluency 0-100 (pacing/smoothness from timestamp gaps)
+- Be strict: mǎ→mā = tone_error; mǎ→bā = wrong
+- PURE JSON ONLY. No explanation text.`
 
   const result = await callGeminiWithAudio(geminiKey, auditPrompt, base64, mimeType)
 
@@ -662,6 +697,7 @@ Rules:
 
   // ── Parse + validate Gemini JSON ─────────────────────────────────
   function extractJson(raw: string): string {
+    // Strip markdown fences if present
     let s = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
     if (s.startsWith('{')) return s
     const start = s.indexOf('{')
@@ -670,10 +706,33 @@ Rules:
     return s
   }
 
-  // Build a lookup of STT timestamps by word for merging
-  const sttMap = new Map<string, { startMs: number; endMs: number }>()
-  for (const sw of sttResult.words) {
-    if (!sttMap.has(sw.word)) sttMap.set(sw.word, { startMs: sw.startMs, endMs: sw.endMs })
+  /**
+   * Find the merged timestamp for a multi-char word by scanning sttCharIndex.
+   * Looks for the first consecutive run matching all chars of the word.
+   */
+  function lookupWordTimestamp(word: string): { startMs: number; endMs: number } | null {
+    const chars = word.split('')
+    if (chars.length === 0) return null
+    // Single char — use sttCharMap
+    if (chars.length === 1) {
+      const ts = sttCharMap.get(chars[0])
+      return ts ?? null
+    }
+    // Multi-char: find consecutive run in sttCharIndex
+    for (let i = 0; i <= sttCharIndex.length - chars.length; i++) {
+      if (chars.every((ch, j) => sttCharIndex[i + j]?.char === ch)) {
+        return {
+          startMs: sttCharIndex[i].startMs,
+          endMs:   sttCharIndex[i + chars.length - 1].endMs,
+        }
+      }
+    }
+    // Fallback: use first char timing + interpolate end
+    const first = sttCharMap.get(chars[0])
+    if (first) {
+      return { startMs: first.startMs, endMs: first.startMs + chars.length * 280 }
+    }
+    return null
   }
 
   try {
@@ -682,21 +741,41 @@ Rules:
     try {
       parsed = JSON.parse(cleaned)
     } catch {
-      if (result.truncated) {
-        const salvaged = cleaned.replace(/,\s*$/, '') + ']}'
-        try { parsed = JSON.parse(salvaged) } catch { /* fall through */ }
+      // Truncated response salvage: close open array + object
+      if (result.truncated || cleaned.includes('"w"')) {
+        // Try to close the JSON by finding the last complete word entry
+        const lastBrace = cleaned.lastIndexOf('}')
+        if (lastBrace > 0) {
+          const salvaged = cleaned.slice(0, lastBrace + 1) + ']}'
+          try { parsed = JSON.parse(salvaged) } catch { /* fall through */ }
+        }
+        if (!parsed) {
+          const salvaged2 = cleaned.replace(/,\s*\{[^}]*$/, '') + ']}'
+          try { parsed = JSON.parse(salvaged2) } catch { /* fall through */ }
+        }
       }
       if (!parsed) throw new Error('json parse failed')
     }
 
-    // Normalise compact field names + merge STT timestamps
+    // Normalise compact field names + inject STT timestamps
     if (Array.isArray(parsed.words)) {
       parsed.words = parsed.words.map((item: any) => {
         const word = item.word ?? item.w ?? ''
-        // Prefer Gemini-provided timestamps, fallback to STT map, fallback to 0
-        const sttTs  = sttMap.get(word)
-        const startMs = item.startMs ?? sttTs?.startMs ?? 0
-        const endMs   = item.endMs   ?? sttTs?.endMs   ?? 0
+        // Timestamp lookup priority:
+        //   1. Gemini-provided (most accurate when Gemini did its own grouping)
+        //   2. sttMap exact word match
+        //   3. lookupWordTimestamp (char-by-char scan in sttCharIndex)
+        //   4. 0 fallback
+        let startMs: number
+        let endMs: number
+        if (item.startMs != null && item.endMs != null) {
+          startMs = item.startMs
+          endMs   = item.endMs
+        } else {
+          const ts = sttMap.get(word) ?? lookupWordTimestamp(word)
+          startMs  = ts?.startMs ?? 0
+          endMs    = ts?.endMs   ?? 0
+        }
         return {
           word,
           status:       item.status       ?? item.s  ?? 'correct',
@@ -714,6 +793,14 @@ Rules:
     // Validate proficiency shape — only pronunciation/tones/fluency
     if (typeof parsed.proficiency !== 'object' || !parsed.proficiency) {
       parsed.proficiency = { pronunciation: 70, tones: 70, fluency: 70 }
+    } else {
+      // Clamp scores to 0-100, default missing ones to 70
+      const p = parsed.proficiency
+      parsed.proficiency = {
+        pronunciation: Math.min(100, Math.max(0, Number(p.pronunciation) || 70)),
+        tones:         Math.min(100, Math.max(0, Number(p.tones)         || 70)),
+        fluency:       Math.min(100, Math.max(0, Number(p.fluency)       || 70)),
+      }
     }
     // Remove expression if Gemini accidentally included it
     delete parsed.proficiency.expression

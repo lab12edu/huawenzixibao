@@ -34,33 +34,51 @@ export interface SttResult {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 /**
- * Segment a Chinese passage into 2-3 char word groups for mock timing.
- * Real STT would return individual words; this mimics that structure.
- * We split on punctuation boundaries and group 2-3 chars at a time.
+ * Segment a Chinese passage into natural word groups for alignment.
+ * Rules:
+ *   - Punctuation → standalone pause marker
+ *   - Common grammatical particles (的,了,着,过,地,得,吧,啊,呢,嘛,吗,哦) → standalone
+ *   - Otherwise: greedy 2 chars (occasionally 3) without crossing punctuation or particles
+ *
+ * The same segments are used for simulation timing AND STT alignment.
  */
 function segmentChinese(text: string): string[] {
-  // Strip whitespace, keep Chinese chars and punctuation
+  // Punctuation set
+  const isPunct = (c: string) => /[\u3000-\u303f\uff00-\uffef，。！？；：、]/.test(c)
+  // Common grammatical particles that stand alone
+  const isParticle = (c: string) => /^[的了着过地得吧啊呢嘛吗哦哈嗯]$/.test(c)
+
   const chars = text.replace(/\s+/g, '').split('')
   const segments: string[] = []
   let i = 0
+
   while (i < chars.length) {
     const ch = chars[i]
-    // Punctuation = standalone pause marker
-    if (/[\u3000-\u303f\uff00-\uffef，。！？；：、]/.test(ch)) {
+
+    if (isPunct(ch)) {
       segments.push(ch)
       i++
       continue
     }
-    // Chinese char: group 2 chars (occasionally 3 for variety)
-    const groupSize = (i % 9 === 6) ? 3 : 2  // ~1-in-3 triples
-    const end = Math.min(i + groupSize, chars.length)
-    // Don't run past a punctuation mark
-    let j = i
-    while (j < end && !/[\u3000-\u303f\uff00-\uffef，。！？；：、]/.test(chars[j])) j++
-    if (j === i) j = i + 1  // always advance at least one
+
+    if (isParticle(ch)) {
+      // Standalone particle — don't merge into adjacent chars
+      segments.push(ch)
+      i++
+      continue
+    }
+
+    // Chinese character: try to form a 2-char (occasionally 3-char) group
+    // Stop at punctuation or particle
+    const wantLen = (i % 9 === 6) ? 3 : 2  // ~1-in-3 triples for variety
+    let j = i + 1
+    while (j < i + wantLen && j < chars.length && !isPunct(chars[j]) && !isParticle(chars[j])) {
+      j++
+    }
     segments.push(chars.slice(i, j).join(''))
     i = j
   }
+
   return segments.filter(s => s.length > 0)
 }
 
@@ -105,48 +123,50 @@ export function simulateStt(referenceText: string): SttResult {
 // ── Production mode ────────────────────────────────────────────────────────────
 
 /**
- * Call Google Cloud Speech-to-Text v2 API.
- * Requires:
- *   apiKey     – GOOGLE_STT_API_KEY Cloudflare secret
- *   projectId  – GOOGLE_CLOUD_PROJECT_ID Cloudflare secret (or env var)
- *   base64     – audio data as base64 string
- *   mimeType   – e.g. "audio/webm" | "audio/mp4" | "audio/mpeg"
+ * Call Google Cloud Speech-to-Text v1 API.
  *
- * Encoding map:
+ * Uses the v1 synchronous endpoint — no project ID required, just an API key.
+ * The Speech-to-Text API must be enabled in the Google Cloud Console.
+ *
+ * Encoding map (v1 uses explicit encoding names):
  *   audio/webm  → WEBM_OPUS
- *   audio/mp4   → MP4 / AAC
+ *   audio/mp4   → MP4   (AAC inside MP4)
  *   audio/mpeg  → MP3
  *   audio/ogg   → OGG_OPUS
+ *   ""          → ENCODING_UNSPECIFIED (let Google detect)
  */
 function mimeToEncoding(mimeType: string): string {
-  if (mimeType.includes('webm'))  return 'WEBM_OPUS'
-  if (mimeType.includes('mp4'))   return 'MP4'
+  if (mimeType.includes('webm'))                             return 'WEBM_OPUS'
+  if (mimeType.includes('mp4'))                              return 'MP4'
   if (mimeType.includes('mpeg') || mimeType.includes('mp3')) return 'MP3'
-  if (mimeType.includes('ogg'))   return 'OGG_OPUS'
+  if (mimeType.includes('ogg'))                              return 'OGG_OPUS'
   return 'ENCODING_UNSPECIFIED'
 }
 
 export async function callGoogleStt(
   apiKey:    string,
-  projectId: string,
+  _projectId: string,   // kept for API compatibility; not needed by v1
   base64:    string,
   mimeType:  string,
 ): Promise<SttResult> {
-  // STT v2 REST endpoint
-  const url = `https://speech.googleapis.com/v2/projects/${projectId}/recognizers/_:recognize?key=${apiKey}`
+  // STT v1 synchronous endpoint — works with API key only, no project ID
+  const url = `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`
+
+  const encoding = mimeToEncoding(mimeType)
 
   const body = JSON.stringify({
     config: {
-      autoDecodingConfig: {},          // let Google detect encoding
-      languageCodes:      ['cmn-Hans-CN', 'yue-Hant-HK'],  // Mandarin + Cantonese fallback
-      model:              'latest_long',
-      features: {
-        enableWordTimeOffsets:      true,
-        enableWordConfidence:       true,
-        enableAutomaticPunctuation: false,
-      },
+      encoding,
+      sampleRateHertz:          16000,   // most mobile recordings
+      audioChannelCount:        1,
+      languageCode:             'cmn-Hans-CN',
+      alternativeLanguageCodes: ['yue-Hant-HK'],  // Cantonese fallback
+      model:                    'latest_long',
+      enableWordTimeOffsets:    true,
+      enableWordConfidence:     true,
+      enableAutomaticPunctuation: false,
     },
-    content: base64,
+    audio: { content: base64 },
   })
 
   let res: Response
@@ -167,8 +187,8 @@ export async function callGoogleStt(
 
   const data = await res.json() as Record<string, unknown>
 
-  // STT v2 response shape:
-  // { results: [ { alternatives: [ { transcript, words: [ { word, startOffset, endOffset, confidence } ] } ] } ] }
+  // v1 response shape:
+  // { results: [ { alternatives: [ { transcript, words: [ { word, startTime, endTime, confidence } ] } ] } ] }
   const results = (data as any)?.results ?? []
   if (!results.length) {
     throw new Error('STT returned no results — audio may be silent or too noisy')
@@ -182,9 +202,9 @@ export async function callGoogleStt(
     if (!alt) continue
     fullTranscript += alt.transcript ?? ''
     for (const w of (alt.words ?? [])) {
-      // STT v2 uses Duration string format: "1.234s"
-      const startMs = parseDurationMs(w.startOffset ?? '0s')
-      const endMs   = parseDurationMs(w.endOffset   ?? '0s')
+      // v1 uses Duration string format: "1.234s"
+      const startMs = parseDurationMs(w.startTime ?? '0s')
+      const endMs   = parseDurationMs(w.endTime   ?? '0s')
       words.push({
         word:       w.word ?? '',
         startMs,
@@ -195,7 +215,7 @@ export async function callGoogleStt(
   }
 
   if (!words.length) {
-    throw new Error('STT returned no word-level timestamps — enable word time offsets')
+    throw new Error('STT returned no word-level timestamps — try a longer recording')
   }
 
   return {
@@ -226,13 +246,100 @@ export async function runSttAnchor(opts: {
 }): Promise<SttResult> {
   const { sttApiKey, projectId, base64, mimeType, referenceText } = opts
 
-  if (sttApiKey && projectId) {
-    // Production: real STT
-    return callGoogleStt(sttApiKey, projectId, base64, mimeType)
+  if (sttApiKey) {
+    // Production: real STT (v1 API — no project ID required)
+    // → then align character/mixed tokens to reference word segments
+    const raw = await callGoogleStt(sttApiKey, projectId ?? '', base64, mimeType)
+    return alignSttToReference(raw, referenceText)
   }
 
   // Simulation mode
   return simulateStt(referenceText)
+}
+
+// ── STT → Reference alignment ──────────────────────────────────────────────────
+
+/**
+ * Google STT for Chinese often returns character-level tokens
+ * (e.g. "今","天","清","晨") or sometimes grouped tokens ("今天","清晨").
+ * Either way, we want the words to match the reference passage's word segments
+ * so timestamps can be looked up by word in the Gemini pipeline.
+ *
+ * Strategy:
+ *   1. Flatten all STT tokens into a character-indexed array with timestamps.
+ *   2. Build reference segments using segmentChinese().
+ *   3. For each segment, find its characters in the flat array and merge times.
+ *   4. If a segment's chars are missing (omitted/misrecognised), interpolate.
+ *
+ * This runs for BOTH single-char and mixed-token STT output.
+ */
+function alignSttToReference(raw: SttResult, referenceText: string): SttResult {
+  // Flatten every STT token into a per-character array with timestamps.
+  // For a multi-char token like "今天" (startMs=100, endMs=600), each char
+  // gets a proportional share of the time range.
+  interface CharTiming { char: string; startMs: number; endMs: number }
+  const flatChars: CharTiming[] = []
+  for (const w of raw.words) {
+    const chars = w.word.split('')
+    if (chars.length === 0) continue
+    if (chars.length === 1) {
+      flatChars.push({ char: chars[0], startMs: w.startMs, endMs: w.endMs })
+    } else {
+      // Distribute duration evenly across characters
+      const totalMs  = Math.max(w.endMs - w.startMs, chars.length * 50)
+      const perChar  = totalMs / chars.length
+      for (let i = 0; i < chars.length; i++) {
+        flatChars.push({
+          char:    chars[i],
+          startMs: Math.round(w.startMs + i * perChar),
+          endMs:   Math.round(w.startMs + (i + 1) * perChar),
+        })
+      }
+    }
+  }
+
+  const segments = segmentChinese(referenceText)
+  const aligned: SttWord[] = []
+  let   charIdx = 0   // pointer into flatChars
+
+  for (const seg of segments) {
+    // Skip standalone punctuation — no timing entry needed
+    if (/^[\u3000-\u303f\uff00-\uffef，。！？；：、]$/.test(seg)) continue
+
+    const segChars = seg.split('')
+    let startMs = 0
+    let endMs   = 0
+    let found   = false
+
+    // Search forward from charIdx for a consecutive run matching segChars
+    const maxLook = flatChars.length - segChars.length
+    for (let i = charIdx; i <= maxLook; i++) {
+      const match = segChars.every((ch, j) => flatChars[i + j]?.char === ch)
+      if (match) {
+        startMs  = flatChars[i].startMs
+        endMs    = flatChars[i + segChars.length - 1].endMs
+        charIdx  = i + segChars.length
+        found    = true
+        break
+      }
+    }
+
+    if (!found) {
+      // Interpolate from the last aligned word
+      const last = aligned[aligned.length - 1]
+      startMs = last ? last.endMs + 60 : 0
+      endMs   = startMs + segChars.length * 280
+    }
+
+    aligned.push({ word: seg, startMs, endMs })
+  }
+
+  return {
+    words:      aligned,
+    simulated:  false,
+    transcript: aligned.map(w => w.word).join(''),
+    durationMs: aligned[aligned.length - 1]?.endMs ?? raw.durationMs,
+  }
 }
 
 // ── Utility ────────────────────────────────────────────────────────────────────
