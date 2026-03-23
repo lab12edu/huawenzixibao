@@ -20,7 +20,7 @@
 // Backdrop click / handle click / X button all close the sheet.
 // ============================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SpeechButton from './SpeechButton';
 import { cancelAllAudio } from '../../utils/tts';
 
@@ -60,6 +60,17 @@ const DiagnosticBottomSheet: React.FC<Props> = ({ word, studentBlobUrl, onClose 
   const [studentPlaying, setStudentPlaying] = useState(false);
   const studentAudioRef = React.useRef<HTMLAudioElement | null>(null);
 
+  // Issue 3 — reset playback state when the inspected word changes.
+  // Without this, tapping word A → play → tap word B keeps the stop icon
+  // showing on the new word's button.
+  useEffect(() => {
+    if (studentAudioRef.current) {
+      studentAudioRef.current.pause();
+      studentAudioRef.current = null;
+    }
+    setStudentPlaying(false);
+  }, [word?.word]);
+
   const handleClose = () => {
     // Stop any playing audio
     if (studentAudioRef.current) {
@@ -97,33 +108,46 @@ const DiagnosticBottomSheet: React.FC<Props> = ({ word, studentBlobUrl, onClose 
     const audio = new Audio(studentBlobUrl);
     studentAudioRef.current = audio;
 
-    // Seek to word start time
     const seekToSecs = (word.startMs ?? 0) / 1000;
-    audio.currentTime = seekToSecs;
 
-    // Auto-stop at word end (+200ms buffer) if we know endMs
-    if (word.endMs && word.endMs > word.startMs!) {
-      const clipDuration = (word.endMs - word.startMs!) / 1000 + 0.2;
-      setTimeout(() => {
-        if (studentAudioRef.current === audio) {
-          audio.pause();
-          studentAudioRef.current = null;
+    // Auto-stop at word end (+200ms buffer) if we know endMs.
+    // Issue 2 guard: only pause if this audio instance is still active AND
+    // playback hasn't already been manually stopped by the user.
+    const scheduleAutoStop = () => {
+      if (word.endMs && word.endMs > (word.startMs ?? 0)) {
+        const clipDuration = (word.endMs - (word.startMs ?? 0)) / 1000 + 0.2;
+        setTimeout(() => {
+          if (studentAudioRef.current === audio && studentPlaying) {
+            audio.pause();
+            studentAudioRef.current = null;
+            setStudentPlaying(false);
+          }
+        }, clipDuration * 1000);
+      }
+    };
+
+    // Issue 1 — iOS Safari ignores audio.currentTime set before metadata loads.
+    // Use loadedmetadata event to seek, then play. This works on all browsers.
+    audio.addEventListener('loadedmetadata', () => {
+      audio.currentTime = seekToSecs;
+      audio.play()
+        .then(() => {
+          setStudentPlaying(true);
+          scheduleAutoStop();
+        })
+        .catch(() => {
           setStudentPlaying(false);
-        }
-      }, clipDuration * 1000);
-    }
-
-    audio.play()
-      .then(() => setStudentPlaying(true))
-      .catch(() => {
-        setStudentPlaying(false);
-        studentAudioRef.current = null;
-      });
+          studentAudioRef.current = null;
+        });
+    }, { once: true });
 
     audio.onended = () => {
       setStudentPlaying(false);
       studentAudioRef.current = null;
     };
+
+    // Triggers loadedmetadata (required explicitly on iOS for blob URLs)
+    audio.load();
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
