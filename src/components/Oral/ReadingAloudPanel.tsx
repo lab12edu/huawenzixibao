@@ -119,6 +119,8 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   const [recState, setRecState]     = useState<RecorderState>('idle');
   const [liveText, setLiveText]     = useState('');
   const [transcript, setTranscript] = useState('');
+  const [recSecsLeft, setRecSecsLeft] = useState(MAX_RECORD_MS / 1000);
+  const recCountdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recorderRef = useRef<ReturnType<typeof createRecorder> | null>(null);
   const recordedFileRef = useRef<File | null>(null);
   const blobUrlRef      = useRef<string | null>(null);
@@ -148,6 +150,8 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
       cancelAllAudio();
       recorderRef.current?.abort();
       if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
+      if (recTimeoutRef.current)   clearTimeout(recTimeoutRef.current);
+      if (recCountdownRef.current) clearInterval(recCountdownRef.current);
     };
   }, []);
 
@@ -157,12 +161,15 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   const startRecording = async () => {
     // Clean up previous session
     recorderRef.current?.abort();
+    if (recTimeoutRef.current)   { clearTimeout(recTimeoutRef.current);    recTimeoutRef.current   = null; }
+    if (recCountdownRef.current) { clearInterval(recCountdownRef.current); recCountdownRef.current = null; }
     if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
     recordedFileRef.current = null;
     setLiveText('');
     setTranscript('');
     setAuditResult(null);
     setAuditError(null);
+    setRecSecsLeft(MAX_RECORD_MS / 1000);
 
     const recorder = createRecorder(
       (text) => setLiveText(text),
@@ -172,6 +179,24 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
 
     try {
       await recorder.start();
+
+      // ── 120-second cost guardrail ─────────────────────────────
+      // Countdown display: tick every second
+      const startedAt = Date.now();
+      recCountdownRef.current = setInterval(() => {
+        const elapsed = Date.now() - startedAt;
+        const secsLeft = Math.max(0, Math.round((MAX_RECORD_MS - elapsed) / 1000));
+        setRecSecsLeft(secsLeft);
+      }, 1000);
+
+      // Hard stop after MAX_RECORD_MS
+      recTimeoutRef.current = setTimeout(async () => {
+        if (recCountdownRef.current) { clearInterval(recCountdownRef.current); recCountdownRef.current = null; }
+        if (recorderRef.current) {
+          console.info('[ReadingAloudPanel] Auto-stopped at 120s limit');
+          await stopRecording();
+        }
+      }, MAX_RECORD_MS);
     } catch (err) {
       console.warn('[ReadingAloudPanel] start() failed:', err);
       setRecState('idle');
@@ -179,13 +204,14 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   };
 
   const stopRecording = async () => {
+    if (recTimeoutRef.current)   { clearTimeout(recTimeoutRef.current);    recTimeoutRef.current   = null; }
+    if (recCountdownRef.current) { clearInterval(recCountdownRef.current); recCountdownRef.current = null; }
     if (!recorderRef.current) return;
     try {
       const file = await recorderRef.current.stop();
       recordedFileRef.current = file;
       blobUrlRef.current = URL.createObjectURL(file);
       setTranscript(liveText);
-      // recorderRef's onStateChange already set recState → 'recorded'
     } catch (err) {
       console.warn('[ReadingAloudPanel] stop() failed:', err);
       setRecState('idle');
@@ -194,11 +220,14 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
 
   const reRecord = () => {
     recorderRef.current?.abort();
+    if (recTimeoutRef.current)   { clearTimeout(recTimeoutRef.current);    recTimeoutRef.current   = null; }
+    if (recCountdownRef.current) { clearInterval(recCountdownRef.current); recCountdownRef.current = null; }
     if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
     recordedFileRef.current = null;
     setLiveText('');
     setTranscript('');
     setRecState('idle');
+    setRecSecsLeft(MAX_RECORD_MS / 1000);
     setRatings({ q1: 0, q2: 0, q3: 0, q4: 0 });
     setAuditResult(null);
     setAuditError(null);
@@ -262,7 +291,8 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   };
 
   // ─── Build passage heatmap ──────────────────────────────────────
-  // Map each Chinese character in the passage to its WordDiag (if any).
+  // Phase 2.5: diagMap keyed by word (STT-anchored).
+  // Each entry carries startMs/endMs from the STT anchor, used by DiagnosticBottomSheet.
   const diagMap = new Map<string, WordDiag>();
   if (auditResult) {
     for (const w of auditResult.words) {
@@ -430,6 +460,17 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
                 <i className="fa-solid fa-microphone" />
                 录音中… Recording…
               </button>
+              {/* 120s countdown — warn when under 30s */}
+              <div style={{
+                fontSize: '0.75rem',
+                color: recSecsLeft <= 30 ? '#D32F2F' : '#666',
+                fontWeight: recSecsLeft <= 30 ? 700 : 400,
+                marginTop: '4px',
+                textAlign: 'center',
+              }}>
+                {recSecsLeft <= 30 && <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 4 }} />}
+                最长 {recSecsLeft}s · Max recording {recSecsLeft}s
+              </div>
               {liveText && <div className="oral-transcript">{liveText}</div>}
               <button className="oral-stop-btn" onClick={stopRecording}>
                 <i className="fa-solid fa-stop" /> 停止录音 Stop
@@ -488,13 +529,29 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
           <div className="oral-card-title">
             <i className="fa-solid fa-chart-bar" />
             能力分析 Proficiency Dashboard
+            {/* STT mode badge */}
+            {auditResult.sttSimulated && (
+              <span style={{
+                marginLeft: '8px',
+                fontSize: '0.65rem',
+                background: '#FFF3E0',
+                color: '#E65100',
+                border: '1px solid #FFB74D',
+                borderRadius: '8px',
+                padding: '2px 7px',
+                fontWeight: 600,
+                verticalAlign: 'middle',
+              }}>
+                ⏱ Simulated Timing
+              </span>
+            )}
           </div>
           {auditResult.overallComment && (
             <p className="oral-overall-comment">{auditResult.overallComment}</p>
           )}
           <div className="oral-proficiency-bars">
             {PROFICIENCY_BARS.map(b => {
-              const score = auditResult.proficiency[b.key] ?? 0;
+              const score = (auditResult.proficiency as any)[b.key] ?? 0;
               return (
                 <div key={b.key} className="oral-prof-row">
                   <span className="oral-prof-label">
@@ -512,6 +569,10 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
               );
             })}
           </div>
+          {/* Expression score hidden — shown once acoustic variance analysis ships */}
+          <p style={{ fontSize: '0.7rem', color: '#9E9E9E', marginTop: '6px', textAlign: 'right' }}>
+            情感表达 Expression — coming soon
+          </p>
         </div>
       )}
 

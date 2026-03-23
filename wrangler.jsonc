@@ -6,8 +6,18 @@
   "compatibility_flags": [
     "nodejs_compat"
   ]
-  // GEMINI_API_KEY is stored as a Cloudflare Secret — never in this file.
-  // To set it in production:
+  // ── Secrets (never commit real values) ───────────────────────────
+  // GEMINI_API_KEY           — required; Gemini phonetic audit
+  // GOOGLE_STT_API_KEY       — optional; if absent → simulation mode
+  // GOOGLE_CLOUD_PROJECT_ID  — required when STT key is present
+  //
+  // Set in production:
   //   npx wrangler pages secret put GEMINI_API_KEY --project-name webapp
-  // For local development it is read from .dev.vars (git-ignored).
+  //   npx wrangler pages secret put GOOGLE_STT_API_KEY --project-name webapp
+  //   npx wrangler pages secret put GOOGLE_CLOUD_PROJECT_ID --project-name webapp
+  //
+  // For local dev add to .dev.vars (git-ignored):
+  //   GEMINI_API_KEY=AIza...
+  //   GOOGLE_STT_API_KEY=AIza...        (leave blank/absent for simulation)
+  //   GOOGLE_CLOUD_PROJECT_ID=my-proj
 }

@@ -9,10 +9,13 @@ import { cors } from 'hono/cors'
 import type { MiddlewareHandler } from 'hono'
 import { getVocabFromVault, searchVault, getIdiomsFromVault, getComposFromVault, getOralDataFromVault } from './server/vocabVault'
 import { ORAL_THEMES } from './server/data/oralData'
+import { runSttAnchor, type SttWord } from './server/sttAnchor'
 
 // ── Cloudflare bindings ───────────────────────────────────────────────────────
 type Bindings = {
-  GEMINI_API_KEY: string
+  GEMINI_API_KEY:         string
+  GOOGLE_STT_API_KEY?:    string   // optional — absent = simulation mode
+  GOOGLE_CLOUD_PROJECT_ID?: string  // required for real STT
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -87,14 +90,14 @@ const apiLimiter: MiddlewareHandler = async (c, next) => {
 const MODEL       = 'gemini-2.5-flash'          // text/vision tasks
 const API_BASE    = 'https://generativelanguage.googleapis.com/v1beta/models'
 
-// Audio-capable models tried in order; first non-429 response wins.
-// All models below support inline audio via generateContent.
-// Note: gemini-2.0-flash / 2.0-flash-lite are excluded — free-tier quota exhausted.
+// ── Phase 2.5: Locked audit model ────────────────────────────────────────────
+// Locked to stable models only. Preview/experimental models are excluded for
+// scoring reliability. Fallback chain: primary → secondary only.
+// When Google STT key is available, Gemini only needs to do phonetic/tone audit
+// (not transcription) so 2.5-flash is sufficient and cost-effective.
 const AUDIO_MODEL_CHAIN = [
-  'gemini-2.5-flash',        // Primary: best quality, has quota
-  'gemini-flash-latest',     // Fallback 1: alias, different quota bucket
-  'gemini-2.5-flash-lite',   // Fallback 2: lighter model, very fast
-  'gemini-3-flash-preview',  // Fallback 3: newest preview model
+  'gemini-2.5-flash',     // Primary: stable, supports inline audio
+  'gemini-flash-latest',  // Fallback: different quota bucket, same generation
 ]
 
 // ── Singapore guardrail (server-side only) ────────────────────────────────────
@@ -525,24 +528,38 @@ app.get('/api/oral/set/:id', apiLimiter, (c) => {
   return c.json(set);
 })
 
-// ── /api/oral/audit — Phonetic Diagnostic Engine (Phase 2) ───────────────────
+// ── /api/oral/audit — Phase 2.5 Hybrid Diagnostic Engine ─────────────────────
+//
+// TWO-STAGE PIPELINE:
+//   Stage 1 — STT Anchor (sttAnchor.ts)
+//     Real mode:  Google Cloud STT v2 → deterministic word timestamps
+//     Stub mode:  simulateStt()       → ~280ms/char mock timestamps
+//     If real STT FAILS → return 422 "Timestamping failed" (do NOT call Gemini)
+//
+//   Stage 2 — Gemini Phonetic Audit
+//     Input:  STT word list (JSON) + raw audio
+//     Task:   tone & phonetic audit only (NOT transcription — STT already did that)
+//     Output: status per word + proficiency scores + overall comment
 //
 // Request:  multipart/form-data
-//   audio          File   — the student's recorded audio (webm / mp4 / ogg / mp3)
-//   referenceText  string — the full Chinese passage text the student read
+//   audio          File   — student recording (webm / mp4 / ogg / mp3)
+//   referenceText  string — full Chinese passage text
 //
 // Response: JSON
-//   { words: WordDiag[], proficiency: ProficiencyScores, error?: string }
+//   { words: WordDiag[], proficiency: ProficiencyScores,
+//     overallComment, sttSimulated, error? }
 //
-// WordDiag shape (one per Chinese word in the passage):
-//   { word, status, targetPinyin, spokenPinyin, startMs?, endMs?, tip? }
+// WordDiag: { word, status, targetPinyin, spokenPinyin, startMs, endMs, tip? }
 //   status: "correct" | "tone_error" | "wrong" | "omitted" | "gap"
 //
-// ProficiencyScores: { pronunciation, tones, fluency, expression }  — each 0-100
+// ProficiencyScores: { pronunciation, tones, fluency, expression }  0-100
 //
 app.post('/api/oral/audit', apiLimiter, async (c) => {
-  const apiKey = c.env.GEMINI_API_KEY
-  if (!apiKey) return c.json({ error: 'API key not configured' }, 500)
+  const geminiKey = c.env.GEMINI_API_KEY
+  if (!geminiKey) return c.json({ error: 'API key not configured' }, 500)
+
+  const sttApiKey   = c.env.GOOGLE_STT_API_KEY   // undefined = simulation
+  const projectId   = c.env.GOOGLE_CLOUD_PROJECT_ID
 
   let formData: FormData
   try {
@@ -554,72 +571,109 @@ app.post('/api/oral/audit', apiLimiter, async (c) => {
   const audioFile     = formData.get('audio') as File | null
   const referenceText = (formData.get('referenceText') as string | null)?.trim() ?? ''
 
-  if (!audioFile || audioFile.size === 0) {
-    return c.json({ error: 'No audio file provided' }, 400)
-  }
-  if (!referenceText) {
-    return c.json({ error: 'No referenceText provided' }, 400)
-  }
+  if (!audioFile || audioFile.size === 0) return c.json({ error: 'No audio file provided' }, 400)
+  if (!referenceText)                      return c.json({ error: 'No referenceText provided' }, 400)
 
-  // ── Convert audio File → base64 ──────────────────────────────────
+  // ── Convert audio → base64 (shared by both stages) ───────────────
   const arrayBuf = await audioFile.arrayBuffer()
   const uint8    = new Uint8Array(arrayBuf)
-  // Cloudflare Workers: btoa works on binary strings
   let binary = ''
   for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i])
   const base64   = btoa(binary)
   const mimeType = audioFile.type || 'audio/webm'
 
-  // ── Build Gemini prompt ───────────────────────────────────────────
-  const systemPrompt = `You are a Singapore primary-school Mandarin pronunciation diagnostic engine.
-Output ONLY a compact JSON object. No markdown fences, no explanation text.
-First char must be '{', last char must be '}'.`
+  // ══════════════════════════════════════════════════════════════════
+  // STAGE 1 — STT Anchor
+  // ══════════════════════════════════════════════════════════════════
+  let sttResult: { words: SttWord[]; simulated: boolean; transcript: string; durationMs: number }
+  try {
+    sttResult = await runSttAnchor({
+      sttApiKey,
+      projectId,
+      base64,
+      mimeType,
+      referenceText,
+    })
+  } catch (sttErr: any) {
+    // Real STT failed — do NOT fall through to Gemini with bad data
+    return c.json({
+      error: `Timestamping failed — please re-record in a quieter environment. (${String(sttErr?.message ?? sttErr).slice(0, 120)})`,
+      sttFailed: true,
+    }, 422)
+  }
 
-  const userPrompt = `Reference text (student must read this aloud):
+  // ══════════════════════════════════════════════════════════════════
+  // STAGE 2 — Gemini Phonetic & Tone Audit
+  // ══════════════════════════════════════════════════════════════════
+  //
+  // We give Gemini the STT transcript as Ground Truth for WHAT was said.
+  // Its only job is to assess HOW it was pronounced (tones, phonetics).
+  // This prevents hallucination of word presence/absence.
+  //
+  const sttJson = JSON.stringify(
+    sttResult.words.map(w => ({ word: w.word, startMs: w.startMs, endMs: w.endMs }))
+  )
+
+  const auditPrompt = `You are a Singapore primary-school Mandarin phonetic & tone diagnostic engine.
+I provide a DETERMINISTIC timestamped transcript from a speech recognition engine.
+Your ONLY job is to assess TONE ACCURACY and PHONETIC CORRECTNESS.
+Do NOT question whether a word was said — the STT transcript is the ground truth.
+Output ONLY compact JSON. No markdown fences. First char '{', last char '}'.
+
+Reference passage the student should read:
 ${referenceText}
 
-Listen to the attached audio and return compact JSON:
+STT Ground Truth (what the student actually said, with timestamps):
+${sttJson}
+${sttResult.simulated ? '\n[NOTE: Timestamps are simulated — focus on phonetic/tone assessment only]\n' : ''}
+TASK: For each entry in the STT word list, determine:
+1. Is the word in the reference passage? (if not → status="wrong")
+2. Are the tones correct? (if wrong tone only → "tone_error")
+3. Is the phonetic sound correct? (if wrong sound → "wrong")
+4. Did the student omit a reference word entirely? Add it with status="omitted"
 
-{"words":[{"w":"汉字","s":"correct|tone_error|wrong|omitted|gap","t":"target_pinyin","p":"spoken_pinyin_or_null","tip":"English tip or null"}],"proficiency":{"pronunciation":0,"tones":0,"fluency":0,"expression":0},"overallComment":"One English sentence for parents."}
+Return EXACTLY this JSON shape (omit p/tip for correct words to save tokens):
+{"words":[{"w":"词","s":"correct|tone_error|wrong|omitted","t":"target_pinyin","p":"spoken_pinyin","startMs":0,"endMs":800,"tip":"English tip for parent or null"}],"proficiency":{"pronunciation":0,"tones":0,"fluency":0},"overallComment":"One English sentence for parents."}
 
 Rules:
-- Group 2-4 chars per entry (single chars also fine). Use "…" for gap entries.
-- s values: correct=both tones+sound right, tone_error=sound right but wrong tone, wrong=clearly wrong sound, omitted=skipped, gap=long pause
-- For "correct" words: p and tip can be omitted entirely to save tokens
-- Scores out of 100 based on overall performance
-- CRITICAL: pure JSON only, no code fences, starts with { ends with }`
+- pronunciation = overall phonetic accuracy 0-100
+- tones = tone accuracy 0-100  
+- fluency = pacing/smoothness based on gap patterns 0-100
+- Omit "expression" — it requires acoustic variance analysis not available here
+- Be strict: if mǎ vs mā → tone_error. If mǎ vs bā → wrong.
+- CRITICAL: pure JSON only, no code fences`
 
-  const result = await callGeminiWithAudio(apiKey, `${systemPrompt}\n\n${userPrompt}`, base64, mimeType)
+  const result = await callGeminiWithAudio(geminiKey, auditPrompt, base64, mimeType)
 
   if (result.error) {
     if (result.rateLimited) {
       return c.json({
-        error: 'AI service is busy right now — all models rate-limited. Please wait 30 seconds and tap Diagnose again.',
+        error: 'AI service is busy — please wait 30 seconds and tap Diagnose again.',
         retryable: true,
       }, 429)
     }
-    // Surface the raw Gemini error so the frontend can display it clearly
     let detail = 'Diagnostic service unavailable'
     try {
-      const parsed = JSON.parse(result.text)
-      detail = parsed?.error?.message ?? detail
+      const p = JSON.parse(result.text)
+      detail = p?.error?.message ?? detail
     } catch { detail = result.text?.slice(0, 200) || detail }
     return c.json({ error: detail }, 502)
   }
 
-  // ── Parse + validate JSON ─────────────────────────────────────────
-  // Gemini sometimes wraps in ```json...``` or adds preamble text.
-  // Strategy: strip code fences first, then extract the first {...} block.
+  // ── Parse + validate Gemini JSON ─────────────────────────────────
   function extractJson(raw: string): string {
-    // 1. Strip markdown code fences
     let s = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
-    // 2. If it already starts with '{', return as-is
     if (s.startsWith('{')) return s
-    // 3. Find the first '{' and last '}' — extract the outermost JSON object
     const start = s.indexOf('{')
     const end   = s.lastIndexOf('}')
     if (start !== -1 && end !== -1 && end > start) return s.slice(start, end + 1)
     return s
+  }
+
+  // Build a lookup of STT timestamps by word for merging
+  const sttMap = new Map<string, { startMs: number; endMs: number }>()
+  for (const sw of sttResult.words) {
+    if (!sttMap.has(sw.word)) sttMap.set(sw.word, { startMs: sw.startMs, endMs: sw.endMs })
   }
 
   try {
@@ -628,34 +682,47 @@ Rules:
     try {
       parsed = JSON.parse(cleaned)
     } catch {
-      // If truncated, try to salvage by closing unclosed JSON
       if (result.truncated) {
-        // Close any open array + object so JSON.parse might succeed
         const salvaged = cleaned.replace(/,\s*$/, '') + ']}'
         try { parsed = JSON.parse(salvaged) } catch { /* fall through */ }
       }
       if (!parsed) throw new Error('json parse failed')
     }
-    // Normalise compact format → full format expected by the frontend
-    // Compact uses: w, s, t, p  →  word, status, targetPinyin, spokenPinyin
+
+    // Normalise compact field names + merge STT timestamps
     if (Array.isArray(parsed.words)) {
-      parsed.words = parsed.words.map((item: any) => ({
-        word:        item.word        ?? item.w  ?? '',
-        status:      item.status      ?? item.s  ?? 'correct',
-        targetPinyin: item.targetPinyin ?? item.t ?? '',
-        spokenPinyin: item.spokenPinyin ?? item.p ?? null,
-        tip:          item.tip ?? null,
-      }))
+      parsed.words = parsed.words.map((item: any) => {
+        const word = item.word ?? item.w ?? ''
+        // Prefer Gemini-provided timestamps, fallback to STT map, fallback to 0
+        const sttTs  = sttMap.get(word)
+        const startMs = item.startMs ?? sttTs?.startMs ?? 0
+        const endMs   = item.endMs   ?? sttTs?.endMs   ?? 0
+        return {
+          word,
+          status:       item.status       ?? item.s  ?? 'correct',
+          targetPinyin: item.targetPinyin ?? item.t  ?? '',
+          spokenPinyin: item.spokenPinyin ?? item.p  ?? null,
+          startMs,
+          endMs,
+          tip:          item.tip ?? null,
+        }
+      })
     } else {
       parsed.words = []
     }
+
+    // Validate proficiency shape — only pronunciation/tones/fluency
     if (typeof parsed.proficiency !== 'object' || !parsed.proficiency) {
-      parsed.proficiency = { pronunciation: 70, tones: 70, fluency: 70, expression: 70 }
+      parsed.proficiency = { pronunciation: 70, tones: 70, fluency: 70 }
     }
-    if (result.truncated) parsed._truncated = true  // hint for frontend
+    // Remove expression if Gemini accidentally included it
+    delete parsed.proficiency.expression
+
+    if (result.truncated) parsed._truncated = true
+    parsed.sttSimulated = sttResult.simulated   // let frontend show "Simulated" badge if needed
+
     return c.json(parsed)
   } catch {
-    // Return raw text so the frontend can display a graceful error
     return c.json({ error: 'Could not parse diagnostic response', raw: result.text?.slice(0, 300) }, 500)
   }
 })

@@ -1,25 +1,26 @@
 // ============================================================
-// DiagnosticBottomSheet.tsx — Phase 2 Phonetic Audit Sheet
+// DiagnosticBottomSheet.tsx — Phase 2.5 Phonetic Audit Sheet
 //
 // Shows for a single flagged word:
-//   • Target pinyin  (teal)   vs  Spoken pinyin (red)
-//   • Dual SpeechButton: model audio clip OR TTS for that word
-//   • A plain-English tip for the parent
 //   • Status badge: tone_error | wrong | omitted | gap
+//   • Target pinyin (teal) vs Spoken pinyin (red)
+//   • Dual playback:
+//       – "Model" SpeechButton: TTS for the word
+//       – "My Recording" button: seeks student blob to word's startMs
+//         (STT anchor provides exact timestamp; simulated if no STT key)
+//   • Parent tip in English
 //
-// Dual playback strategy:
-//   – "Model" button: plays set's model audio via Audio() singleton
-//     (cancelAllAudio before play, just like SpeechButton)
-//   – "My Recording" button: plays the student's blob URL
-//   Both use cancelAllAudio() from tts.ts so they can't overlap.
+// STT Scrubber behaviour:
+//   When studentBlobUrl AND word.startMs > 0:
+//     → creates Audio(), sets currentTime = startMs / 1000, plays
+//   When startMs = 0 (e.g. 'omitted' words never heard):
+//     → button is disabled with tooltip "Word not heard"
 //
-// Animation:
-//   Sheet slides up from bottom (transform translateY). The backdrop
-//   is a semi-transparent overlay. Both transition via CSS classes
-//   (.diag-sheet--open). A tap on the backdrop closes the sheet.
+// Animation: sheet slides up from bottom via .diag-sheet--open CSS class.
+// Backdrop click / handle click / X button all close the sheet.
 // ============================================================
 
-import React from 'react';
+import React, { useState } from 'react';
 import SpeechButton from './SpeechButton';
 import { cancelAllAudio } from '../../utils/tts';
 
@@ -31,6 +32,8 @@ export interface WordDiag {
   status:        WordStatus;
   targetPinyin:  string;
   spokenPinyin:  string | null;
+  startMs?:      number;   // from STT anchor (0 = unknown/omitted)
+  endMs?:        number;
   tip?:          string | null;
 }
 
@@ -53,14 +56,77 @@ const STATUS_META: Record<Exclude<WordStatus, 'correct'>, { label: string; label
 const DiagnosticBottomSheet: React.FC<Props> = ({ word, studentBlobUrl, onClose }) => {
   const isOpen = !!word;
 
-  // When the sheet closes, stop any playing audio
+  // Track whether student clip is playing so we can show stop icon
+  const [studentPlaying, setStudentPlaying] = useState(false);
+  const studentAudioRef = React.useRef<HTMLAudioElement | null>(null);
+
   const handleClose = () => {
+    // Stop any playing audio
+    if (studentAudioRef.current) {
+      studentAudioRef.current.pause();
+      studentAudioRef.current = null;
+    }
     cancelAllAudio();
+    setStudentPlaying(false);
     onClose();
   };
 
   const meta = word && word.status !== 'correct' ? STATUS_META[word.status] : null;
 
+  // ── STT Scrubber — play student recording from word's startMs ────────────
+  const canScrub = !!(
+    studentBlobUrl &&
+    word?.startMs !== undefined &&
+    word.startMs > 0 &&
+    word.status !== 'omitted'   // omitted words have no audio to seek to
+  );
+
+  const playStudentClip = () => {
+    if (!studentBlobUrl || !word) return;
+
+    // If already playing → stop
+    if (studentPlaying && studentAudioRef.current) {
+      studentAudioRef.current.pause();
+      studentAudioRef.current = null;
+      setStudentPlaying(false);
+      return;
+    }
+
+    cancelAllAudio();  // stop any TTS or model audio
+
+    const audio = new Audio(studentBlobUrl);
+    studentAudioRef.current = audio;
+
+    // Seek to word start time
+    const seekToSecs = (word.startMs ?? 0) / 1000;
+    audio.currentTime = seekToSecs;
+
+    // Auto-stop at word end (+200ms buffer) if we know endMs
+    if (word.endMs && word.endMs > word.startMs!) {
+      const clipDuration = (word.endMs - word.startMs!) / 1000 + 0.2;
+      setTimeout(() => {
+        if (studentAudioRef.current === audio) {
+          audio.pause();
+          studentAudioRef.current = null;
+          setStudentPlaying(false);
+        }
+      }, clipDuration * 1000);
+    }
+
+    audio.play()
+      .then(() => setStudentPlaying(true))
+      .catch(() => {
+        setStudentPlaying(false);
+        studentAudioRef.current = null;
+      });
+
+    audio.onended = () => {
+      setStudentPlaying(false);
+      studentAudioRef.current = null;
+    };
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
       {/* Backdrop */}
@@ -78,7 +144,14 @@ const DiagnosticBottomSheet: React.FC<Props> = ({ word, studentBlobUrl, onClose 
         aria-label="发音诊断 Pronunciation Diagnosis"
       >
         {/* Handle bar */}
-        <div className="diag-handle" onClick={handleClose} aria-label="关闭 Close" role="button" tabIndex={0} />
+        <div
+          className="diag-handle"
+          onClick={handleClose}
+          aria-label="关闭 Close"
+          role="button"
+          tabIndex={0}
+          onKeyDown={e => e.key === 'Enter' && handleClose()}
+        />
 
         {word && (
           <div className="diag-sheet-body">
@@ -117,6 +190,7 @@ const DiagnosticBottomSheet: React.FC<Props> = ({ word, studentBlobUrl, onClose 
 
             {/* ── Dual playback row ── */}
             <div className="diag-playback-row">
+
               {/* Model TTS: always available */}
               <div className="diag-playback-item">
                 <SpeechButton
@@ -124,27 +198,60 @@ const DiagnosticBottomSheet: React.FC<Props> = ({ word, studentBlobUrl, onClose 
                   title="朗读正确读音 Hear correct pronunciation"
                   className="diag-play-btn diag-play-btn--model"
                 />
-                <span className="diag-play-label">示范<br /><span className="diag-play-label-en">Model</span></span>
+                <span className="diag-play-label">
+                  示范<br />
+                  <span className="diag-play-label-en">Model</span>
+                </span>
               </div>
 
-              {/* Student recording clip — only if blob URL present */}
+              {/* Student recording — scrubs to word's startMs via STT anchor */}
               {studentBlobUrl && (
                 <div className="diag-playback-item">
                   <button
-                    className="diag-play-btn diag-play-btn--student"
-                    title="播放你的录音 Play your recording"
-                    onClick={() => {
-                      cancelAllAudio();
-                      const a = new Audio(studentBlobUrl);
-                      a.play().catch(() => {/* silent if revoked */});
-                    }}
+                    className={`diag-play-btn diag-play-btn--student${studentPlaying ? ' diag-play-btn--active' : ''}`}
+                    title={
+                      canScrub
+                        ? `播放你在 ${word.startMs}ms 的录音 / Play your recording at ${word.startMs}ms`
+                        : word.status === 'omitted'
+                          ? '此字未录到 / Word not heard in recording'
+                          : '播放你的录音 / Play your recording from start'
+                    }
+                    onClick={playStudentClip}
+                    aria-label="播放学生录音"
                   >
-                    <i className="fa-solid fa-play" />
+                    <i className={`fa-solid ${studentPlaying ? 'fa-stop' : 'fa-play'}`} />
                   </button>
-                  <span className="diag-play-label">你的录音<br /><span className="diag-play-label-en">Your Recording</span></span>
+                  <span className="diag-play-label">
+                    你的录音<br />
+                    <span className="diag-play-label-en">
+                      {canScrub
+                        ? `@ ${(word.startMs! / 1000).toFixed(1)}s`
+                        : word.status === 'omitted' ? 'Not heard' : 'Your Rec'}
+                    </span>
+                  </span>
                 </div>
               )}
             </div>
+
+            {/* ── STT timestamp info bar (debug / trust signal) ── */}
+            {(word.startMs !== undefined && word.startMs > 0) && (
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                padding: '6px 10px',
+                background: '#F3F4F6',
+                borderRadius: '8px',
+                fontSize: '0.68rem',
+                color: '#6B7280',
+                marginTop: '4px',
+              }}>
+                <span>⏱ Start: {(word.startMs / 1000).toFixed(2)}s</span>
+                {word.endMs ? <span>End: {(word.endMs / 1000).toFixed(2)}s</span> : null}
+                {word.endMs && word.startMs
+                  ? <span>Duration: {((word.endMs - word.startMs) / 1000).toFixed(2)}s</span>
+                  : null}
+              </div>
+            )}
 
             {/* ── Parent tip ── */}
             {word.tip && (
