@@ -5343,3 +5343,382 @@ html { scrollbar-gutter: stable; }
 }
 
 /* End Phase 1.6 skill legend */
+
+/* ═══════════════════════════════════════════════════════════════
+   Phase 2 — Reading Aloud Diagnostic Engine
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Heatmap word tokens ──────────────────────────────────────── */
+.heatmap-word {
+  display: inline;
+  border-radius: 3px;
+  padding: 0 1px;
+  transition: background 0.15s;
+}
+.heatmap-word--clickable {
+  cursor: pointer;
+}
+.heatmap-word--clickable:hover {
+  filter: brightness(0.85);
+}
+
+/* Correct — subtle gold underline */
+.word-gold {
+  color: var(--text-primary);
+  border-bottom: 2px solid #F9A825;
+}
+/* Tone error — orange background */
+.word-tone {
+  background: rgba(255, 152, 0, 0.22);
+  border-bottom: 2px solid #EF6C00;
+  color: #BF360C;
+}
+/* Wrong pronunciation — red background */
+.word-red {
+  background: rgba(211, 47, 47, 0.15);
+  border-bottom: 2px solid #C62828;
+  color: #B71C1C;
+}
+/* Omitted — grey strikethrough */
+.word-omitted {
+  color: #9E9E9E;
+  text-decoration: line-through;
+}
+/* Gap / pause — orange-gap marker */
+.word-gap {
+  color: #FF6F00;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 0 4px;
+}
+
+/* Heatmap mode — flowing inline */
+.oral-passage-text--heatmap {
+  line-height: 2.4;
+  letter-spacing: 0.05em;
+}
+
+/* Heatmap legend row */
+.heatmap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--accent-light);
+  font-size: 0.78rem;
+}
+.heatmap-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+}
+
+/* ── Audit badges & buttons ───────────────────────────────────── */
+.oral-audit-badge {
+  background: rgba(0, 137, 123, 0.12);
+  color: #00695C;
+  border: 1px solid #00897B;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.oral-audit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #1565C0;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.oral-audit-btn:hover:not(:disabled) { background: #0D47A1; }
+.oral-audit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.oral-audit-retry-btn {
+  margin-left: 8px;
+  background: none;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: inherit;
+}
+.oral-audit-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1565C0;
+  font-size: 0.9rem;
+  padding: 0.4rem 0;
+}
+.oral-audit-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #B71C1C;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+}
+
+/* ── Model audio button (inline in passage card header) ──────── */
+.oral-card-header-static {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0.6rem 0 0.4rem;
+}
+.oral-model-audio-btn {
+  flex-shrink: 0;
+}
+
+/* ── Proficiency Dashboard ────────────────────────────────────── */
+.oral-overall-comment {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+.oral-proficiency-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.oral-prof-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr 2.5rem;
+  align-items: center;
+  gap: 8px;
+}
+.oral-prof-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.oral-prof-label-en {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.oral-prof-track {
+  background: var(--accent-light);
+  border-radius: 6px;
+  height: 10px;
+  overflow: hidden;
+}
+.oral-prof-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+.oral-prof-score {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+/* ── Diagnostic Bottom Sheet ──────────────────────────────────── */
+.diag-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  z-index: 200;
+  transition: background 0.25s;
+}
+.diag-backdrop--open {
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: all;
+}
+
+.diag-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card-bg, #fff);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+  z-index: 201;
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 82vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.diag-sheet--open {
+  transform: translateY(0);
+}
+
+.diag-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--accent-light, #e0e0e0);
+  border-radius: 2px;
+  margin: 12px auto 4px;
+  cursor: pointer;
+}
+
+.diag-sheet-body {
+  padding: 0.5rem 1.2rem 2rem;
+}
+
+.diag-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+.diag-word-large {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.diag-close-btn {
+  margin-left: auto;
+  background: var(--accent-light, #f0f0f0);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Status badges */
+.diag-badge {
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.diag-badge-cn {
+  font-weight: 400;
+}
+.diag-badge--tone    { background: rgba(239, 108, 0, 0.15); color: #BF360C; }
+.diag-badge--wrong   { background: rgba(198, 40, 40, 0.15);  color: #B71C1C; }
+.diag-badge--omitted { background: rgba(97, 97, 97, 0.15);   color: #424242; }
+.diag-badge--gap     { background: rgba(255, 111, 0, 0.15);  color: #E65100; }
+
+/* Pinyin comparison cards */
+.diag-pinyin-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.pinyin-card {
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pinyin-card--target { background: rgba(0, 137, 123, 0.1);  border: 1px solid #00897B; }
+.pinyin-card--spoken { background: rgba(198, 40, 40, 0.1);   border: 1px solid #C62828; }
+.pinyin-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pinyin-val {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.pinyin-val--target { color: #00695C; }
+.pinyin-val--spoken { color: #B71C1C; }
+
+/* Dual playback row */
+.diag-playback-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+.diag-playback-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.diag-play-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.diag-play-btn:active { transform: scale(0.93); }
+.diag-play-btn--model   { background: #00897B; color: #fff; }
+.diag-play-btn--student { background: #1565C0; color: #fff; }
+.diag-play-label {
+  font-size: 0.72rem;
+  text-align: center;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+.diag-play-label-en {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+}
+
+/* Parent tip box */
+.diag-tip-box {
+  display: flex;
+  gap: 10px;
+  background: rgba(245, 127, 23, 0.09);
+  border: 1px solid rgba(245, 127, 23, 0.3);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+}
+.diag-tip-icon { color: #F57F17; margin-top: 2px; flex-shrink: 0; }
+.diag-tip-text { font-size: 0.88rem; color: var(--text-primary); line-height: 1.5; margin: 0; }
+
+/* Practice row */
+.diag-practice-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent-light, #f5f5f5);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+}
+.diag-practice-label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.diag-word-practice {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.08em;
+}
+
+/* End Phase 2 diagnostic */

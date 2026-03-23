@@ -171,6 +171,42 @@ async function callGeminiWithImage(
   return { error: true, rateLimited: true, text: '' }
 }
 
+// ── Gemini Audio helper (Phase 2 — Phonetic Audit) ───────────────────────────
+// Sends an audio file inline alongside a text prompt.
+// mimeType: 'audio/webm' | 'audio/mp4' | 'audio/ogg' | 'audio/mpeg'
+async function callGeminiWithAudio(
+  apiKey:   string,
+  prompt:   string,
+  base64:   string,
+  mimeType: string,
+): Promise<GeminiResult> {
+  const url = `${API_BASE}/${MODEL}:generateContent?key=${apiKey}`
+  const body = JSON.stringify({
+    contents: [{
+      role: 'user',
+      parts: [
+        { inline_data: { mime_type: mimeType, data: base64 } },
+        { text: prompt },
+      ],
+    }],
+    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+  })
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+    if (res.status === 429 && attempt === 0) {
+      await new Promise(r => setTimeout(r, 6000))
+      continue
+    }
+    if (res.status === 429) return { error: true, rateLimited: true, text: '' }
+    if (!res.ok)            return { error: true, text: '' }
+    const data = await res.json() as Record<string, unknown>
+    const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    return { error: !text, text }
+  }
+  return { error: true, rateLimited: true, text: '' }
+}
+
 // ── Level helpers ────────────────────────────────────────────────────────────
 const isLowerPrimary = (level: string) => ['P3', 'P4'].includes(level)
 
@@ -440,6 +476,108 @@ app.get('/api/oral/set/:id', apiLimiter, (c) => {
   const set = getOralDataFromVault().find(s => s.id === id);
   if (!set) return c.json({ error: 'Not found' }, 404);
   return c.json(set);
+})
+
+// ── /api/oral/audit — Phonetic Diagnostic Engine (Phase 2) ───────────────────
+//
+// Request:  multipart/form-data
+//   audio          File   — the student's recorded audio (webm / mp4 / ogg / mp3)
+//   referenceText  string — the full Chinese passage text the student read
+//
+// Response: JSON
+//   { words: WordDiag[], proficiency: ProficiencyScores, error?: string }
+//
+// WordDiag shape (one per Chinese word in the passage):
+//   { word, status, targetPinyin, spokenPinyin, startMs?, endMs?, tip? }
+//   status: "correct" | "tone_error" | "wrong" | "omitted" | "gap"
+//
+// ProficiencyScores: { pronunciation, tones, fluency, expression }  — each 0-100
+//
+app.post('/api/oral/audit', apiLimiter, async (c) => {
+  const apiKey = c.env.GEMINI_API_KEY
+  if (!apiKey) return c.json({ error: 'API key not configured' }, 500)
+
+  let formData: FormData
+  try {
+    formData = await c.req.formData()
+  } catch {
+    return c.json({ error: 'Invalid form data' }, 400)
+  }
+
+  const audioFile     = formData.get('audio') as File | null
+  const referenceText = (formData.get('referenceText') as string | null)?.trim() ?? ''
+
+  if (!audioFile || audioFile.size === 0) {
+    return c.json({ error: 'No audio file provided' }, 400)
+  }
+  if (!referenceText) {
+    return c.json({ error: 'No referenceText provided' }, 400)
+  }
+
+  // ── Convert audio File → base64 ──────────────────────────────────
+  const arrayBuf = await audioFile.arrayBuffer()
+  const uint8    = new Uint8Array(arrayBuf)
+  // Cloudflare Workers: btoa works on binary strings
+  let binary = ''
+  for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i])
+  const base64   = btoa(binary)
+  const mimeType = audioFile.type || 'audio/webm'
+
+  // ── Build Gemini prompt ───────────────────────────────────────────
+  const systemPrompt = `你是一位专业的新加坡小学华文口试语音诊断老师。你的任务是逐字对比学生的朗读音频与参考课文，识别发音错误、声调错误、吞字和停顿异常，并为家长提供清晰的英中双语诊断报告。请只返回严格的 JSON，不要加任何说明文字。`
+
+  const userPrompt = `参考课文：
+${referenceText}
+
+请聆听附件音频（学生朗读），然后返回以下 JSON 结构：
+
+{
+  "words": [
+    {
+      "word": "汉字词",
+      "status": "correct | tone_error | wrong | omitted | gap",
+      "targetPinyin": "正确拼音（带声调数字，如 nǐ hǎo）",
+      "spokenPinyin": "学生实际发音拼音（如无法判断填 null）",
+      "tip": "给家长的简短英语提示（仅在 status != correct 时填写，否则 null）"
+    }
+  ],
+  "proficiency": {
+    "pronunciation": 0,
+    "tones": 0,
+    "fluency": 0,
+    "expression": 0
+  },
+  "overallComment": "一句英语总评，给家长看"
+}
+
+规则：
+- 每个词（2–4个汉字）作为一个条目。单字词也可单独列出。
+- status 说明：
+    correct    = 发音声调均正确
+    tone_error = 读音对但声调错
+    wrong      = 发音明显错误
+    omitted    = 学生漏读
+    gap        = 停顿过长（此条目 word 填 "…"）
+- proficiency 各项满分 100，根据整体表现给分。
+- 只返回 JSON，不要 markdown 代码块。`
+
+  const result = await callGeminiWithAudio(apiKey, `${systemPrompt}\n\n${userPrompt}`, base64, mimeType)
+
+  if (result.error) {
+    if (result.rateLimited) return c.json({ error: 'Rate limited — please try again in a moment' }, 429)
+    return c.json({ error: 'Diagnostic service unavailable' }, 502)
+  }
+
+  // ── Parse + validate JSON ─────────────────────────────────────────
+  try {
+    // Gemini sometimes wraps in ```json ... ``` — strip it
+    const cleaned = result.text.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim()
+    const parsed  = JSON.parse(cleaned)
+    return c.json(parsed)
+  } catch {
+    // Return raw text so the frontend can display a graceful error
+    return c.json({ error: 'Could not parse diagnostic response', raw: result.text }, 500)
+  }
 })
 
 // ── /api/health ───────────────────────────────────────────────────────────────

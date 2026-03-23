@@ -1,14 +1,31 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { OralSet } from '../../data/oralData';
 import StrokeDemoModal from '../StrokeDemoModal';
-import { speak, speakPassage, cancelSpeak, isSupported } from '../../utils/tts';
+import SpeechButton from './SpeechButton';
+import DiagnosticBottomSheet, { WordDiag } from './DiagnosticBottomSheet';
+import { createRecorder, RecorderState } from '../../utils/audioRecorder';
+import { speak, cancelAllAudio, isSupported } from '../../utils/tts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type RecordState = 'idle' | 'recording' | 'recorded';
 
 interface Ratings {
   q1: number; q2: number; q3: number; q4: number;
 }
+
+interface ProficiencyScores {
+  pronunciation: number;
+  tones:         number;
+  fluency:       number;
+  expression:    number;
+}
+
+interface AuditResult {
+  words:           WordDiag[];
+  proficiency:     ProficiencyScores;
+  overallComment?: string;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const MOTIVATIONAL_TIPS = [
   '读得慢一点，清晰比速度重要。/ Slow down — clarity beats speed.',
@@ -24,11 +41,26 @@ const RATING_CRITERIA = [
   { key: 'q4' as const, cn: '标点停顿', en: 'Punctuation & Breath Control' },
 ];
 
+const PROFICIENCY_BARS = [
+  { key: 'pronunciation' as const, cn: '发音', en: 'Pronunciation', colour: '#00897B' },
+  { key: 'tones'         as const, cn: '声调', en: 'Tones',         colour: '#1565C0' },
+  { key: 'fluency'       as const, cn: '流利', en: 'Fluency',       colour: '#AD1457' },
+  { key: 'expression'    as const, cn: '表达', en: 'Expression',    colour: '#F57F17' },
+];
+
+// ─── Word status → heatmap CSS class ─────────────────────────────────────────
+function wordClass(status: WordDiag['status']): string {
+  switch (status) {
+    case 'tone_error': return 'word-tone';
+    case 'wrong':      return 'word-red';
+    case 'omitted':    return 'word-omitted';
+    case 'gap':        return 'word-gap';
+    default:           return 'word-gold';  // correct
+  }
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Collapsible section wrapper — entire header row is the click target.
- *  Content uses CSS grid 0fr→1fr for a smooth slide-open/close animation
- *  with no layout jerk: flex:1 + min-width:0 on the title anchors its width. */
 function CollapsibleCard({
   title, icon, defaultOpen = false, children,
 }: {
@@ -55,7 +87,6 @@ function CollapsibleCard({
   );
 }
 
-/** 5-star selector row */
 function StarRow({ label, en, value, onChange }: {
   label: string; en: string; value: number; onChange: (n: number) => void;
 }) {
@@ -84,182 +115,203 @@ function StarRow({ label, en, value, onChange }: {
 interface Props { set: OralSet; }
 
 const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
-  // Recording state
-  const [recState, setRecState] = useState<RecordState>('idle');
+  // Recording
+  const [recState, setRecState]     = useState<RecorderState>('idle');
+  const [liveText, setLiveText]     = useState('');
   const [transcript, setTranscript] = useState('');
-  const [liveText, setLiveText] = useState('');
-  const recRef = useRef<InstanceType<typeof window.SpeechRecognition> | null>(null);
+  const recorderRef = useRef<ReturnType<typeof createRecorder> | null>(null);
+  const recordedFileRef = useRef<File | null>(null);
+  const blobUrlRef      = useRef<string | null>(null);
 
-  // Read Aloud speaking state
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  // Audit
+  const [auditing,    setAuditing]    = useState(false);
+  const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
+  const [auditError,  setAuditError]  = useState<string | null>(null);
 
-  // MediaRecorder refs for real audio capture
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const audioBlobUrlRef = useRef<string | null>(null);
+  // Diagnostic sheet
+  const [sheetWord, setSheetWord]   = useState<WordDiag | null>(null);
 
-  // Rating state
-  const [ratings, setRatings] = useState<Ratings>({ q1: 0, q2: 0, q3: 0, q4: 0 });
+  // Rating
+  const [ratings,   setRatings]   = useState<Ratings>({ q1: 0, q2: 0, q3: 0, q4: 0 });
   const [showToast, setShowToast] = useState(false);
 
-  // Stroke demo state
+  // Stroke demo
   const [strokeDemoChar, setStrokeDemoChar] = useState<string | null>(null);
 
-  // Check SpeechRecognition support
-  const SpeechRecognition =
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-  const hasRecognition = !!SpeechRecognition;
-
-  // Passage data
+  // Passage
   const fullText = set.passage.paragraphs.join('');
-  const tip = MOTIVATIONAL_TIPS[(set.setNumber - 1) % 4];
+  const tip      = MOTIVATIONAL_TIPS[(set.setNumber - 1) % 4];
 
-  // Cleanup on unmount
+  // ── Cleanup on unmount ──────────────────────────────────────────
   useEffect(() => {
     return () => {
-      cancelSpeak();
-      setIsSpeaking(false);
-      if (recRef.current) recRef.current.stop();
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
-      if (audioBlobUrlRef.current) {
-        URL.revokeObjectURL(audioBlobUrlRef.current);
-        audioBlobUrlRef.current = null;
-      }
+      cancelAllAudio();
+      recorderRef.current?.abort();
+      if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
     };
   }, []);
 
-  // ── Recording handlers ──
+  // ── Recording handlers ──────────────────────────────────────────
+
+  /** Must be called directly from a button onClick — iOS requires user gesture. */
   const startRecording = async () => {
-    if (!hasRecognition) return;
-
-    // Revoke any previous audio URL
-    if (audioBlobUrlRef.current) {
-      URL.revokeObjectURL(audioBlobUrlRef.current);
-      audioBlobUrlRef.current = null;
-    }
-    audioChunksRef.current = [];
-
-    // Start MediaRecorder for real audio capture
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: true,
-          sampleRate: 44100,
-          channelCount: 1
-        }
-      });
-      const mr = new MediaRecorder(stream);
-      mr.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
-      mr.onstop = () => {
-        // Stop all tracks to release microphone
-        stream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        audioBlobUrlRef.current = URL.createObjectURL(blob);
-      };
-      mediaRecorderRef.current = mr;
-      await new Promise(resolve => setTimeout(resolve, 80));
-      mr.start(500);
-    } catch (err) {
-      console.warn('[ReadingAloudPanel] getUserMedia failed, audio capture disabled:', err);
-      mediaRecorderRef.current = null;
-    }
-
-    // Start SpeechRecognition in parallel for transcript
-    const rec = new SpeechRecognition();
-    rec.lang = 'zh-CN';
-    rec.interimResults = true;
-    rec.continuous = true;
-
-    let final = '';
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) { final += t; } else { interim = t; }
-      }
-      setLiveText(final + interim);
-    };
-
-    rec.onerror = () => {
-      setRecState('idle');
-    };
-
-    recRef.current = rec;
-    rec.start();
+    // Clean up previous session
+    recorderRef.current?.abort();
+    if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
+    recordedFileRef.current = null;
     setLiveText('');
-    setRecState('recording');
+    setTranscript('');
+    setAuditResult(null);
+    setAuditError(null);
+
+    const recorder = createRecorder(
+      (text) => setLiveText(text),
+      (state) => setRecState(state),
+    );
+    recorderRef.current = recorder;
+
+    try {
+      await recorder.start();
+    } catch (err) {
+      console.warn('[ReadingAloudPanel] start() failed:', err);
+      setRecState('idle');
+    }
   };
 
-  const stopRecording = () => {
-    // Stop SpeechRecognition
-    if (recRef.current) {
-      recRef.current.stop();
-      recRef.current = null;
+  const stopRecording = async () => {
+    if (!recorderRef.current) return;
+    try {
+      const file = await recorderRef.current.stop();
+      recordedFileRef.current = file;
+      blobUrlRef.current = URL.createObjectURL(file);
+      setTranscript(liveText);
+      // recorderRef's onStateChange already set recState → 'recorded'
+    } catch (err) {
+      console.warn('[ReadingAloudPanel] stop() failed:', err);
+      setRecState('idle');
     }
-    // Stop MediaRecorder (onstop will build the Blob URL)
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
-    setTranscript(liveText);
-    setRecState('recorded');
   };
 
   const reRecord = () => {
-    // Revoke existing blob URL
-    if (audioBlobUrlRef.current) {
-      URL.revokeObjectURL(audioBlobUrlRef.current);
-      audioBlobUrlRef.current = null;
-    }
-    audioChunksRef.current = [];
-    mediaRecorderRef.current = null;
-    setTranscript('');
+    recorderRef.current?.abort();
+    if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
+    recordedFileRef.current = null;
     setLiveText('');
+    setTranscript('');
     setRecState('idle');
     setRatings({ q1: 0, q2: 0, q3: 0, q4: 0 });
+    setAuditResult(null);
+    setAuditError(null);
   };
 
   const playBack = () => {
-    // Primary: play the real recorded audio blob
-    if (audioBlobUrlRef.current) {
-      const audio = new Audio(audioBlobUrlRef.current);
-      audio.play().catch(err => {
-        console.warn('[ReadingAloudPanel] Audio playback failed, falling back to TTS:', err);
-        ttsFallback();
-      });
-      return;
+    if (!blobUrlRef.current) return;
+    cancelAllAudio();
+    const a = new Audio(blobUrlRef.current);
+    a.play().catch(() => {
+      if (isSupported() && transcript) speak(transcript);
+    });
+  };
+
+  // ── Phonetic audit ──────────────────────────────────────────────
+  const runAudit = useCallback(async () => {
+    if (!recordedFileRef.current) return;
+    setAuditing(true);
+    setAuditError(null);
+
+    try {
+      const fd = new FormData();
+      fd.append('audio', recordedFileRef.current);
+      fd.append('referenceText', fullText);
+
+      const res = await fetch('/api/oral/audit', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Server error' })) as any;
+        throw new Error(err.error ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json() as AuditResult;
+      setAuditResult(data);
+    } catch (e: any) {
+      setAuditError(e.message ?? 'Unknown error');
+    } finally {
+      setAuditing(false);
     }
-    // Fallback: TTS of transcript when no audio blob available
-    ttsFallback();
-  };
+  }, [fullText]);
 
-  const ttsFallback = () => {
-    if (!isSupported()) return;
-    const text = transcript || liveText;
-    if (!text) return;
-    speak(text);
-  };
-
-  // ── Save rating ──
+  // ── Save rating ─────────────────────────────────────────────────
   const saveRating = () => {
     try {
-      const raw = localStorage.getItem('hwzxb_oral_progress') || '{}';
+      const raw  = localStorage.getItem('hwzxb_oral_progress') || '{}';
       const data = JSON.parse(raw);
       data[set.id] = {
         lastPracticed: new Date().toISOString(),
         ratings: { ...ratings },
+        proficiency: auditResult?.proficiency ?? null,
       };
       localStorage.setItem('hwzxb_oral_progress', JSON.stringify(data));
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2000);
+  };
+
+  // ─── Build passage heatmap ──────────────────────────────────────
+  // Map each Chinese character in the passage to its WordDiag (if any).
+  const diagMap = new Map<string, WordDiag>();
+  if (auditResult) {
+    for (const w of auditResult.words) {
+      if (w.word) diagMap.set(w.word, w);
+    }
+  }
+
+  // ── Render passage: plain chars while no audit, heatmap after ───
+  const renderPassage = () => {
+    if (!auditResult) {
+      // Original character-by-character rendering with TTS tap
+      return set.passage.paragraphs.map((para, pi) => (
+        <p key={pi} className="oral-passage-para">
+          {para.split('').map((char, ci) => {
+            const isChinese = /[\u4e00-\u9fff]/.test(char);
+            if (!isChinese) return <span key={ci}>{char}</span>;
+            return (
+              <span key={ci} className="oral-char-wrap">
+                <span className="oral-char" onClick={() => speak(char)}>{char}</span>
+                <button
+                  className="oral-char-stroke-btn"
+                  title="笔顺演示"
+                  onClick={(e) => { e.stopPropagation(); setStrokeDemoChar(char); }}
+                >
+                  <i className="fa-solid fa-pen-nib" />
+                </button>
+              </span>
+            );
+          })}
+        </p>
+      ));
+    }
+
+    // Heatmap rendering: word-level spans coloured by diagnosis
+    return auditResult.words.map((w, i) => {
+      if (w.word === '…') {
+        return (
+          <span key={i} className="word-gap" title="停顿过长 Pause too long">…</span>
+        );
+      }
+      const cls = wordClass(w.status);
+      const clickable = w.status !== 'correct';
+      return (
+        <span
+          key={i}
+          className={`heatmap-word ${cls}${clickable ? ' heatmap-word--clickable' : ''}`}
+          onClick={clickable ? () => setSheetWord(w) : undefined}
+          title={clickable ? `点击查看详情 / Click for details` : undefined}
+          role={clickable ? 'button' : undefined}
+          tabIndex={clickable ? 0 : undefined}
+          onKeyDown={clickable ? (e) => { if (e.key === 'Enter') setSheetWord(w); } : undefined}
+        >
+          {w.word}
+        </span>
+      );
+    });
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -285,64 +337,44 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
 
       {/* B — Passage Card */}
       <div className="oral-card">
-        <div className="oral-card-title">
-          <i className="fa-solid fa-file-lines" />
-          朗读段落 Reading Passage
+        <div className="oral-card-header-static">
+          <span className="oral-card-title">
+            <i className="fa-solid fa-file-lines oral-card-icon" />
+            朗读段落 Reading Passage
+          </span>
+          {/* Model audio button */}
+          <SpeechButton
+            text={fullText}
+            passage
+            audioUrl={set.audioUrl}
+            className="oral-model-audio-btn"
+            title="朗读示范 Model Reading"
+          />
         </div>
         <div className="oral-passage-meta">
           <span className="oral-diff-pill">{set.passage.difficulty}</span>
           <span className="oral-count-badge">{set.passage.characterCount} 字</span>
+          {auditResult && (
+            <span className="oral-audit-badge">
+              <i className="fa-solid fa-microscope" /> 诊断完成 Diagnosed
+            </span>
+          )}
         </div>
-        <div className="oral-passage-text">
-          {set.passage.paragraphs.map((para, pi) => (
-            <p key={pi} className="oral-passage-para">
-              {para.split('').map((char, ci) => {
-                const isChinese = /[\u4e00-\u9fff]/.test(char);
-                if (!isChinese) {
-                  return <span key={ci}>{char}</span>;
-                }
-                return (
-                  <span key={ci} className="oral-char-wrap">
-                    <span
-                      className="oral-char"
-                      onClick={() => speak(char)}
-                    >
-                      {char}
-                    </span>
-                    <button
-                      className="oral-char-stroke-btn"
-                      title="笔顺演示"
-                      onClick={(e) => { e.stopPropagation(); setStrokeDemoChar(char); }}
-                    >
-                      <i className="fa-solid fa-pen-nib" />
-                    </button>
-                  </span>
-                );
-              })}
-            </p>
-          ))}
+
+        {/* Passage text / heatmap */}
+        <div className={`oral-passage-text${auditResult ? ' oral-passage-text--heatmap' : ''}`}>
+          {renderPassage()}
         </div>
-        <button
-          className="oral-read-btn"
-          onClick={() => {
-            if (isSpeaking) {
-              cancelSpeak();
-              setIsSpeaking(false);
-            } else {
-              setIsSpeaking(true);
-              speakPassage(fullText, {
-                onEnd: () => setIsSpeaking(false),
-                onError: () => setIsSpeaking(false),
-              });
-            }
-          }}
-          style={{ background: isSpeaking ? '#B71C1C' : '#2E7D32' }}
-        >
-          {isSpeaking
-            ? <><i className="fa-solid fa-stop" /> 停止朗读 Stop</>
-            : <><i className="fa-solid fa-volume-high" /> 朗读全文 Read Aloud</>
-          }
-        </button>
+
+        {/* Heatmap legend (shown after audit) */}
+        {auditResult && (
+          <div className="heatmap-legend">
+            <span className="heatmap-legend-item"><span className="word-gold">词</span> 正确 Correct</span>
+            <span className="heatmap-legend-item"><span className="word-tone">词</span> 声调 Tone</span>
+            <span className="heatmap-legend-item"><span className="word-red">词</span> 发音 Wrong</span>
+            <span className="heatmap-legend-item"><span className="word-omitted">词</span> 漏读 Omitted</span>
+          </div>
+        )}
       </div>
 
       {/* C — Recording Card */}
@@ -352,68 +384,106 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
           录音练习 Recording Practice
         </div>
 
-        {!hasRecognition && (
-          <div className="oral-warn-banner">
-            <strong>您的浏览器不支持录音 / Browser does not support recording</strong>
-            <p className="oral-rec-status-note">
-              您仍可以大声朗读并使用自评 / You can still read aloud and self-rate
-            </p>
-          </div>
-        )}
+        <div className="oral-record-area">
+          {recState === 'idle' && (
+            <button className="oral-mic-btn idle" onClick={startRecording}>
+              <i className="fa-solid fa-microphone" />
+              开始录音 Start Recording
+            </button>
+          )}
 
-        {hasRecognition && (
-          <div className="oral-record-area">
-            {recState === 'idle' && (
-              <button className="oral-mic-btn idle" onClick={startRecording}>
+          {recState === 'recording' && (
+            <>
+              <button className="oral-mic-btn recording" disabled>
                 <i className="fa-solid fa-microphone" />
-                开始录音 Start Recording
+                录音中… Recording…
               </button>
-            )}
+              {liveText && <div className="oral-transcript">{liveText}</div>}
+              <button className="oral-stop-btn" onClick={stopRecording}>
+                <i className="fa-solid fa-stop" /> 停止录音 Stop
+              </button>
+            </>
+          )}
 
-            {recState === 'recording' && (
-              <>
-                <button className="oral-mic-btn recording" disabled>
-                  <i className="fa-solid fa-microphone" />
-                  录音中… Recording…
+          {recState === 'recorded' && (
+            <>
+              <div className="oral-transcript">{transcript || liveText}</div>
+              <div className="oral-playback-row">
+                <button className="oral-rerecord-btn" onClick={reRecord}>
+                  <i className="fa-solid fa-rotate-left" /> 重新录音 Re-record
                 </button>
-                {liveText && (
-                  <div className="oral-transcript">{liveText}</div>
-                )}
-                <button className="oral-stop-btn" onClick={stopRecording}>
-                  <i className="fa-solid fa-stop" /> 停止录音 Stop
+                <button className="oral-playback-btn" onClick={playBack}>
+                  <i className="fa-solid fa-play" /> 播放 Play Back
                 </button>
-              </>
-            )}
-
-            {recState === 'recorded' && (
-              <>
-                <div className="oral-transcript">{transcript}</div>
-                <div className="oral-playback-row">
-                  <button className="oral-rerecord-btn" onClick={reRecord}>
-                    <i className="fa-solid fa-rotate-left" /> 重新录音 Re-record
+                {!auditResult && !auditing && (
+                  <button
+                    className="oral-audit-btn"
+                    onClick={runAudit}
+                    disabled={auditing}
+                  >
+                    <i className="fa-solid fa-microscope" />
+                    AI 诊断 Diagnose
                   </button>
-                  <button className="oral-playback-btn" onClick={playBack}>
-                    <i className="fa-solid fa-play" /> 播放 Play Back
+                )}
+              </div>
+
+              {/* Audit in-progress spinner */}
+              {auditing && (
+                <div className="oral-audit-loading">
+                  <i className="fa-solid fa-spinner oral-spin" />
+                  <span>AI 正在诊断… Analysing your recording…</span>
+                </div>
+              )}
+
+              {/* Audit error */}
+              {auditError && (
+                <div className="oral-audit-error">
+                  <i className="fa-solid fa-triangle-exclamation" />
+                  {auditError}
+                  <button className="oral-audit-retry-btn" onClick={runAudit}>
+                    重试 Retry
                   </button>
                 </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Show self-rating if browser has no recognition (still allow rating after read-aloud) */}
-        {!hasRecognition && (
-          <button
-            className="oral-mic-btn idle oral-skip-btn"
-            onClick={() => setRecState('recorded')}
-          >
-            <i className="fa-solid fa-star" />
-            跳过录音，开始自评 Skip to Self-Rating
-          </button>
-        )}
+              )}
+            </>
+          )}
+        </div>
       </div>
 
-      {/* D — Self-Rating Card (show only when recorded) */}
+      {/* D — Proficiency Dashboard (shown after audit) */}
+      {auditResult && (
+        <div className="oral-card">
+          <div className="oral-card-title">
+            <i className="fa-solid fa-chart-bar" />
+            能力分析 Proficiency Dashboard
+          </div>
+          {auditResult.overallComment && (
+            <p className="oral-overall-comment">{auditResult.overallComment}</p>
+          )}
+          <div className="oral-proficiency-bars">
+            {PROFICIENCY_BARS.map(b => {
+              const score = auditResult.proficiency[b.key] ?? 0;
+              return (
+                <div key={b.key} className="oral-prof-row">
+                  <span className="oral-prof-label">
+                    {b.cn}<br />
+                    <span className="oral-prof-label-en">{b.en}</span>
+                  </span>
+                  <div className="oral-prof-track">
+                    <div
+                      className="oral-prof-fill"
+                      style={{ width: `${score}%`, background: b.colour }}
+                    />
+                  </div>
+                  <span className="oral-prof-score">{score}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* E — Self-Rating Card (show when recorded or after audit) */}
       {recState === 'recorded' && (
         <div className="oral-card">
           <div className="oral-card-title">
@@ -438,7 +508,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
         </div>
       )}
 
-      {/* E — Tips Card (collapsible, default collapsed) */}
+      {/* F — Reading Tips (collapsible) */}
       <CollapsibleCard title="朗读技巧 Reading Tips" icon="fa-circle-info">
         <div className="oral-tips-list">
           <div className="oral-tip-item">
@@ -461,14 +531,19 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
       </CollapsibleCard>
 
       {/* Toast */}
-      {showToast && (
-        <div className="oral-toast">评分已保存！/ Rating saved ✓</div>
-      )}
+      {showToast && <div className="oral-toast">评分已保存！/ Rating saved ✓</div>}
 
       {/* Stroke Demo Modal */}
       {strokeDemoChar && (
         <StrokeDemoModal char={strokeDemoChar} onClose={() => setStrokeDemoChar(null)} />
       )}
+
+      {/* Diagnostic Bottom Sheet */}
+      <DiagnosticBottomSheet
+        word={sheetWord}
+        studentBlobUrl={blobUrlRef.current}
+        onClose={() => setSheetWord(null)}
+      />
     </div>
   );
 };
