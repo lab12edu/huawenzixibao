@@ -68,6 +68,8 @@ export async function getOralSetsByTheme(themeId: string): Promise<OralSetSummar
 /**
  * Fetches the complete OralSet for a given ID (passage, vocab, questions, picture story).
  * Result is cached per session to avoid redundant requests.
+ * Includes audioUrl: string — the static MP3 path for this set's reading passage.
+ * SpeechButton will attempt the MP3 first and fall back to speakPassage() on 404.
  */
 export async function getOralSetDetail(id: string): Promise<OralSet | null> {
   if (_setCache.has(id)) return _setCache.get(id)!;

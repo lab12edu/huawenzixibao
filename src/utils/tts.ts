@@ -2,6 +2,14 @@
  * tts.ts — Central TTS utility for 华文自习宝
  * Handles: voice selection (zh-TW → zh-CN → zh-HK → any zh-*),
  *          consistent rate, API guard, speak queue, cancel.
+ *
+ * Audio channel registry (Phase 1.7):
+ *   _activeAudio — module-level singleton tracking the one HTMLAudioElement
+ *   that may be playing at any moment. SpeechButton registers its Audio
+ *   instance here via setActiveAudio() so any subsequent click on any
+ *   button can stop it via cancelAllAudio() before starting a new source.
+ *   Both the speechSynthesis queue and the HTMLAudioElement channel are
+ *   stopped together, preventing overlapping voices.
  */
 
 // ── Constants ──────────────────────────────────────────────────
@@ -94,4 +102,45 @@ export function cancelSpeak(): void {
 /** Check browser support. */
 export function isSupported(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window
+}
+
+// ── HTMLAudioElement singleton (Phase 1.7) ─────────────────────
+// One reference to whichever Audio instance is currently active.
+// Kept at module level so every SpeechButton instance shares it.
+
+let _activeAudio: HTMLAudioElement | null = null
+
+/**
+ * Register a new HTMLAudioElement as the active playback source.
+ * Replaces any previously registered instance (does NOT stop it —
+ * call cancelAllAudio() first if you need to stop the old one).
+ */
+export function setActiveAudio(audio: HTMLAudioElement | null): void {
+  _activeAudio = audio
+}
+
+/**
+ * Read-only access to the currently registered Audio instance.
+ * SpeechButton uses this to check whether it owns the active source
+ * before deciding to stop vs. start.
+ */
+export function getActiveAudio(): HTMLAudioElement | null {
+  return _activeAudio
+}
+
+/**
+ * Stop ALL audio — both the speechSynthesis queue and the active
+ * HTMLAudioElement — then clear the registry.
+ * Call this before starting any new audio source to prevent overlap.
+ */
+export function cancelAllAudio(): void {
+  // Stop speechSynthesis channel
+  cancelSpeak()
+
+  // Stop HTMLAudio channel
+  if (_activeAudio) {
+    _activeAudio.pause()
+    _activeAudio.currentTime = 0
+    _activeAudio = null
+  }
 }

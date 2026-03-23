@@ -103,6 +103,11 @@ export interface OralSet {
   };
   passage: OralPassage;
   pictureStory: OralPictureStory;
+  /** Absolute URL to a pre-recorded MP3 for this set's reading passage.
+   *  Pattern: /audio/oral/${id}.mp3
+   *  File is served as a Cloudflare Pages static asset from public/audio/oral/.
+   *  When the file is absent (404), SpeechButton falls back to speakPassage(). */
+  audioUrl: string;
 }
 
 // ── Theme metadata ────────────────────────────────────────────────────────────
@@ -424,6 +429,7 @@ function transform(v: VaultSet): OralSet {
         standard: '说出两个理由，用"第一……第二……"来组织你的回答。',
       },
     },
+    audioUrl: `/audio/oral/${v.id}.mp3`,
     passage: makePassage(v.reading.text),
     pictureStory: {
       titleChinese: theme.titleChinese,

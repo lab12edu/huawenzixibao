@@ -9,7 +9,7 @@
 // oralSets array is NEVER bundled into the frontend.
 // ============================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import type { OralTheme, OralSet } from '../data/oralData';
 import { getOralThemes, getOralSetsByTheme, getOralSetDetail } from '../utils/oralApi';
@@ -136,6 +136,31 @@ const OralPracticePage: React.FC = () => {
       setLoadingThemes(false);
     });
   }, []);
+
+  // ── Phase 1.7: Pre-buffer the set's MP3 when a set is selected ──
+  // One Audio instance, created at the parent level, so the browser
+  // begins fetching the file immediately. If the file doesn't exist
+  // (empty audio/oral/ directory) the 404 is silent — SpeechButton
+  // catches the error event and falls back to TTS on first play.
+  const _prebufferRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    if (!selectedSet?.audioUrl) return;
+    // Discard any previous pre-buffer instance
+    if (_prebufferRef.current) {
+      _prebufferRef.current.src = '';
+      _prebufferRef.current = null;
+    }
+    const audio = new Audio();
+    audio.preload = 'auto';
+    audio.src = selectedSet.audioUrl;
+    audio.load(); // triggers buffering without playing
+    _prebufferRef.current = audio;
+    // Cleanup when set changes or component unmounts
+    return () => {
+      audio.src = '';
+      _prebufferRef.current = null;
+    };
+  }, [selectedSet?.audioUrl]);
 
   // ── Handlers ────────────────────────────────────────────────
   const handleSelectTheme = async (theme: OralTheme) => {
