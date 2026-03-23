@@ -263,14 +263,19 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
       const json = await res.json().catch(() => ({ error: `HTTP ${res.status}` })) as any;
 
       if (!res.ok) {
-        // retryable = true means all models were rate-limited; give a friendly message
-        const msg = json?.error ?? `HTTP ${res.status}`;
         const isRateLimit = res.status === 429 || json?.retryable === true;
-        throw new Error(
-          isRateLimit
-            ? '⏳ AI is busy — please wait 30 seconds, then tap Diagnose again.'
-            : msg
-        );
+        const sttCode     = json?.sttCode as string | undefined;
+
+        if (isRateLimit) {
+          throw new Error('⏳ AI is busy — please wait 30 seconds, then tap Diagnose again.');
+        }
+        if (sttCode === 'NO_SPEECH' || (json?.error as string)?.includes('未检测到')) {
+          throw new Error('🎙️ 未检测到语音 — No speech detected. Please speak clearly into the microphone and try again.');
+        }
+        if (sttCode === 'API_KEY_ERROR') {
+          throw new Error('🔑 API Key Error — Please ensure the Google Cloud Speech-to-Text API is enabled in the Cloud Console.');
+        }
+        throw new Error(json?.error ?? `HTTP ${res.status}`);
       }
       setAuditResult(json as AuditResult);
     } catch (e: any) {
@@ -510,15 +515,21 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
               {auditing && (
                 <div className="oral-audit-loading">
                   <i className="fa-solid fa-spinner oral-spin" />
-                  <span>AI 正在诊断… Analysing your recording (may take 10–20 s)…</span>
+                  <span>AI 正在校对发音… (预计 5–10 秒)</span>
                 </div>
               )}
 
               {/* Audit error */}
               {auditError && (
                 <div className="oral-audit-error">
-                  <i className="fa-solid fa-triangle-exclamation" />
-                  {auditError}
+                  <i className={`fa-solid ${
+                    auditError.includes('未检测到') || auditError.includes('No speech')
+                      ? 'fa-microphone-slash'
+                      : auditError.includes('API Key') || auditError.includes('Billing')
+                      ? 'fa-key'
+                      : 'fa-triangle-exclamation'
+                  }`} />
+                  <span>{auditError}</span>
                   <button className="oral-audit-retry-btn" onClick={runAudit}>
                     重试 Retry
                   </button>

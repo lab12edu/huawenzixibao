@@ -177,12 +177,19 @@ export async function callGoogleStt(
       body,
     })
   } catch (err) {
-    throw new Error(`STT network error: ${String(err)}`)
+    throw new SttError(`STT network error: ${String(err)}`, 'NETWORK')
   }
 
   if (!res.ok) {
     const errText = await res.text().catch(() => '')
-    throw new Error(`STT API error ${res.status}: ${errText.slice(0, 200)}`)
+    // 401 / 403 — API key invalid or Speech API not enabled
+    if (res.status === 401 || res.status === 403) {
+      throw new SttError(
+        'Google STT API key error — ensure the Cloud Speech-to-Text API is enabled in the Google Cloud Console and the key has no IP restrictions.',
+        'API_KEY_ERROR',
+      )
+    }
+    throw new SttError(`STT API error ${res.status}: ${errText.slice(0, 200)}`, 'UNKNOWN')
   }
 
   const data = await res.json() as Record<string, unknown>
@@ -191,7 +198,11 @@ export async function callGoogleStt(
   // { results: [ { alternatives: [ { transcript, words: [ { word, startTime, endTime, confidence } ] } ] } ] }
   const results = (data as any)?.results ?? []
   if (!results.length) {
-    throw new Error('STT returned no results — audio may be silent or too noisy')
+    // Empty results = student was silent or audio was too noisy
+    throw new SttError(
+      '未检测到语音 — No speech detected. Please record in a quieter environment and speak clearly.',
+      'NO_SPEECH',
+    )
   }
 
   const words: SttWord[] = []
@@ -215,7 +226,11 @@ export async function callGoogleStt(
   }
 
   if (!words.length) {
-    throw new Error('STT returned no word-level timestamps — try a longer recording')
+    // Results returned but no word-level timestamps (shouldn't happen with enableWordTimeOffsets)
+    throw new SttError(
+      '未检测到清晰语音 — Speech was detected but could not be analysed. Please re-record speaking clearly.',
+      'NO_SPEECH',
+    )
   }
 
   return {
@@ -226,16 +241,35 @@ export async function callGoogleStt(
   }
 }
 
+// ── Typed STT error ────────────────────────────────────────────────────────────
+
+/** Carries a machine-readable code for specific frontend error messages. */
+export class SttError extends Error {
+  constructor(
+    message: string,
+    public readonly code: 'NO_SPEECH' | 'API_KEY_ERROR' | 'NETWORK' | 'UNKNOWN',
+  ) {
+    super(message)
+    this.name = 'SttError'
+  }
+}
+
 // ── Entry point ────────────────────────────────────────────────────────────────
 
 /**
  * runSttAnchor — the single call site from src/index.tsx.
  *
- * If GOOGLE_STT_API_KEY is provided → calls real Google STT.
+ * If GOOGLE_STT_API_KEY is provided → calls real Google STT v1.
  * If missing → falls back to simulation mode (no error thrown).
  *
- * On real STT failure → throws an Error so the route can return a
- * clear "Timestamping failed" message without calling Gemini.
+ * NOTE on STT v2: The v2 API requires IAM role speech.recognizers.recognize
+ * which cannot be granted to a simple API key.  Only a Service Account with
+ * Application Default Credentials or OAuth2 can use v2.  v1 works with an
+ * API key, supports latest_long + word timestamps, and is the correct choice
+ * for API-key-only deployments.
+ *
+ * On real STT failure → throws SttError so the route returns a specific,
+ * user-friendly message without calling Gemini.
  */
 export async function runSttAnchor(opts: {
   sttApiKey:   string | undefined
@@ -247,13 +281,16 @@ export async function runSttAnchor(opts: {
   const { sttApiKey, projectId, base64, mimeType, referenceText } = opts
 
   if (sttApiKey) {
-    // Production: real STT (v1 API — no project ID required)
-    // → then align character/mixed tokens to reference word segments
-    const raw = await callGoogleStt(sttApiKey, projectId ?? '', base64, mimeType)
-    return alignSttToReference(raw, referenceText)
+    // ── Real STT path (Google STT v1 — API-key endpoint) ────────
+    console.log('[STT] Mode: REAL (Google STT v1)')
+    const raw     = await callGoogleStt(sttApiKey, projectId ?? '', base64, mimeType)
+    const aligned = alignSttToReference(raw, referenceText)
+    console.log(`[STT] ${raw.words.length} raw tokens → ${aligned.words.length} aligned words`)
+    return aligned
   }
 
-  // Simulation mode
+  // ── Simulation path ──────────────────────────────────────────
+  console.log('[STT] Mode: SIMULATED (no GOOGLE_STT_API_KEY set)')
   return simulateStt(referenceText)
 }
 
