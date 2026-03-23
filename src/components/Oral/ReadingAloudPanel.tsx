@@ -225,12 +225,19 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
       fd.append('referenceText', fullText);
 
       const res = await fetch('/api/oral/audit', { method: 'POST', body: fd });
+      const json = await res.json().catch(() => ({ error: `HTTP ${res.status}` })) as any;
+
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Server error' })) as any;
-        throw new Error(err.error ?? `HTTP ${res.status}`);
+        // retryable = true means all models were rate-limited; give a friendly message
+        const msg = json?.error ?? `HTTP ${res.status}`;
+        const isRateLimit = res.status === 429 || json?.retryable === true;
+        throw new Error(
+          isRateLimit
+            ? '⏳ AI is busy — please wait 30 seconds, then tap Diagnose again.'
+            : msg
+        );
       }
-      const data = await res.json() as AuditResult;
-      setAuditResult(data);
+      setAuditResult(json as AuditResult);
     } catch (e: any) {
       setAuditError(e.message ?? 'Unknown error');
     } finally {
@@ -456,7 +463,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
               {auditing && (
                 <div className="oral-audit-loading">
                   <i className="fa-solid fa-spinner oral-spin" />
-                  <span>AI 正在诊断… Analysing your recording…</span>
+                  <span>AI 正在诊断… Analysing your recording (may take 10–20 s)…</span>
                 </div>
               )}
 

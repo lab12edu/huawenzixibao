@@ -84,8 +84,18 @@ const apiLimiter: MiddlewareHandler = async (c, next) => {
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const MODEL    = 'gemini-2.5-flash'
-const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
+const MODEL       = 'gemini-2.5-flash'          // text/vision tasks
+const API_BASE    = 'https://generativelanguage.googleapis.com/v1beta/models'
+
+// Audio-capable models tried in order; first non-429 response wins.
+// All models below support inline audio via generateContent.
+// Note: gemini-2.0-flash / 2.0-flash-lite are excluded — free-tier quota exhausted.
+const AUDIO_MODEL_CHAIN = [
+  'gemini-2.5-flash',        // Primary: best quality, has quota
+  'gemini-flash-latest',     // Fallback 1: alias, different quota bucket
+  'gemini-2.5-flash-lite',   // Fallback 2: lighter model, very fast
+  'gemini-3-flash-preview',  // Fallback 3: newest preview model
+]
 
 // ── Singapore guardrail (server-side only) ────────────────────────────────────
 const SG_GUARDRAIL = `You are a Singapore Primary School Chinese writing coach.
@@ -104,6 +114,7 @@ interface GeminiResult {
   text: string
   error: boolean
   rateLimited?: boolean
+  truncated?: boolean  // response was cut off at MAX_TOKENS
 }
 
 async function callGemini(
@@ -174,14 +185,17 @@ async function callGeminiWithImage(
 // ── Gemini Audio helper (Phase 2 — Phonetic Audit) ───────────────────────────
 // Sends an audio file inline alongside a text prompt.
 // mimeType: 'audio/webm' | 'audio/mp4' | 'audio/ogg' | 'audio/mpeg'
+// ── callGeminiWithAudio — multi-model fallback chain ─────────────────────────
+// Tries each model in AUDIO_MODEL_CHAIN in sequence.
+// On 429 it waits with exponential backoff then tries the NEXT model in the chain.
+// Returns the first successful (non-429, non-error) response.
 async function callGeminiWithAudio(
   apiKey:   string,
   prompt:   string,
   base64:   string,
   mimeType: string,
 ): Promise<GeminiResult> {
-  const url = `${API_BASE}/${MODEL}:generateContent?key=${apiKey}`
-  const body = JSON.stringify({
+  const bodyObj = {
     contents: [{
       role: 'user',
       parts: [
@@ -189,21 +203,54 @@ async function callGeminiWithAudio(
         { text: prompt },
       ],
     }],
-    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
-  })
-
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
-    if (res.status === 429 && attempt === 0) {
-      await new Promise(r => setTimeout(r, 6000))
-      continue
-    }
-    if (res.status === 429) return { error: true, rateLimited: true, text: '' }
-    if (!res.ok)            return { error: true, text: '' }
-    const data = await res.json() as Record<string, unknown>
-    const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-    return { error: !text, text }
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 8192,
+    },
   }
+  const body = JSON.stringify(bodyObj)
+
+  for (let modelIdx = 0; modelIdx < AUDIO_MODEL_CHAIN.length; modelIdx++) {
+    const model = AUDIO_MODEL_CHAIN[modelIdx]
+    const url   = `${API_BASE}/${model}:generateContent?key=${apiKey}`
+
+    // Attempt up to 2 times per model (once retry after 3 s on 429 before giving up on this model)
+    for (let attempt = 0; attempt < 2; attempt++) {
+      let res: Response
+      try {
+        res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+      } catch (fetchErr) {
+        // Network error — skip to next model
+        break
+      }
+
+      if (res.status === 429) {
+        if (attempt === 0) {
+          // First 429: short wait then retry same model once
+          await new Promise(r => setTimeout(r, 3000 + modelIdx * 1000))
+          continue
+        }
+        // Second 429 on this model: move to next model in chain
+        break
+      }
+
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => '')
+        // For non-rate-limit errors try next model too
+        if (modelIdx < AUDIO_MODEL_CHAIN.length - 1) break
+        return { error: true, text: errBody }
+      }
+
+      const data = await res.json() as Record<string, unknown>
+      const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+      const finishReason = (data as any)?.candidates?.[0]?.finishReason ?? ''
+      // MAX_TOKENS means response was truncated — still usable if we got JSON
+      if (!text && modelIdx < AUDIO_MODEL_CHAIN.length - 1) break  // empty response → try next
+      return { error: !text, text, truncated: finishReason === 'MAX_TOKENS' }
+    }
+  }
+
+  // All models exhausted
   return { error: true, rateLimited: true, text: '' }
 }
 
@@ -524,59 +571,92 @@ app.post('/api/oral/audit', apiLimiter, async (c) => {
   const mimeType = audioFile.type || 'audio/webm'
 
   // ── Build Gemini prompt ───────────────────────────────────────────
-  const systemPrompt = `你是一位专业的新加坡小学华文口试语音诊断老师。你的任务是逐字对比学生的朗读音频与参考课文，识别发音错误、声调错误、吞字和停顿异常，并为家长提供清晰的英中双语诊断报告。请只返回严格的 JSON，不要加任何说明文字。`
+  const systemPrompt = `You are a Singapore primary-school Mandarin pronunciation diagnostic engine.
+Output ONLY a compact JSON object. No markdown fences, no explanation text.
+First char must be '{', last char must be '}'.`
 
-  const userPrompt = `参考课文：
+  const userPrompt = `Reference text (student must read this aloud):
 ${referenceText}
 
-请聆听附件音频（学生朗读），然后返回以下 JSON 结构：
+Listen to the attached audio and return compact JSON:
 
-{
-  "words": [
-    {
-      "word": "汉字词",
-      "status": "correct | tone_error | wrong | omitted | gap",
-      "targetPinyin": "正确拼音（带声调数字，如 nǐ hǎo）",
-      "spokenPinyin": "学生实际发音拼音（如无法判断填 null）",
-      "tip": "给家长的简短英语提示（仅在 status != correct 时填写，否则 null）"
-    }
-  ],
-  "proficiency": {
-    "pronunciation": 0,
-    "tones": 0,
-    "fluency": 0,
-    "expression": 0
-  },
-  "overallComment": "一句英语总评，给家长看"
-}
+{"words":[{"w":"汉字","s":"correct|tone_error|wrong|omitted|gap","t":"target_pinyin","p":"spoken_pinyin_or_null","tip":"English tip or null"}],"proficiency":{"pronunciation":0,"tones":0,"fluency":0,"expression":0},"overallComment":"One English sentence for parents."}
 
-规则：
-- 每个词（2–4个汉字）作为一个条目。单字词也可单独列出。
-- status 说明：
-    correct    = 发音声调均正确
-    tone_error = 读音对但声调错
-    wrong      = 发音明显错误
-    omitted    = 学生漏读
-    gap        = 停顿过长（此条目 word 填 "…"）
-- proficiency 各项满分 100，根据整体表现给分。
-- 只返回 JSON，不要 markdown 代码块。`
+Rules:
+- Group 2-4 chars per entry (single chars also fine). Use "…" for gap entries.
+- s values: correct=both tones+sound right, tone_error=sound right but wrong tone, wrong=clearly wrong sound, omitted=skipped, gap=long pause
+- For "correct" words: p and tip can be omitted entirely to save tokens
+- Scores out of 100 based on overall performance
+- CRITICAL: pure JSON only, no code fences, starts with { ends with }`
 
   const result = await callGeminiWithAudio(apiKey, `${systemPrompt}\n\n${userPrompt}`, base64, mimeType)
 
   if (result.error) {
-    if (result.rateLimited) return c.json({ error: 'Rate limited — please try again in a moment' }, 429)
-    return c.json({ error: 'Diagnostic service unavailable' }, 502)
+    if (result.rateLimited) {
+      return c.json({
+        error: 'AI service is busy right now — all models rate-limited. Please wait 30 seconds and tap Diagnose again.',
+        retryable: true,
+      }, 429)
+    }
+    // Surface the raw Gemini error so the frontend can display it clearly
+    let detail = 'Diagnostic service unavailable'
+    try {
+      const parsed = JSON.parse(result.text)
+      detail = parsed?.error?.message ?? detail
+    } catch { detail = result.text?.slice(0, 200) || detail }
+    return c.json({ error: detail }, 502)
   }
 
   // ── Parse + validate JSON ─────────────────────────────────────────
+  // Gemini sometimes wraps in ```json...``` or adds preamble text.
+  // Strategy: strip code fences first, then extract the first {...} block.
+  function extractJson(raw: string): string {
+    // 1. Strip markdown code fences
+    let s = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+    // 2. If it already starts with '{', return as-is
+    if (s.startsWith('{')) return s
+    // 3. Find the first '{' and last '}' — extract the outermost JSON object
+    const start = s.indexOf('{')
+    const end   = s.lastIndexOf('}')
+    if (start !== -1 && end !== -1 && end > start) return s.slice(start, end + 1)
+    return s
+  }
+
   try {
-    // Gemini sometimes wraps in ```json ... ``` — strip it
-    const cleaned = result.text.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim()
-    const parsed  = JSON.parse(cleaned)
+    const cleaned = extractJson(result.text)
+    let parsed: any
+    try {
+      parsed = JSON.parse(cleaned)
+    } catch {
+      // If truncated, try to salvage by closing unclosed JSON
+      if (result.truncated) {
+        // Close any open array + object so JSON.parse might succeed
+        const salvaged = cleaned.replace(/,\s*$/, '') + ']}'
+        try { parsed = JSON.parse(salvaged) } catch { /* fall through */ }
+      }
+      if (!parsed) throw new Error('json parse failed')
+    }
+    // Normalise compact format → full format expected by the frontend
+    // Compact uses: w, s, t, p  →  word, status, targetPinyin, spokenPinyin
+    if (Array.isArray(parsed.words)) {
+      parsed.words = parsed.words.map((item: any) => ({
+        word:        item.word        ?? item.w  ?? '',
+        status:      item.status      ?? item.s  ?? 'correct',
+        targetPinyin: item.targetPinyin ?? item.t ?? '',
+        spokenPinyin: item.spokenPinyin ?? item.p ?? null,
+        tip:          item.tip ?? null,
+      }))
+    } else {
+      parsed.words = []
+    }
+    if (typeof parsed.proficiency !== 'object' || !parsed.proficiency) {
+      parsed.proficiency = { pronunciation: 70, tones: 70, fluency: 70, expression: 70 }
+    }
+    if (result.truncated) parsed._truncated = true  // hint for frontend
     return c.json(parsed)
   } catch {
     // Return raw text so the frontend can display a graceful error
-    return c.json({ error: 'Could not parse diagnostic response', raw: result.text }, 500)
+    return c.json({ error: 'Could not parse diagnostic response', raw: result.text?.slice(0, 300) }, 500)
   }
 })
 
