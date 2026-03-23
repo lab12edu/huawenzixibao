@@ -23,9 +23,14 @@ interface AuditResult {
   words:           WordDiag[];
   proficiency:     ProficiencyScores;
   overallComment?: string;
+  sttSimulated?:   boolean;  // true = mock timestamps (no GOOGLE_STT_API_KEY)
+  _truncated?:     boolean;  // true = Gemini hit MAX_TOKENS
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
+/** Maximum recording duration — 120 seconds cost guardrail */
+const MAX_RECORD_MS = 120_000;
 
 const MOTIVATIONAL_TIPS = [
   '读得慢一点，清晰比速度重要。/ Slow down — clarity beats speed.',
@@ -120,6 +125,7 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
   const [liveText, setLiveText]     = useState('');
   const [transcript, setTranscript] = useState('');
   const [recSecsLeft, setRecSecsLeft] = useState(MAX_RECORD_MS / 1000);
+  const recTimeoutRef   = useRef<ReturnType<typeof setTimeout>  | null>(null);
   const recCountdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recorderRef = useRef<ReturnType<typeof createRecorder> | null>(null);
   const recordedFileRef = useRef<File | null>(null);
