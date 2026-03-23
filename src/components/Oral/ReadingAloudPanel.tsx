@@ -16,7 +16,7 @@ interface ProficiencyScores {
   pronunciation: number;
   tones:         number;
   fluency:       number;
-  expression:    number;
+  // expression intentionally omitted — requires acoustic variance analysis
 }
 
 interface AuditResult {
@@ -50,7 +50,6 @@ const PROFICIENCY_BARS = [
   { key: 'pronunciation' as const, cn: '发音', en: 'Pronunciation', colour: '#00897B' },
   { key: 'tones'         as const, cn: '声调', en: 'Tones',         colour: '#1565C0' },
   { key: 'fluency'       as const, cn: '流利', en: 'Fluency',       colour: '#AD1457' },
-  { key: 'expression'    as const, cn: '表达', en: 'Expression',    colour: '#F57F17' },
 ];
 
 // ─── Word status → heatmap CSS class ─────────────────────────────────────────
@@ -378,7 +377,6 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
         <div className="oral-ped-criteria">
           <span className="oral-ped-chip">语音语调 Pronunciation &amp; Tone</span>
           <span className="oral-ped-chip">流利程度 Fluency</span>
-          <span className="oral-ped-chip">情感表达 Expression</span>
           <span className="oral-ped-chip">标点停顿 Punctuation Pausing</span>
         </div>
       </CollapsibleCard>
@@ -586,10 +584,6 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
               );
             })}
           </div>
-          {/* Expression score hidden — shown once acoustic variance analysis ships */}
-          <p style={{ fontSize: '0.7rem', color: '#9E9E9E', marginTop: '6px', textAlign: 'right' }}>
-            情感表达 Expression — coming soon
-          </p>
         </div>
       )}
 

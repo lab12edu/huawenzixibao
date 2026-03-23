@@ -720,9 +720,15 @@ Status: correct | tone_error | wrong | omitted
 
   try {
     const cleaned = extractJson(result.text)
+
+    // Debug log: raw Gemini output + extracted proficiency for score diagnosis
+    // (visible in `pm2 logs huawen-zixibao --nostream`)
+    console.log('[Audit] Gemini raw (first 300):', result.text?.slice(0, 300))
+
     let parsed: any
     try {
       parsed = JSON.parse(cleaned)
+      console.log('[Audit] proficiency raw:', JSON.stringify(parsed?.proficiency))
     } catch {
       // Truncated response salvage
       if (result.truncated || cleaned.includes('"w"')) {
@@ -779,9 +785,9 @@ Status: correct | tone_error | wrong | omitted
       // Clamp scores to 0-100, default missing ones to 70
       const p = parsed.proficiency
       parsed.proficiency = {
-        pronunciation: Math.min(100, Math.max(0, Number(p.pronunciation) || 70)),
-        tones:         Math.min(100, Math.max(0, Number(p.tones)         || 70)),
-        fluency:       Math.min(100, Math.max(0, Number(p.fluency)       || 70)),
+        pronunciation: Math.min(100, Math.max(0, isNaN(+p.pronunciation) ? 70 : +p.pronunciation)),
+        tones:         Math.min(100, Math.max(0, isNaN(+p.tones)         ? 70 : +p.tones)),
+        fluency:       Math.min(100, Math.max(0, isNaN(+p.fluency)       ? 70 : +p.fluency)),
       }
     }
     // Remove expression if Gemini accidentally included it
