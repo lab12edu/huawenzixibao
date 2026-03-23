@@ -154,18 +154,28 @@ export async function callGoogleStt(
 
   const encoding = mimeToEncoding(mimeType)
 
+  // Build config — omit sampleRateHertz so Google auto-detects from the audio
+  // header.  Hardcoding 16000 causes a 400 error when the browser records at
+  // 48000 Hz (default on desktop Chrome/Firefox) or any other native rate.
+  // audioChannelCount is also omitted: stereo recordings from some devices
+  // would fail if we forced mono=1.
+  const config: Record<string, unknown> = {
+    encoding,
+    languageCode:             'cmn-Hans-CN',
+    alternativeLanguageCodes: ['yue-Hant-HK'],  // Cantonese fallback
+    model:                    'latest_long',
+    enableWordTimeOffsets:    true,
+    enableWordConfidence:     true,
+    enableAutomaticPunctuation: false,
+  }
+
+  // WEBM_OPUS / OGG_OPUS are variable-rate container formats:
+  // Google requires sampleRateHertz to be omitted (not even 0) for these.
+  // MP3 / MP4 / FLAC encode the sample rate in their headers — also safe to omit.
+  // So we never set sampleRateHertz here.
+
   const body = JSON.stringify({
-    config: {
-      encoding,
-      sampleRateHertz:          16000,   // most mobile recordings
-      audioChannelCount:        1,
-      languageCode:             'cmn-Hans-CN',
-      alternativeLanguageCodes: ['yue-Hant-HK'],  // Cantonese fallback
-      model:                    'latest_long',
-      enableWordTimeOffsets:    true,
-      enableWordConfidence:     true,
-      enableAutomaticPunctuation: false,
-    },
+    config,
     audio: { content: base64 },
   })
 

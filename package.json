@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "dev:sandbox": "wrangler pages dev dist --ip 0.0.0.0 --port 3000",
-    "build": "vite build && vite build --config vite.worker.config.ts",
+    "build": "vite build && npx esbuild src/index.tsx --bundle --format=esm --platform=browser --target=esnext --outfile=dist/_worker.js --external:node:* --minify && node -e \"require('fs').writeFileSync('dist/_routes.json', JSON.stringify({version:1,include:['/api/*'],exclude:[]}))\" && echo '[build] _worker.js and _routes.json written'",
     "preview": "wrangler pages dev dist --ip 0.0.0.0 --port 3000",
     "deploy": "npm run build && wrangler pages deploy dist --project-name huawen-zixibao",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
