@@ -342,18 +342,43 @@ const ReadingAloudPanel: React.FC<Props> = ({ set }) => {
             <i className="fa-solid fa-file-lines oral-card-icon" />
             朗读段落 Reading Passage
           </span>
-          {/* Model audio button */}
+          <span className="oral-count-badge">{set.passage.characterCount} 字</span>
+        </div>
+
+        {/* HIGH-VISIBILITY MODEL READING CTA */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'linear-gradient(135deg, #00796B 0%, #004D40 100%)',
+          padding: '14px 18px',
+          borderRadius: '12px',
+          margin: '10px 0 16px',
+          color: 'white',
+          boxShadow: '0 4px 15px rgba(0, 77, 64, 0.25)',
+        }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '1rem' }}>示范朗读 Model Reading</div>
+            <div style={{ fontSize: '0.7rem', opacity: 0.85 }}>Pre-recorded · Native Speaker</div>
+          </div>
           <SpeechButton
             text={fullText}
             passage
             audioUrl={set.audioUrl}
-            className="oral-model-audio-btn"
+            className="oral-model-play-btn-large"
             title="朗读示范 Model Reading"
           />
         </div>
+
+        {/* Debug path — visible in dev, hidden in prod */}
+        {import.meta.env.DEV && (
+          <div style={{ fontSize: '10px', color: '#999', marginBottom: '8px' }}>
+            Debug audioUrl: {set.audioUrl ?? 'undefined ⚠️'}
+          </div>
+        )}
+
         <div className="oral-passage-meta">
           <span className="oral-diff-pill">{set.passage.difficulty}</span>
-          <span className="oral-count-badge">{set.passage.characterCount} 字</span>
           {auditResult && (
             <span className="oral-audit-badge">
               <i className="fa-solid fa-microscope" /> 诊断完成 Diagnosed

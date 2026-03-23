@@ -5722,3 +5722,24 @@ html { scrollbar-gutter: stable; }
 }
 
 /* End Phase 2 diagnostic */
+
+/* ── Model Reading large play button (white circle on green CTA bar) ── */
+.oral-model-play-btn-large {
+  background: white !important;
+  color: #004D40 !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.4rem !important;
+  border: none !important;
+  cursor: pointer !important;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.oral-model-play-btn-large.oral-speech-btn--active {
+  background: #ffebee !important;
+  color: #B71C1C !important;
+}
