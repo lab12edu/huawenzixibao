@@ -426,6 +426,9 @@ app.get('/api/oral/sets', apiLimiter, (c) => {
       yearLabel: s.psleYears[0] ?? '',
       themeChinese: s.themeChinese,
       themeEnglish: s.themeEnglish,
+      subThemeCn: s.subThemeCn,
+      subThemeEn: s.subThemeEn,
+      focusSkill: s.focusSkill,
       accentColour: s.accentColour,
     }));
   return c.json(summaries);

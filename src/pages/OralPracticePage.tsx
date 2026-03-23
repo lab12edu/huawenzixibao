@@ -18,6 +18,7 @@ import ReadingAloudPanel from '../components/Oral/ReadingAloudPanel';
 import PictureStoryPanel from '../components/Oral/PictureStoryPanel';
 import VocabPrepPanel from '../components/Oral/VocabPrepPanel';
 import SpeechButton from '../components/Oral/SpeechButton';
+import OralSkillLegend from '../components/Oral/OralSkillLegend';
 
 // ── View state ────────────────────────────────────────────────────────────────
 type OralView = 'themes' | 'sets' | 'practice';
@@ -63,9 +64,18 @@ function ThemeCard({
 }
 
 // ── Set summary card ──────────────────────────────────────────────────────────
+// Focus skill → colour mapping (matches OralSkillLegend)
+const SKILL_COLOUR: Record<string, string> = {
+  Phonetic:  '#00695C',
+  Narrative: '#1565C0',
+  Vocab:     '#AD1457',
+  Opinion:   '#E65100',
+};
+
 function SetSummaryCard({
   summary, onClick, loading,
 }: { summary: OralSetSummary; onClick: () => void; loading: boolean }) {
+  const skillColour = SKILL_COLOUR[summary.focusSkill] ?? '#555';
   return (
     <button
       className="oral-set-summary-card"
@@ -74,14 +84,24 @@ function SetSummaryCard({
       disabled={loading}
       type="button"
     >
-      <div className="oral-set-summary-year">
-        <span className="oral-set-summary-year-pill" style={{ background: summary.accentColour }}>
-          {summary.yearLabel}
-        </span>
-      </div>
+      {/* Left accent stripe is applied via borderLeft in CSS */}
       <div className="oral-set-summary-body">
-        <p className="oral-set-summary-theme">{summary.themeChinese}</p>
-        <p className="oral-set-summary-theme-en">{summary.themeEnglish}</p>
+        {/* Primary title: Chinese sub-theme with TTS */}
+        <div className="oral-set-summary-title-row">
+          <p className="oral-set-summary-subtheme-cn">{summary.subThemeCn}</p>
+          <SpeechButton text={summary.subThemeCn} className="oral-set-summary-tts" />
+        </div>
+        {/* English subtitle */}
+        <p className="oral-set-summary-subtheme-en">{summary.subThemeEn}</p>
+        {/* Focus skill pill (bottom-right) */}
+        <div className="oral-set-summary-footer">
+          <span
+            className="oral-focus-pill"
+            style={{ background: skillColour + '22', color: skillColour, borderColor: skillColour + '55' }}
+          >
+            Focus: {summary.focusSkill}
+          </span>
+        </div>
       </div>
       {loading
         ? <i className="fa-solid fa-spinner oral-spin" />
@@ -155,7 +175,7 @@ const OralPracticePage: React.FC = () => {
   const subtitle =
     view === 'themes'   ? 'Oral Practice · 口试练习' :
     view === 'sets'     ? `${activeTheme?.titleChinese ?? ''} · ${activeTheme?.titleEnglish ?? ''}` :
-    selectedSet         ? `练习 ${selectedSet.setNumber} · ${selectedSet.psleYears[0]}` : '';
+    selectedSet         ? `${selectedSet.subThemeCn} · ${selectedSet.subThemeEn}` : '';
 
   // ── Render ───────────────────────────────────────────────────
   return (
@@ -244,6 +264,9 @@ const OralPracticePage: React.FC = () => {
               </div>
             )
           }
+
+          {/* Coach's Legend — fixed height, no layout jump */}
+          {!loadingSets && <OralSkillLegend />}
         </div>
       )}
 

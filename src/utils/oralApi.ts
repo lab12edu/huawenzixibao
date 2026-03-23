@@ -43,6 +43,9 @@ export interface OralSetSummary {
   yearLabel: string;
   themeChinese: string;
   themeEnglish: string;
+  subThemeCn: string;
+  subThemeEn: string;
+  focusSkill: string;
   accentColour: string;
 }
 
