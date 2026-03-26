@@ -5,6 +5,9 @@ import { speak } from '../../utils/tts';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+const STANDARD_Q1      = '请谈谈你在录像中看到的一件事。';
+const STANDARD_Q1_HINT = '可以用：谁、做了什么、在哪里、为什么……';
+
 const Q_META = [
   { badge: '第一题 Q1', type: '内容观察 Observation',        colour: '#1565C0' },
   { badge: '第二题 Q2', type: '个人经验 Personal Experience', colour: '#6A1B9A' },
@@ -55,11 +58,13 @@ function Collapsible({
 
 // ─── Question card ────────────────────────────────────────────────────────────
 function QuestionCard({
-  q, meta, parentMode,
+  q, meta, parentMode, questionOverride, questionHint,
 }: {
   q: OralQuestion;
   meta: { badge: string; type: string; colour: string };
   parentMode: boolean;
+  questionOverride?: string;
+  questionHint?:     string;
 }) {
   const [copiedStarter, setCopiedStarter] = useState(false);
 
@@ -90,7 +95,7 @@ function QuestionCard({
         </span>
         <button
           className="oral-q-tts"
-          onClick={() => speak(q.questionChinese)}
+          onClick={() => speak(questionOverride ?? q.questionChinese)}
           title="Listen"
         >
           <i className="fa-solid fa-volume-high" />
@@ -98,7 +103,10 @@ function QuestionCard({
       </div>
 
       {/* Question text */}
-      <p className="oral-q-cn">{q.questionChinese}</p>
+      <p className="oral-q-cn">{questionOverride ?? q.questionChinese}</p>
+      {questionHint && (
+        <span className="oral-card-sublabel oral-q-hint">{questionHint}</span>
+      )}
       <p className={`oral-q-en${parentMode ? '' : ' oral-hidden-en'}`}>
         {q.questionEnglish}
       </p>
@@ -249,7 +257,12 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
       {/* D — Questions */}
       {qs.map(([q, meta], idx) => (
         <React.Fragment key={idx}>
-          <QuestionCard q={q} meta={meta} parentMode={parentMode} />
+          <QuestionCard
+            q={q}
+            meta={meta}
+            parentMode={parentMode}
+            {...(idx === 0 ? { questionOverride: STANDARD_Q1, questionHint: STANDARD_Q1_HINT } : {})}
+          />
           {/* E — Level-adaptive tip after Q3 */}
           {idx === 2 && (
             <div className="oral-level-tip">
