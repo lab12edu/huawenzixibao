@@ -28,6 +28,7 @@ interface VaultQuestion {
   cn:          string;
   en:          string;
   peelAnswer?: PeelAnswer;
+  keywords?:   string[];   // per-question keyword override; falls back to set targetKeywords
 }
 
 type FocusSkill = 'Phonetic' | 'Narrative' | 'Vocab' | 'Opinion';
@@ -408,8 +409,10 @@ function extractConjunctions(peel?: PeelAnswer): string[] {
 }
 
 function makeQuestion(vq: VaultQuestion, keywords: string[], questionIndex: 0 | 1 | 2): OralQuestion {
+  // Per-question keywords take precedence over set-level keywords
+  const baseKw = vq.keywords ?? keywords.slice(0, 3);
   const conjunctions = extractConjunctions(vq.peelAnswer);
-  const merged = [...new Set([...keywords.slice(0, 3), ...conjunctions.slice(0, 4)])];
+  const merged = [...new Set([...baseKw, ...conjunctions.slice(0, 4)])];
   return {
     questionChinese:    vq.cn,
     questionEnglish:    vq.en,
@@ -644,6 +647,7 @@ const RAW_VAULT: VaultSet[] = [
       questions: {
         q1: {
           cn: '请描述录像中巴士站里人们的行为。',
+          keywords:    ['有秩序', '依次', '耐心等候', '不插队', '公共礼仪', '互相尊重', '不仅……也……', '一方面……另一方面……', '自觉排队', '文明行为'],
           en: 'Please describe the behaviours of the people at the bus stop in the video.',
           peelAnswer: {
             point:       '录像中巴士站里，不同的人表现出截然不同的行为，体现了良好公德心与缺乏公德心的对比。',
@@ -654,6 +658,7 @@ const RAW_VAULT: VaultSet[] = [
         },
         q2: {
           cn: '为什么在公共场所保持低声说话是一种公德心的表现？',
+          keywords:    ['公德心', '体现', '素质', '低声交谈', '言行举止', '不仅……也……', '既……又……', '有助于', '社会和谐', '良好习惯', '尊重他人'],
           en: 'Why is speaking softly in public places an act of civic-mindedness?',
           peelAnswer: {
             point:       '在公共场所保持低声说话，是对他人感受的尊重，也是公德心的具体体现。',
@@ -664,12 +669,17 @@ const RAW_VAULT: VaultSet[] = [
         },
         q3: {
           cn: '在公共交通工具上，你会如何照顾有需要的人？',
+          keywords:    ['主动让座', '体贴', '关爱', '力所能及', '身体力行', '不仅……也……', '从小培养', '责任感', '爱心', '奉献精神'],
           en: 'How would you care for those in need on public transport?',
           peelAnswer: {
             point:       '在公共交通工具上，我会主动关注身边有需要的人，并尽力给予帮助。',
+            pointEn:       'On public transport, I would proactively look out for those in need around me and do my best to help them.',
             elaboration: '例如，若我看到老人、孕妇、带着幼儿的家长或行动不便的乘客站立，我会主动让出座位；如果有人提着重物上下车，我会帮忙扶一把；若发现有人感到不适，我会通知地铁或巴士工作人员，请他们提供协助。',
+            elaborationEn: 'For example, if I see elderly passengers, pregnant women, parents with young children, or passengers with mobility difficulties standing, I would proactively offer my seat; if someone is struggling with heavy bags while boarding or alighting, I would help steady them; and if I notice someone feeling unwell, I would inform the MRT or bus staff and request assistance on their behalf.',
             example:     '有一次，我乘地铁时看到一位老爷爷靠着柱子站着，神情疲倦。当时我刚好有座位，便立刻站起来对他说："爷爷，请坐。"他感激地笑了，那一刻让我感到非常满足，也明白了举手之劳对他人来说可以是莫大的帮助。',
+            exampleEn:     'Once, while riding the MRT, I noticed an elderly gentleman leaning against a pole looking exhausted. I happened to have a seat, so I immediately stood up and said, "Grandfather, please sit down." He smiled gratefully, and that moment made me feel very fulfilled. It also made me realise that such a small act can mean so much to another person.',
             link:        '我认为，在公共交通工具上照顾有需要的人，不仅是礼貌的体现，更是我们作为社会一份子应有的责任感。这种关怀让社会变得更温暖，也让乘车的体验对每个人来说都更加愉快。',
+            linkEn:        'I believe that caring for those in need on public transport is not only an expression of courtesy but also a responsibility we all have as members of society. This kind of consideration makes our community warmer and the experience of travelling more pleasant for everyone.',
           },
         },
       },
@@ -1018,16 +1028,22 @@ const RAW_VAULT: VaultSet[] = [
       questions: {
         q1: {
           cn: '描述录像中家庭聚餐时发生了什么问题？',
+          keywords:    ['温馨', '团聚', '其乐融融', '长辈', '晚辈', '不仅……也……', '一家人', '欢声笑语', '饭桌礼仪', '家庭凝聚力'],
           en: 'Describe the problem that occurred during the family dinner in the video.',
           peelAnswer: {
             point:       '录像中家庭聚餐时发生了一个令人担忧的问题：家人各自低头玩手机，没有人与奶奶交谈，使她显得非常孤独。',
+            pointEn:       'In the video, a troubling situation occurred at the family dinner: family members were each looking down at their phones, and nobody spoke to the grandmother, making her appear very lonely.',
             elaboration: '原本一家人坐在一起用餐应该是增进感情、分享生活的美好时光，然而录像中的爸爸、妈妈和孩子都把注意力放在手机屏幕上，对旁边的奶奶视而不见。奶奶坐在桌旁，神情落寞，与周围忙于刷手机的家人形成了鲜明的对比。',
+            elaborationEn: 'What should have been a warm and joyful occasion for the family to bond and share became a time where the father, mother and child all had their attention fixed on their phone screens, completely ignoring the grandmother beside them. She sat at the table looking forlorn, in stark contrast to the family members absorbed in their phones.',
             example:     '例如，即使饭桌上摆满了丰盛的菜肴，家人却没有任何一人向奶奶夹菜或询问她的近况，这让聚餐失去了温情与意义，沦为各自沉浸在虚拟世界里的"共处一室"。',
+            exampleEn:     'For example, even though the table was covered with a generous spread of food, not a single family member served the grandmother or asked how she was doing. The meal lost all its warmth and meaning, becoming nothing more than people sitting together while living in their own virtual worlds.',
             link:        '这个情景提醒我们，电子产品若使用不当，会悄悄侵蚀家人之间珍贵的联系。我们应该学会在家庭时间里放下手机，用心陪伴身边的人，尤其是年长的家人，让他们感受到被珍视和关爱。',
+            linkEn:        'This scene reminds us that when used improperly, electronic devices can quietly erode the precious bonds between family members. We should learn to put down our phones during family time and be fully present with the people around us — especially our elderly relatives — so they feel truly cherished and loved.',
           },
         },
         q2: {
           cn: '你认为科技对人与人之间的关系有什么正面和负面的影响？',
+          keywords:    ['尊老爱幼', '传统价值观', '代代相传', '不仅……也……', '凝聚力', '家庭温暖', '感恩', '家庭教育', '言传身教', '潜移默化'],
           en: 'What positive and negative impacts do you think technology has on relationships between people?',
           peelAnswer: {
             point:       '我认为科技对人与人之间的关系既有正面的促进作用，也有不可忽视的负面影响，关键在于我们如何善用它。',
@@ -1035,15 +1051,24 @@ const RAW_VAULT: VaultSet[] = [
             example:     '例如，我的祖父母住在马来西亚，多亏了视频通话，我们每个星期都能见到彼此的脸庞，感受并不疏远；但与此同时，我也曾经历过和朋友出去游玩，大家却各自刷手机，彼此之间几乎没有真正交谈的尴尬时刻。',
             link:        '因此，科技本身并不是问题，问题在于我们的使用方式。只要我们懂得自律，在适当的时候放下手机、用心投入与身边人的互动，科技便能成为增进感情的工具，而不是阻隔人心的屏障。',
           },
+            pointEn:       'I believe that technology has both positive effects that promote relationships between people, and negative impacts that cannot be ignored — the key lies in how we make good use of it.',
         },
+            elaborationEn: 'On the positive side, technology allows family and friends in different places to stay in touch at any time, and video calls make distant family relationships feel close again; social media also makes it easier for people to find like-minded friends and share each other\'s lives. However, on the negative side, over-reliance on electronic devices can cause people to become absorbed in the virtual world, reducing face-to-face interaction and weakening intimacy — even making family members under the same roof feel like strangers.',
         q3: {
+            exampleEn:     'For example, my grandparents live in Malaysia, and thanks to video calls, we can see each other\'s faces every week and do not feel distant. But at the same time, I have experienced the awkward situation of going out with friends, only to find everyone scrolling through their phones with barely any real conversation.',
           cn: '在你的家庭里，大家是如何平衡使用电子产品和家庭时间的？',
+          keywords:    ['难忘', '印象深刻', '温馨时光', '珍惜', '不仅……也……', '感情深厚', '回味无穷', '家人陪伴', '心怀感恩', '倍感温暖'],
+            linkEn:        'Therefore, technology itself is not the problem — the problem lies in how we use it. As long as we exercise self-discipline and put down our phones at the right moments to genuinely engage with the people around us, technology can become a tool for strengthening relationships rather than a barrier that separates hearts.',
           en: 'In your family, how do you balance using electronic devices and family time?',
           peelAnswer: {
             point:       '在我的家庭里，我们通过制定共同约定来平衡电子产品的使用和家庭时间，确保两者之间取得健康的平衡。',
+            pointEn:       'In my family, we balance the use of electronic devices and family time by establishing shared agreements, ensuring a healthy balance between the two.',
             elaboration: '爸爸妈妈规定，吃饭时间所有人必须把手机放在一边，专心用餐和交流；周末则会安排至少一项家庭活动，比如一起去公园散步或玩桌游。此外，平日里我也会在完成功课之后，才使用平板电脑作为奖励，而不是一回家就捧着屏幕。',
+            elaborationEn: 'Mum and Dad have a rule that during mealtimes, everyone must put their phones aside and focus on eating and chatting together; on weekends, at least one family activity is planned, such as going for a walk in the park or playing board games. In addition, on weekdays I only use the tablet after finishing my homework as a reward, rather than picking it up the moment I get home.',
             example:     '例如，上个月，爸爸提议我们举办"无屏幕晚餐"，每周五晚上一家人吃饭时完全不碰手机。那天的晚餐特别热闹，大家分享了各自一周内有趣的经历，气氛非常融洽。',
+            exampleEn:     "For example, last month, Dad suggested we hold a 'screen-free dinner' every Friday evening, where the whole family would have dinner without touching their phones at all. That dinner was especially lively — everyone shared interesting things that had happened during the week, and the atmosphere was wonderfully warm.",
             link:        '我认为，家庭之间的约定和互相监督，是平衡科技与家庭时间最有效的方法。这样既能让我们享受科技带来的便利，也不会忽略家人之间面对面交流的宝贵时光。',
+            linkEn:        'I believe that family agreements and mutual accountability are the most effective ways to balance technology and family time. This allows us to enjoy the convenience that technology brings while not neglecting the precious time we spend face-to-face with our family.',
           },
         },
       },
