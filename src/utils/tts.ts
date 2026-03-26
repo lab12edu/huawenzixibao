@@ -13,10 +13,12 @@
  */
 
 // ── Constants ──────────────────────────────────────────────────
-const RATE_CHAR    = 0.85   // single char / word
-const RATE_PASSAGE = 0.80   // full passage
+const RATE_CHAR    = 0.90   // single char / word  (was 0.85 — raised to reduce melodic TW voice)
+const RATE_PASSAGE = 0.85   // full passage         (was 0.80)
 const PITCH        = 1.0
-const LANG_PRIORITY = ['zh-TW', 'zh-CN', 'zh-HK']
+// zh-CN preferred first: Mainland voice sounds more natural/flat for students.
+// zh-TW moved to last because it can sound melodic/singing on some systems.
+const LANG_PRIORITY = ['zh-CN', 'zh-HK', 'zh-TW']
 
 // ── Voice resolution (cached after first call) ─────────────────
 let resolvedVoice: SpeechSynthesisVoice | null = null

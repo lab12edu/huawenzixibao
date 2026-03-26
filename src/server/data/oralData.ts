@@ -571,11 +571,37 @@ function extractConjunctions(peel?: PeelAnswer): string[] {
   });
 }
 
-function makeQuestion(vq: VaultQuestion, keywords: string[], questionIndex: 0 | 1 | 2): OralQuestion {
-  // Per-question keywords take precedence over set-level keywords
-  const baseKw = vq.keywords ?? keywords.slice(0, 3);
+/**
+ * Extract meaningful vocab terms that actually appear in this question's
+ * PEEL answer text by scanning against the ENGLISH_MAP dictionary.
+ * Sort by length descending so multi-char phrases are preferred over
+ * single-char substrings.  Cap at MAX_VOCAB per question.
+ */
+function extractPeelVocab(peel: PeelAnswer | undefined, max = 6): string[] {
+  if (!peel) return [];
+  const allText = [peel.point, peel.elaboration, peel.example, peel.link]
+    .filter(Boolean).join('');
+  // Collect all known dictionary terms that appear in the text
+  const found: string[] = [];
+  // Sort keys longest-first so '不顾他人' beats '他人'
+  const dictKeys = Object.keys(ENGLISH_MAP).sort((a, b) => b.length - a.length);
+  for (const term of dictKeys) {
+    if (term.length < 2) continue;          // skip single chars
+    if (!allText.includes(term)) continue;
+    // Avoid adding a term that is a substring of one already collected
+    if (found.some(f => f.includes(term))) continue;
+    found.push(term);
+    if (found.length >= max) break;
+  }
+  return found;
+}
+
+function makeQuestion(vq: VaultQuestion, _keywords: string[], questionIndex: 0 | 1 | 2): OralQuestion {
+  // Chips = vocab terms found IN this question's PEEL text + conjunctions used
+  const vocabChips   = extractPeelVocab(vq.peelAnswer, 5);
   const conjunctions = extractConjunctions(vq.peelAnswer);
-  const merged = [...new Set([...baseKw, ...conjunctions.slice(0, 4)])];
+  // Deduplicate; show vocab first, then conjunction patterns (max 3)
+  const merged = [...new Set([...vocabChips, ...conjunctions.slice(0, 3)])];
   return {
     questionChinese:    vq.cn,
     questionEnglish:    vq.en,
@@ -646,14 +672,14 @@ function transform(v: VaultSet): OralSet {
     accentColour: theme.accentColour,
     levels: ['P3', 'P4', 'P5', 'P6'],
     psleYears: [v.yearLabel],
-    // Enrich vocab: reading target words + conversation keywords + per-question keywords
+    // Vocab tab: reading target words  +  every term from all three PEEL answers
+    // that exists in ENGLISH_MAP (so every card has a pinyin + translation).
     vocab: makeVocab([
       ...new Set([
         ...v.reading.targetWords,
-        ...v.conversation.targetKeywords,
-        ...(v.conversation.questions.q1.keywords ?? []),
-        ...(v.conversation.questions.q2.keywords ?? []),
-        ...(v.conversation.questions.q3.keywords ?? []),
+        ...extractPeelVocab(v.conversation.questions.q1.peelAnswer, 10),
+        ...extractPeelVocab(v.conversation.questions.q2.peelAnswer, 10),
+        ...extractPeelVocab(v.conversation.questions.q3.peelAnswer, 10),
       ])
     ]),
     questions: {
