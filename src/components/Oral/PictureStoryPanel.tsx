@@ -9,10 +9,10 @@ const STANDARD_Q1      = '请谈谈你在录像中看到的一件事。';
 const STANDARD_Q1_HINT = '可以用：谁、做了什么、在哪里、为什么……';
 
 const Q_META = [
-  { badge: '第一题 Q1', type: '内容观察 Observation',        colour: '#1565C0' },
-  { badge: '第二题 Q2', type: '个人经验 Personal Experience', colour: '#6A1B9A' },
-  { badge: '第三题 Q3', type: '价值延伸 Values & Reflection', colour: '#E65100' },
-];
+  { label: '内容观察',  labelEn: 'Observation',          colour: '#1565C0' },  // blue
+  { label: '观点反思',  labelEn: 'Opinion & Reflection', colour: '#E65100' },  // amber
+  { label: '个人经历',  labelEn: 'Personal Experience',  colour: '#2E7D32' },  // green
+] as const;
 
 // ─── Highlight key phrases inside answer text ─────────────────────────────────
 function highlightKeyPhrases(text: string, phrases: string[]): React.ReactNode {
@@ -61,7 +61,7 @@ function QuestionCard({
   q, meta, parentMode, questionOverride, questionHint,
 }: {
   q: OralQuestion;
-  meta: { badge: string; type: string; colour: string };
+  meta: { label: string; labelEn: string; colour: string };
   parentMode: boolean;
   questionOverride?: string;
   questionHint?:     string;
@@ -86,12 +86,11 @@ function QuestionCard({
     <div className="oral-q-card">
       {/* Header */}
       <div className="oral-q-header">
-        <span className="oral-q-badge">{meta.badge}</span>
         <span
-          className="oral-q-type-pill"
+          className="oral-q-badge"
           style={{ backgroundColor: meta.colour }}
         >
-          {meta.type}
+          {meta.label} {meta.labelEn}
         </span>
         <button
           className="oral-q-tts"
