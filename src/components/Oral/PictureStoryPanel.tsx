@@ -131,20 +131,41 @@ function QuestionCard({
         </div>
       </Collapsible>
 
-      {/* Model Answer — default closed */}
+      {/* Model Answer — always visible, default closed */}
       <Collapsible label="参考答案 Model Answer" defaultOpen={false}>
-        {!parentMode ? (
-          <div className="oral-lock-note">
-            <i className="fa-solid fa-lock oral-lock-icon" />
-            开启家长模式查看 / Enable Parent Mode to reveal
+        {q.peelAnswer ? (
+          /* ── PEEL structured answer ── */
+          <div className="oral-peel-box">
+            <div className="oral-peel-row">
+              <span className="oral-peel-label oral-peel-label--p">论点 Point</span>
+              <p className="oral-peel-text">{q.peelAnswer.point}</p>
+            </div>
+            <div className="oral-peel-row">
+              <span className="oral-peel-label oral-peel-label--e">阐述 Elaboration</span>
+              <p className="oral-peel-text">{q.peelAnswer.elaboration}</p>
+            </div>
+            <div className="oral-peel-row">
+              <span className="oral-peel-label oral-peel-label--ex">举例 Example</span>
+              <p className="oral-peel-text">{q.peelAnswer.example}</p>
+            </div>
+            <div className="oral-peel-row">
+              <span className="oral-peel-label oral-peel-label--l">联系 Link</span>
+              <p className="oral-peel-text">{q.peelAnswer.link}</p>
+            </div>
+            {q.keyPhrases.length > 0 && (
+              <div className="oral-key-phrases">
+                {q.keyPhrases.map((kp, i) => (
+                  <span key={i} className="oral-key-chip">{kp}</span>
+                ))}
+              </div>
+            )}
           </div>
-        ) : (
+        ) : q.modelAnswerChinese ? (
+          /* ── Plain model answer fallback ── */
           <div className="oral-answer-box">
             {highlightKeyPhrases(q.modelAnswerChinese, q.keyPhrases)}
             {q.modelAnswerEnglish && (
-              <p className="oral-answer-en">
-                {q.modelAnswerEnglish}
-              </p>
+              <p className="oral-answer-en">{q.modelAnswerEnglish}</p>
             )}
             {q.keyPhrases.length > 0 && (
               <div className="oral-key-phrases">
@@ -154,6 +175,11 @@ function QuestionCard({
               </div>
             )}
           </div>
+        ) : (
+          /* ── Placeholder when no answer data yet ── */
+          <p className="oral-card-sublabel" style={{ padding: '8px 12px' }}>
+            参考答案即将推出 / Model answer coming soon
+          </p>
         )}
       </Collapsible>
     </div>

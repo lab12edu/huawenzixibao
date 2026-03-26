@@ -5880,3 +5880,37 @@ html { scrollbar-gutter: stable; }
   margin-top: 10px;
   line-height: 1.5;
 }
+
+/* ── Phase 3.2 — PEEL answer box ─────────────────────────────────────────── */
+.oral-peel-box {
+  padding: 10px 14px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.oral-peel-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.oral-peel-label {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  width: fit-content;
+  text-transform: uppercase;
+  color: #fff;
+}
+.oral-peel-label--p  { background: #1565C0; }   /* Point       — blue  */
+.oral-peel-label--e  { background: #00695C; }   /* Elaboration — teal  */
+.oral-peel-label--ex { background: #E65100; }   /* Example     — amber */
+.oral-peel-label--l  { background: #4A148C; }   /* Link        — purple */
+.oral-peel-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #333;
+}
