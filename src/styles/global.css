@@ -5353,6 +5353,7 @@ html { scrollbar-gutter: stable; }
   display: inline;
   border-radius: 3px;
   padding: 0 1px;
+  margin-right: 0.18em;   /* word spacing — improves readability & tap targets */
   transition: background 0.15s;
 }
 .heatmap-word--clickable {
@@ -5742,4 +5743,140 @@ html { scrollbar-gutter: stable; }
 .oral-model-play-btn-large.oral-speech-btn--active {
   background: #ffebee !important;
   color: #B71C1C !important;
+}
+
+/* ══════════════════════════════════════════════
+   Phase 3.1 — Conversation Panel
+   Replaces oral-frame-grid and oral-narrator-card
+   ══════════════════════════════════════════════ */
+
+.oral-scenario-card {
+  background: #fff;
+  border-radius: 14px;
+  border-top: 4px solid #1565C0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.oral-scenario-instruction {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #FFF8E1;
+  border-left: 3px solid #F9A825;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #5D4037;
+}
+.oral-scenario-body {
+  background: #F8F9FA;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.oral-scenario-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+}
+.oral-scenario-text {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--color-text);
+  margin: 0;
+}
+.oral-scenario-audio-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #E8F5E9;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.oral-scenario-audio-row .oral-speech-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  background: #2E7D32;
+  color: #fff;
+  border: none;
+}
+.oral-scenario-audio-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1B5E20;
+  line-height: 1.4;
+}
+.oral-guiding-pointers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+.oral-pointer-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #FFF9C4;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.oral-pointer-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #F9A825;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.oral-pointer-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #4E342E;
+  margin: 0;
+}
+.oral-news-anchor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F3E5F5;
+  border-left: 3px solid #7B1FA2;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: #4A148C;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.oral-news-anchor-label {
+  font-weight: 800;
+  margin-right: 4px;
+}
+.oral-moral-reflection {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #E8F5E9;
+  border-left: 3px solid #2E7D32;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: #1B5E20;
+  font-weight: 600;
+  margin-top: 10px;
+  line-height: 1.5;
 }

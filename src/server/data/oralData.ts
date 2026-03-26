@@ -32,9 +32,13 @@ interface VaultSet {
     targetWords: string[];
   };
   conversation: {
-    storyboardDesc: string;
-    questions: { q1: VaultQuestion; q2: VaultQuestion; q3: VaultQuestion };
-    targetKeywords: string[];
+    storyboardDesc:       string;
+    scenarioDescription?: string;  // if absent, falls back to storyboardDesc
+    questions:            { q1: VaultQuestion; q2: VaultQuestion; q3: VaultQuestion };
+    targetKeywords:       string[];
+    guidingPointers?:     string[];
+    newsAnchor?:          string;
+    moralReflection?:     string;
   };
 }
 
@@ -72,13 +76,14 @@ export interface OralVideoFrame {
 }
 
 export interface OralPictureStory {
-  titleChinese: string;
-  titleEnglish: string;
-  introChinese: string;
-  introEnglish: string;
-  narratorChinese: string;
-  narratorEnglish: string;
-  frames: [OralVideoFrame, OralVideoFrame, OralVideoFrame, OralVideoFrame];
+  titleChinese:        string;
+  titleEnglish:        string;
+  introChinese:        string;
+  introEnglish:        string;
+  narratorChinese:     string;
+  narratorEnglish:     string;
+  scenarioDescription: string;  // examiner's verbal scenario prompt
+  frames: [OralVideoFrame, OralVideoFrame, OralVideoFrame, OralVideoFrame]; // kept for backward compat — do not render in ConversationPanel ★
 }
 
 export interface OralSet {
@@ -107,7 +112,11 @@ export interface OralSet {
    *  Pattern: /audio/oral/${id}.mp3
    *  File is served as a Cloudflare Pages static asset from public/audio/oral/.
    *  When the file is absent (404), SpeechButton falls back to speakPassage(). */
-  audioUrl: string;
+  audioUrl:         string;
+  scenarioAudioUrl?: string;   // set to `/audio/oral/${id}_scenario.mp3` once recorded
+  guidingPointers?:  string[];
+  newsAnchor?:       string;
+  moralReflection?:  string;
 }
 
 // ── Theme metadata ────────────────────────────────────────────────────────────
@@ -429,15 +438,20 @@ function transform(v: VaultSet): OralSet {
         standard: '说出两个理由，用"第一……第二……"来组织你的回答。',
       },
     },
-    audioUrl: `/audio/oral/${v.id}.mp3`,
+    audioUrl:         `/audio/oral/${v.id}.mp3`,
+    scenarioAudioUrl: undefined,  // set to `/audio/oral/${v.id}_scenario.mp3` once recorded
+    guidingPointers:  v.conversation.guidingPointers,
+    newsAnchor:       v.conversation.newsAnchor,
+    moralReflection:  v.conversation.moralReflection,
     passage: makePassage(v.reading.text),
     pictureStory: {
-      titleChinese: theme.titleChinese,
-      titleEnglish: theme.titleEnglish,
-      introChinese: `${v.yearLabel}年口试主题：${theme.titleChinese}`,
-      introEnglish: `${v.yearLabel} Oral Theme: ${theme.titleEnglish}`,
-      narratorChinese: v.reading.text.slice(0, 40) + '……',
-      narratorEnglish: v.conversation.storyboardDesc,
+      titleChinese:        theme.titleChinese,
+      titleEnglish:        theme.titleEnglish,
+      introChinese:        `${v.yearLabel}年口试主题：${theme.titleChinese}`,
+      introEnglish:        `${v.yearLabel} Oral Theme: ${theme.titleEnglish}`,
+      narratorChinese:     v.reading.text.slice(0, 40) + '……',
+      narratorEnglish:     v.conversation.storyboardDesc,
+      scenarioDescription: v.conversation.scenarioDescription ?? v.conversation.storyboardDesc,
       frames: [
         makeFrame(0, frameTexts[0]),
         makeFrame(1, frameTexts[1]),

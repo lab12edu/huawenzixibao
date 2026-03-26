@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { OralSet, OralQuestion } from '../../data/oralData';
 import { useApp } from '../../context/AppContext';
-import { speak, speakPassage } from '../../utils/tts';
-
-// speakChinese removed — use tts.ts speak() / speakPassage() throughout
+import { speak } from '../../utils/tts';
+import SpeechButton from './SpeechButton';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const FRAME_LABELS = ['第一幅', '第二幅', '第三幅', '第四幅'];
 
 const Q_META = [
-  { badge: '第一题 Q1', type: '描述',    colour: '#1565C0' },
-  { badge: '第二题 Q2', type: '个人经历', colour: '#6A1B9A' },
-  { badge: '第三题 Q3', type: '意见',    colour: '#E65100' },
+  { badge: '第一题 Q1', type: '内容观察 Observation',        colour: '#1565C0' },
+  { badge: '第二题 Q2', type: '个人经验 Personal Experience', colour: '#6A1B9A' },
+  { badge: '第三题 Q3', type: '价值延伸 Values & Reflection', colour: '#E65100' },
 ];
 
 // ─── Highlight key phrases inside answer text ─────────────────────────────────
@@ -181,7 +179,6 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
     ? set.questions.q3TipByLevel.advanced
     : set.questions.q3TipByLevel.standard;
 
-  const story = set.pictureStory;
   const qs: [OralQuestion, typeof Q_META[0]][] = [
     [set.questions.q1, Q_META[0]],
     [set.questions.q2, Q_META[1]],
@@ -191,59 +188,78 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
   return (
     <div className="oral-story-panel">
 
-      {/* B — Narrator card */}
-      <div className="oral-narrator-card">
-        <div
-          className="oral-narrator-accent"
-          style={{ backgroundColor: set.accentColour }}
-        />
-        <div className="oral-narrator-body">
-          <h2 className="oral-narrator-title">{story.titleChinese}</h2>
-          <p className={`oral-narrator-intro${parentMode ? '' : ' oral-hidden-en'}`}>
-            {story.titleEnglish}
-          </p>
-          {story.narratorChinese && (
-            <p className="oral-narrator-intro">{story.narratorChinese}</p>
-          )}
-          {story.narratorEnglish && (
-            <p className={`oral-narrator-intro${parentMode ? '' : ' oral-hidden-en'}`}>
-              {story.narratorEnglish}
-            </p>
-          )}
-          <button
-            className="oral-listen-btn"
-            onClick={() => speakPassage(story.narratorChinese || story.titleChinese)}
-          >
-            <i className="fa-solid fa-volume-high" />
-            朗读题目 Listen
-          </button>
-        </div>
-      </div>
+      {/* ── Scenario Card ── */}
+      <div className="oral-scenario-card" style={{ borderTopColor: set.accentColour }}>
 
-      {/* C — 2×2 storyboard grid */}
-      <div className="oral-frame-grid">
-        {story.frames.map((frame, idx) => (
-          <div key={idx} className="oral-frame-card">
-            <div className="oral-frame-placeholder">
-              <i className="fa-solid fa-image" />
-              <span>图片 Frame {idx + 1}</span>
+        {/* Instruction */}
+        <div className="oral-scenario-instruction">
+          <i className="fa-solid fa-film oral-tip-icon" />
+          <span>
+            练习时，仔细阅读以下情境描述，想象你正在看录像，然后回答三道问题。
+            <br />
+            <span className="oral-card-sublabel">
+              For practice, read the scenario carefully and imagine you are watching the video, then answer the three questions.
+            </span>
+          </span>
+        </div>
+
+        {/* Scenario text */}
+        <div className="oral-scenario-body">
+          <p className="oral-scenario-label">情境 Scenario</p>
+          <p className="oral-scenario-text">{set.pictureStory.scenarioDescription}</p>
+        </div>
+
+        {/* Audio playback row */}
+        <div className="oral-scenario-audio-row">
+          <SpeechButton
+            text={set.pictureStory.scenarioDescription}
+            passage
+            audioUrl={set.scenarioAudioUrl}
+            className="oral-scenario-play-btn"
+            title="聆听情境描述 Listen to Scenario"
+          />
+          <span className="oral-scenario-audio-label">
+            聆听情境<br />
+            <span className="oral-card-sublabel">Listen to Scenario</span>
+          </span>
+        </div>
+
+        {/* Thinking hints — collapsible, closed by default */}
+        {set.guidingPointers && set.guidingPointers.length > 0 && (
+          <Collapsible
+            label="思考提示 Thinking Hints · 准备时参考 Use during preparation"
+            defaultOpen={false}
+          >
+            <div className="oral-guiding-pointers">
+              {set.guidingPointers.map((hint, i) => (
+                <div key={i} className="oral-pointer-card">
+                  <span className="oral-pointer-num">{i + 1}</span>
+                  <p className="oral-pointer-text">{hint}</p>
+                </div>
+              ))}
             </div>
-            <div className="oral-frame-body">
-              <div className="oral-frame-badge">{FRAME_LABELS[idx] || `第${idx + 1}幅`}</div>
-              <p className="oral-frame-cn">{frame.captionChinese}</p>
-              <p className={`oral-frame-en${parentMode ? '' : ' oral-hidden-en'}`}>
-                {frame.captionEnglish}
-              </p>
-              <button
-                className="oral-frame-tts"
-                onClick={() => speak(frame.captionChinese)}
-                title="Listen"
-              >
-                <i className="fa-solid fa-volume-high" /> 听
-              </button>
-            </div>
+          </Collapsible>
+        )}
+
+        {/* News anchor — only rendered when present */}
+        {set.newsAnchor && (
+          <div className="oral-news-anchor">
+            <i className="fa-solid fa-newspaper" />
+            <span>
+              <span className="oral-news-anchor-label">现实联系 Real-Life Connection · </span>
+              {set.newsAnchor}
+            </span>
           </div>
-        ))}
+        )}
+
+        {/* Moral reflection */}
+        {set.moralReflection && (
+          <div className="oral-moral-reflection">
+            <i className="fa-solid fa-lightbulb oral-tip-icon" />
+            <span>{set.moralReflection}</span>
+          </div>
+        )}
+
       </div>
 
       {/* D — Questions */}
