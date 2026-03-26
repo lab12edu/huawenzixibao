@@ -305,6 +305,11 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
         <div className="oral-parent-label">
           家长陪练模式
           <span>Parent Co-Practice</span>
+          <span className="oral-parent-instruction">
+            {parentMode
+              ? '✓ 已显示英文翻译 · English translations visible'
+              : '开启后显示三道问题的英文翻译 · Turn on to show English translations'}
+          </span>
         </div>
         <label className="oral-toggle">
           <input
