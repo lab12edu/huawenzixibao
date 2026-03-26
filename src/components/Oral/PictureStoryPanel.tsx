@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { OralSet, OralQuestion } from '../../data/oralData';
 import { useApp } from '../../context/AppContext';
 import { speak } from '../../utils/tts';
-import SpeechButton from './SpeechButton';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -207,21 +206,6 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
         <div className="oral-scenario-body">
           <p className="oral-scenario-label">情境 Scenario</p>
           <p className="oral-scenario-text">{set.pictureStory.scenarioDescription}</p>
-        </div>
-
-        {/* Audio playback row */}
-        <div className="oral-scenario-audio-row">
-          <SpeechButton
-            text={set.pictureStory.scenarioDescription}
-            passage
-            audioUrl={set.scenarioAudioUrl}
-            className="oral-scenario-play-btn"
-            title="聆听情境描述 Listen to Scenario"
-          />
-          <span className="oral-scenario-audio-label">
-            聆听情境<br />
-            <span className="oral-card-sublabel">Listen to Scenario</span>
-          </span>
         </div>
 
         {/* Thinking hints — collapsible, closed by default */}
