@@ -14,20 +14,10 @@ const Q_META = [
   { label: '个人经历', labelEn: 'Personal Experience',  colour: '#2E7D32' },
 ] as const;
 
-// ── Highlight key phrases ──────────────────────────────────────────────────────
-function highlightKeyPhrases(text: string, phrases: string[]): React.ReactNode {
-  if (!phrases.length) return text;
-  const sorted  = [...phrases].sort((a, b) => b.length - a.length);
-  const escaped = sorted.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const regex   = new RegExp(`(${escaped.join('|')})`, 'g');
-  const parts   = text.split(regex);
-  return (
-    <>
-      {parts.map((part, i) =>
-        phrases.includes(part) ? <mark key={i}>{part}</mark> : part
-      )}
-    </>
-  );
+// Highlight removed per design review — plain text only, no <mark> wrapping.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function highlightKeyPhrases(text: string, _phrases: string[]): React.ReactNode {
+  return text;
 }
 
 // ── Collapsible ────────────────────────────────────────────────────────────────

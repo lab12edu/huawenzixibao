@@ -315,6 +315,57 @@ const PINYIN_MAP: Record<string, string> = {
   '辨别': 'biàn bié',
   // shared
   '体谅': 'tǐ liàng',
+  // school — civic interaction / canteen / classroom
+  '推挤': 'tuī jǐ', '收拾碗碟': 'shōu shí wǎn dié', '礼让': 'lǐ ràng',
+  '意外': 'yì wài', '见义勇为': 'jiàn yì yǒng wéi', '友谊第一': 'yǒu yì dì yī',
+  '扶起': 'fú qǐ', '感动': 'gǎn dòng', '不小心': 'bù xiǎo xīn',
+  '涂鸦': 'tú yā', '收拾': 'shōu shí', '合作': 'hé zuò',
+  '互相体谅': 'hù xiāng tǐ liàng', '感激': 'gǎn jī', '卡片': 'kǎ piàn',
+  '尊师重道': 'zūn shī zhòng dào', '难舍难分': 'nán shě nán fēn', '礼物': 'lǐ wù',
+  '大声喧哗': 'dà shēng xuān huá', '让位': 'ràng wèi',
+  '体谅他人': 'tǐ liàng tā rén', '碗碟': 'wǎn dié', '保持卫生': 'bǎo chí wèi shēng',
+  '肮脏': 'āng zāng', '小贩中心': 'xiǎo fàn zhōng xīn',
+  '乱丢垃圾': 'luàn diū lā jī', '提醒': 'tí xǐng', '爱护公物': 'ài hù gōng wù',
+  '垃圾桶': 'lā jī tǒng', '以身作则': 'yǐ shēn zuò zé',
+  '安静': 'ān jìng', '自私': 'zì sī', '干扰': 'gān rǎo',
+  '专注': 'zhuān zhù', '道歉': 'dào qiàn',
+  // community
+  '远亲不如近邻': 'yuǎn qīn bù rú jìn lín', '互相照顾': 'hù xiāng zhào gù',
+  '温馨': 'wēn xīn', '举手之劳': 'jǔ shǒu zhī láo', '人情味': 'rén qíng wèi',
+  '温暖': 'wēn nuǎn', '爱心': 'ài xīn',
+  '分享美食': 'fēn xiǎng měi shí', '各族同胞': 'gè zú tóng bāo',
+  '凝聚力': 'níng jù lì', '庆祝': 'qìng zhù',
+  '甘榜精神': 'gān bǎng jīng shén', '分享': 'fēn xiǎng',
+  '收成': 'shōu chéng', '邻里关系': 'lín lǐ guān xì', '耕种': 'gēng zhòng',
+  // environment
+  '再循环': 'zài xún huán', '蓝色回收箱': 'lán sè huí shōu xiāng',
+  '分类': 'fēn lèi', '环保意识': 'huán bǎo yì shí',
+  '节约用水': 'jié yuē yòng shuǐ', '水龙头': 'shuǐ lóng tóu',
+  '捡垃圾': 'jiǎn lā jī', '海洋生物': 'hǎi yáng shēng wù',
+  '污染': 'wū rǎn', '保护环境': 'bǎo hù huán jìng', '参与': 'cān yǔ',
+  '光盘行动': 'guāng pán xíng dòng', '粒粒皆辛苦': 'lì lì jiē xīn kǔ',
+  '珍惜食物': 'zhēn xī shí wù',
+  // personal / family
+  '亲子关系': 'qīn zǐ guān xì', '沟通': 'gōu tōng',
+  '其乐融融': 'qí lè róng róng', '天伦之乐': 'tiān lún zhī lè',
+  '美好回忆': 'měi hǎo huí yì',
+  '博览群书': 'bó lǎn qún shū', '保护视力': 'bǎo hù shì lì',
+  '知识就是力量': 'zhī shì jiù shì lì liàng',
+  '均衡饮食': 'jūn héng yǐn shí', '营养': 'yíng yǎng',
+  '强身健体': 'qiáng shēn jiàn tǐ', '病从口入': 'bìng cóng kǒu rù',
+  '自理能力': 'zì lǐ néng lì', '分担家务': 'fēn dān jiā wù',
+  '感恩': 'gǎn ēn', '独立': 'dú lì',
+  // safety
+  '头盔': 'tóu kuī', '刹车': 'shā chē', '安全措施': 'ān quán cuò shī',
+  '负责任': 'fù zé rèn', '网络霸凌': 'wǎng luò bā líng',
+  '安全上网': 'ān quán shàng wǎng', '违规': 'wéi guī', '制止': 'zhì zhǐ',
+  // tech
+  '家庭关系': 'jiā tíng guān xì', '面对面交流': 'miàn duì miàn jiāo liú',
+  '健康使用': 'jiàn kāng shǐ yòng', '核实': 'hé shí', '误导': 'wù dǎo',
+  '编程': 'biān chéng', '人机合作': 'rén jī hé zuò',
+  '未来技能': 'wèi lái jì néng', '适应': 'shì yìng', '创新': 'chuàng xīn',
+  '时间管理': 'shí jiān guǎn lǐ', '自控': 'zì kòng',
+  '游戏成瘾': 'yóu xì chéng yǐn', '学业': 'xué yè', '平衡': 'píng héng',
 };
 
 const ENGLISH_MAP: Record<string, string> = {
@@ -374,6 +425,62 @@ const ENGLISH_MAP: Record<string, string> = {
   '依赖': 'to rely on/dependency', '节制': 'moderation/restraint', '社交媒体': 'social media',
   '隐私': 'privacy', '虚假信息': 'false information/misinformation', '辨别': 'to distinguish',
   '体谅': 'to be understanding of',
+  // school — civic / canteen / classroom
+  '推挤': 'to push and jostle', '收拾碗碟': 'to clear away dishes', '礼让': 'to give way politely',
+  '意外': 'accident/unexpected', '见义勇为': 'to act bravely for a just cause',
+  '友谊第一': 'friendship first', '扶起': 'to help up/to assist someone to stand',
+  '感动': 'to be moved/touched', '不小心': 'careless/accidentally',
+  '涂鸦': 'to scribble/graffiti', '收拾': 'to tidy up/clear away', '合作': 'to cooperate/teamwork',
+  '互相体谅': 'to be mutually understanding', '感激': 'grateful/thankful',
+  '卡片': 'card', '尊师重道': 'to respect and value teachers',
+  '难舍难分': 'reluctant to part/inseparable', '礼物': 'gift/present',
+  '大声喧哗': 'to make loud noise', '让位': 'to give up one\'s seat',
+  '体谅他人': 'to be considerate of others', '碗碟': 'bowls and dishes',
+  '保持卫生': 'to maintain hygiene/cleanliness', '肮脏': 'dirty/filthy',
+  '小贩中心': 'hawker centre', '乱丢垃圾': 'to litter carelessly',
+  '提醒': 'to remind', '爱护公物': 'to take care of public property',
+  '垃圾桶': 'rubbish bin', '以身作则': 'to lead by example',
+  '安静': 'quiet/silent', '自私': 'selfish', '干扰': 'to disturb/interfere',
+  '专注': 'focused/concentrated', '道歉': 'to apologise',
+  // community
+  '远亲不如近邻': 'a close neighbour is better than a distant relative',
+  '互相照顾': 'to look out for each other', '温馨': 'warm and cosy',
+  '举手之劳': 'a small effort/no trouble at all', '人情味': 'human warmth/personal touch',
+  '温暖': 'warmth/warm', '爱心': 'love and care/compassion',
+  '分享美食': 'to share food', '各族同胞': 'fellow citizens of all races',
+  '凝聚力': 'cohesion/unity', '庆祝': 'to celebrate',
+  '甘榜精神': 'kampong spirit', '分享': 'to share',
+  '收成': 'harvest', '邻里关系': 'neighbourly relations', '耕种': 'to farm/cultivate',
+  // environment
+  '再循环': 'recycling', '蓝色回收箱': 'blue recycling bin',
+  '分类': 'to sort/classify', '环保意识': 'environmental awareness',
+  '节约用水': 'to conserve water', '水龙头': 'tap/faucet',
+  '捡垃圾': 'to pick up litter', '海洋生物': 'marine life/sea creatures',
+  '污染': 'pollution', '保护环境': 'to protect the environment', '参与': 'to participate',
+  '光盘行动': 'clean-plate campaign (finish your food)', '粒粒皆辛苦': 'every grain of rice comes from hard work',
+  '珍惜食物': 'to cherish food/not waste food',
+  // personal / family
+  '亲子关系': 'parent-child relationship', '沟通': 'to communicate',
+  '其乐融融': 'harmonious and joyful', '天伦之乐': 'family happiness',
+  '美好回忆': 'wonderful memories',
+  '博览群书': 'to read widely', '保护视力': 'to protect one\'s eyesight',
+  '知识就是力量': 'knowledge is power',
+  '均衡饮食': 'balanced diet', '营养': 'nutrition/nourishment',
+  '强身健体': 'to strengthen the body', '病从口入': 'illness enters through the mouth',
+  '自理能力': 'ability to take care of oneself', '分担家务': 'to share household chores',
+  '感恩': 'gratitude/to be grateful', '独立': 'independent/independence',
+  // safety
+  '头盔': 'helmet', '刹车': 'brakes/to brake', '安全措施': 'safety measures',
+  '负责任': 'responsible/to be responsible', '网络霸凌': 'cyberbullying',
+  '安全上网': 'safe internet use', '违规': 'to break rules/violation',
+  '制止': 'to stop/prevent',
+  // tech
+  '家庭关系': 'family relationships', '面对面交流': 'face-to-face communication',
+  '健康使用': 'healthy use', '核实': 'to verify/fact-check', '误导': 'to mislead',
+  '编程': 'coding/programming', '人机合作': 'human-machine collaboration',
+  '未来技能': 'future skills', '适应': 'to adapt', '创新': 'innovation',
+  '时间管理': 'time management', '自控': 'self-control',
+  '游戏成瘾': 'gaming addiction', '学业': 'academic studies', '平衡': 'balance',
 };
 
 // ── Transform: VaultSet → OralSet ────────────────────────────────────────────
@@ -483,7 +590,16 @@ function transform(v: VaultSet): OralSet {
     accentColour: theme.accentColour,
     levels: ['P3', 'P4', 'P5', 'P6'],
     psleYears: [v.yearLabel],
-    vocab: makeVocab(v.reading.targetWords),
+    // Enrich vocab: reading target words + conversation keywords + per-question keywords
+    vocab: makeVocab([
+      ...new Set([
+        ...v.reading.targetWords,
+        ...v.conversation.targetKeywords,
+        ...(v.conversation.questions.q1.keywords ?? []),
+        ...(v.conversation.questions.q2.keywords ?? []),
+        ...(v.conversation.questions.q3.keywords ?? []),
+      ])
+    ]),
     questions: {
       q1: makeQuestion(v.conversation.questions.q1, kw,           0),
       q2: makeQuestion(v.conversation.questions.q2, kw.slice(1),  1),
@@ -608,7 +724,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'Students working in an art room. One student spills paint on the table. Another helps him clean it up before the teacher sees.',
       questions: {
-        q1: { cn: '图中在美术室里的学生发生了什么事？', en: 'What happened among the students in the art room?' },
+        q1: { cn: '录像中在美术室里的学生发生了什么事？', en: 'What happened among the students in the art room?' },
         q2: { cn: '在小组讨论或活动中，你会如何与同学沟通？', en: 'How do you communicate with classmates during group discussions or activities?' },
         q3: { cn: '你认为在学校里培养团队精神对未来有什么帮助？', en: 'How do you think fostering teamwork at school helps in the future?' },
       },
@@ -696,7 +812,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A crowded hawker centre. People are returning their trays. One family leaves their mess behind.',
       questions: {
-        q1: { cn: '图中人们在熟食中心用餐后的行为有什么不同？', en: 'How do the behaviours of people after dining in the hawker centre differ in the picture?' },
+        q1: { cn: '录像中人们在熟食中心用餐后的行为有什么不同？', en: 'How do the behaviours of people after dining in the hawker centre differ in the video?' },
         q2: { cn: '你通常会自己收拾碗碟吗？为什么？', en: 'Do you usually clear your own dishes? Why?' },
         q3: { cn: '你认为政府强制执行回收托盘的计划是否有效？', en: 'Do you think the government\'s mandatory tray return scheme is effective?' },
       },
@@ -713,7 +829,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A park scene. People are littering while others are using trash bins properly. A park ranger is giving a warning.',
       questions: {
-        q1: { cn: '描述图中公园里人们爱护环境和不爱护环境的行为。', en: 'Describe the behaviours of people caring for and not caring for the environment in the park.' },
+        q1: { cn: '描述录像中公园里人们爱护环境和不爱护环境的行为。', en: 'Describe the behaviours of people caring for and not caring for the environment in the park.' },
         q2: { cn: '如果你看到同学乱丢垃圾，你会如何提醒他？', en: 'If you see a classmate littering, how would you remind them?' },
         q3: { cn: '你认为加强环保教育对保护新加坡的绿化环境有什么作用？', en: 'What role do you think strengthening environmental education plays in protecting Singapore\'s greenery?' },
       },
@@ -730,7 +846,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'Library scene. A student is playing mobile games with loud sound on. Another person is trying to study and looks frustrated.',
       questions: {
-        q1: { cn: '图中在图书馆里发生了什么干扰他人的行为？', en: 'What disruptive behaviour occurred in the library in the picture?' },
+        q1: { cn: '录像中在图书馆里发生了什么干扰他人的行为？', en: 'What disruptive behaviour occurred in the library in the video?' },
         q2: { cn: '在图书馆或电影院等需要安静的场所，你会注意什么？', en: 'In quiet places like libraries or cinemas, what would you pay attention to?' },
         q3: { cn: '为什么学会控制自己的音量是尊重他人的表现？', en: 'Why is learning to control your volume a sign of respect for others?' },
       },
@@ -748,7 +864,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A student holding the lift door open for an elderly neighbour carrying groceries at an HDB void deck.',
       questions: {
-        q1: { cn: '描述图中邻里之间互相帮助的情景。', en: 'Describe the scene of mutual help between neighbours in the picture.' },
+        q1: { cn: '描述录像中邻里之间互相帮助的情景。', en: 'Describe the scene of mutual help between neighbours in the video.' },
         q2: { cn: '你曾有过帮助邻居的经历吗？分享你的感受。', en: 'Have you ever had an experience of helping a neighbour? Share your feelings.' },
         q3: { cn: '为什么"远亲不如近邻"这句话在现代社会依然重要？', en: 'Why is the saying "a close neighbour is better than a distant relative" still important today?' },
       },
@@ -765,7 +881,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'Students volunteering at an elderly home. One student is performing a song while others are chatting with the seniors.',
       questions: {
-        q1: { cn: '图中同学们在乐龄中心做了哪些活动？', en: 'What activities did the students do at the senior centre in the picture?' },
+        q1: { cn: '录像中同学们在乐龄中心做了哪些活动？', en: 'What activities did the students do at the senior centre in the video?' },
         q2: { cn: '如果你有空，你会选择什么样的义工服务？为什么？', en: 'If you had time, what kind of volunteer service would you choose? Why?' },
         q3: { cn: '你认为现在的年轻人应该如何关怀社会中的弱势群体？', en: 'How do you think young people today should care for vulnerable groups in society?' },
       },
@@ -782,7 +898,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A community party at the void deck. People of different races are sharing food and laughing together.',
       questions: {
-        q1: { cn: '描述图中邻居们在一起庆祝的情景。', en: 'Describe the scene of neighbours celebrating together in the picture.' },
+        q1: { cn: '描述录像中邻居们在一起庆祝的情景。', en: 'Describe the scene of neighbours celebrating together in the video.' },
         q2: { cn: '你参加过邻里举办的活动吗？描述一下那个活动。', en: 'Have you participated in any neighbourhood events? Describe that event.' },
         q3: { cn: '举办邻里联欢活动对促进种族和谐有什么帮助？', en: 'How do neighbourhood parties help promote racial harmony?' },
       },
@@ -799,7 +915,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A neighbourhood garden. Residents are planting vegetables together and sharing the harvest with others.',
       questions: {
-        q1: { cn: '图中居民们在邻里花园里做了什么？', en: 'What did the residents do in the neighbourhood garden in the picture?' },
+        q1: { cn: '录像中居民们在邻里花园里做了什么？', en: 'What did the residents do in the neighbourhood garden in the video?' },
         q2: { cn: '你对"甘榜精神"有什么理解？', en: 'What is your understanding of the "Kampong Spirit"?' },
         q3: { cn: '你认为邻里之间互相分享食物或资源有什么好处？', en: 'What are the benefits of neighbours sharing food or resources?' },
       },
@@ -817,7 +933,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A primary school sorting recycling items like plastic bottles, paper, and cans into blue bins.',
       questions: {
-        q1: { cn: '图中同学们在学校里如何进行废物利用和回收？', en: 'How did the students carry out waste reuse and recycling at school in the picture?' },
+        q1: { cn: '录像中同学们在学校里如何进行废物利用和回收？', en: 'How did the students carry out waste reuse and recycling at school in the video?' },
         q2: { cn: '在家里，你和家人是如何实践"环保三字诀"（减少、重用、回收）的？', en: 'At home, how do you and your family practise the "3Rs" (Reduce, Reuse, Recycle)?' },
         q3: { cn: '你认为政府应该采取什么措施来鼓励更多国人参与环保？', en: 'What measures do you think the government should take to encourage more Singaporeans to participate in environmental protection?' },
       },
@@ -834,7 +950,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A campaign poster in the school toilet showing a child wasting water and another child correcting them.',
       questions: {
-        q1: { cn: '描述图中海报展示的正确和错误用水行为。', en: 'Describe the correct and incorrect water usage behaviours shown in the poster in the picture.' },
+        q1: { cn: '描述录像中海报展示的正确和错误用水行为。', en: 'Describe the correct and incorrect water usage behaviours shown in the poster in the video.' },
         q2: { cn: '除了节约用水，你在日常生活中还通过哪些方式保护自然资源？', en: 'Besides saving water, what other ways do you protect natural resources in your daily life?' },
         q3: { cn: '为什么从小培养孩子的环保习惯对社会的可持续发展很重要？', en: 'Why is fostering environmental habits in children important for the sustainable development of society?' },
       },
@@ -851,7 +967,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'Families participating in a coastal cleanup at East Coast Park. They are picking up microplastics and litter.',
       questions: {
-        q1: { cn: '描述图中人们在海边进行清洁活动的情景。', en: 'Describe the scene of people carrying out a cleanup activity at the beach in the picture.' },
+        q1: { cn: '描述录像中人们在海边进行清洁活动的情景。', en: 'Describe the scene of people carrying out a cleanup activity at the beach in the video.' },
         q2: { cn: '你去过海边吗？你在那里通常会做些什么来保护环境？', en: 'Have you been to the beach? What do you usually do there to protect the environment?' },
         q3: { cn: '你认为这类社区清洁活动对提高公众的环保意识有帮助吗？为什么？', en: 'Do you think these community cleanup activities help raise public environmental awareness? Why?' },
       },
@@ -868,7 +984,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A school canteen where students are leaving unfinished food. A teacher is explaining food waste to them.',
       questions: {
-        q1: { cn: '描述图中食堂里发生的食物浪费现象。', en: 'Describe the food waste occurring in the canteen in the picture.' },
+        q1: { cn: '描述录像中食堂里发生的食物浪费现象。', en: 'Describe the food waste occurring in the canteen in the video.' },
         q2: { cn: '你在用餐时会如何确保不浪费食物？', en: 'How do you ensure you don\'t waste food when dining?' },
         q3: { cn: '你认为"光盘行动"在学校里推广有什么意义？', en: 'What is the significance of promoting the "Clear Your Plate" campaign in schools?' },
       },
@@ -903,7 +1019,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A child reading a book under a blanket with a flashlight. His parents enter and encourage him to read in better lighting.',
       questions: {
-        q1: { cn: '描述图中关于阅读习惯的正确与错误做法。', en: 'Describe the correct and incorrect practices regarding reading habits in the picture.' },
+        q1: { cn: '描述录像中关于阅读习惯的正确与错误做法。', en: 'Describe the correct and incorrect practices regarding reading habits in the video.' },
         q2: { cn: '你喜欢阅读吗？你最喜欢哪一类的书籍？为什么？', en: 'Do you like reading? What kind of books do you like most? Why?' },
         q3: { cn: '由于电子产品的普及，你认为如何能让更多青少年重拾阅读纸质书的兴趣？', en: 'Given the prevalence of electronic devices, how can we make more teenagers regain interest in reading physical books?' },
       },
@@ -920,7 +1036,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A school tuckshop stall serving healthy meals with brown rice and fruit. A group of students is choosing these options.',
       questions: {
-        q1: { cn: '描述图中同学们在食堂里选择健康饮食的情景。', en: 'Describe the scene of students choosing healthy food in the canteen in the picture.' },
+        q1: { cn: '描述录像中同学们在食堂里选择健康饮食的情景。', en: 'Describe the scene of students choosing healthy food in the canteen in the video.' },
         q2: { cn: '在日常生活中，你和家人是如何保持均衡饮食的？', en: 'In your daily life, how do you and your family maintain a balanced diet?' },
         q3: { cn: '你认为学校应该如何通过活动来提高学生的健康意识？', en: 'How do you think schools should raise students\' health awareness through activities?' },
       },
@@ -937,7 +1053,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A child tidying their own room without being told. The parents look happy and give a thumbs up.',
       questions: {
-        q1: { cn: '图中描述了小孩如何管理自己的房间和私人物品？', en: 'How does the child in the picture manage their room and personal belongings?' },
+        q1: { cn: '录像中描述了小孩如何管理自己的房间和私人物品？', en: 'How does the child in the video manage their room and personal belongings?' },
         q2: { cn: '除了收拾房间，你还会做哪些家务来分担父母的压力？', en: 'Besides tidying your room, what other chores do you do to ease your parents\' stress?' },
         q3: { cn: '你认为从小培养自理能力对孩子的未来有什么好处？', en: 'What are the benefits of fostering self-care skills in children from a young age?' },
       },
@@ -955,7 +1071,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'Students crossing the road. One student looks at his phone while crossing. Another pulls him back from an oncoming car.',
       questions: {
-        q1: { cn: '描述图中发生的危险情况及同学的反应。', en: 'Describe the dangerous situation and the classmate\'s reaction in the picture.' },
+        q1: { cn: '描述录像中发生的危险情况及同学的反应。', en: 'Describe the dangerous situation and the classmate\'s reaction in the video.' },
         q2: { cn: '你平时如何注意过马路时的安全？', en: 'How do you usually pay attention to road safety when crossing the street?' },
         q3: { cn: '为什么在路上使用手机非常危险？我们应该如何改变这个习惯？', en: 'Why is using your phone on the road very dangerous? How should we change this habit?' },
       },
@@ -972,7 +1088,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'Children cycling in a park. One child is wearing a helmet and signalling. Another is cycling recklessly without safety gear.',
       questions: {
-        q1: { cn: '比较图中两名小朋友骑车方式的不同。', en: 'Compare the different cycling behaviours of the two children in the picture.' },
+        q1: { cn: '比较录像中两名小朋友骑车方式的不同。', en: 'Compare the different cycling behaviours of the two children in the video.' },
         q2: { cn: '你骑脚踏车时会注意哪些安全事项？', en: 'What safety precautions do you take when cycling?' },
         q3: { cn: '学校或社区应该如何推广安全骑车的知识？', en: 'How should schools or communities promote knowledge of safe cycling?' },
       },
@@ -989,7 +1105,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A child receiving a suspicious friend request online. A parent comes over and guides them on internet safety.',
       questions: {
-        q1: { cn: '描述图中小孩遇到的网络安全问题及家长的处理方式。', en: 'Describe the internet safety issue faced by the child and how the parent handled it in the picture.' },
+        q1: { cn: '描述录像中小孩遇到的网络安全问题及家长的处理方式。', en: 'Describe the internet safety issue faced by the child and how the parent handled it in the video.' },
         q2: { cn: '你在上网时会如何保护自己的个人资料？', en: 'How do you protect your personal information when using the internet?' },
         q3: { cn: '你认为学校应该如何教导学生安全上网？', en: 'How do you think schools should teach students about safe internet use?' },
       },
@@ -1006,7 +1122,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'School playground. Students climbing forbidden structures while a teacher rushes to intervene.',
       questions: {
-        q1: { cn: '描述图中发生的安全事件及老师的应对方式。', en: 'Describe the safety incident and how the teacher responded in the picture.' },
+        q1: { cn: '描述录像中发生的安全事件及老师的应对方式。', en: 'Describe the safety incident and how the teacher responded in the video.' },
         q2: { cn: '在学校里，你会如何遵守安全规则来保护自己和同学？', en: 'At school, how do you follow safety rules to protect yourself and your classmates?' },
         q3: { cn: '你认为为什么有些同学会故意违反学校的安全规则？我们应该如何改变这种行为？', en: 'Why do you think some students deliberately break school safety rules? How should we change this behaviour?' },
       },
@@ -1085,7 +1201,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A student sharing fake news on a group chat. Friends are pointing out the information is false.',
       questions: {
-        q1: { cn: '描述图中同学在群组里分享信息时遇到的问题。', en: 'Describe the problem the student encountered when sharing information in the group chat in the picture.' },
+        q1: { cn: '描述录像中同学在群组里分享信息时遇到的问题。', en: 'Describe the problem the student encountered when sharing information in the group chat in the video.' },
         q2: { cn: '在转发一则信息之前，你会怎么做？', en: 'What do you do before forwarding a piece of information?' },
         q3: { cn: '你认为社交媒体对青少年有哪些正面和负面的影响？', en: 'What positive and negative impacts do you think social media has on teenagers?' },
       },
@@ -1102,7 +1218,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'Students learning to code in a computer lab. A robot assistant is helping one student with their programme.',
       questions: {
-        q1: { cn: '描述图中同学们在学习编程时与机器人互动的情景。', en: 'Describe the scene of students interacting with a robot while learning to code in the picture.' },
+        q1: { cn: '描述录像中同学们在学习编程时与机器人互动的情景。', en: 'Describe the scene of students interacting with a robot while learning to code in the video.' },
         q2: { cn: '你认为学习编程和人工智能对你的未来有什么帮助？', en: 'How do you think learning coding and AI will help your future?' },
         q3: { cn: '随着人工智能的发展，人类的工作会受到什么影响？我们应该如何应对？', en: 'How will human jobs be affected by the development of AI? How should we respond?' },
       },
@@ -1119,7 +1235,7 @@ const RAW_VAULT: VaultSet[] = [
     conversation: {
       storyboardDesc: 'A student staying up late playing online games. His schoolwork is piling up. A parent sets a timer to limit gaming time.',
       questions: {
-        q1: { cn: '描述图中学生沉迷游戏对学业造成的影响。', en: 'Describe the impact of the student\'s gaming addiction on their schoolwork in the picture.' },
+        q1: { cn: '描述录像中学生沉迷游戏对学业造成的影响。', en: 'Describe the impact of the student\'s gaming addiction on their schoolwork in the video.' },
         q2: { cn: '你如何在玩游戏和完成学业之间取得平衡？', en: 'How do you balance gaming and completing your schoolwork?' },
         q3: { cn: '你认为父母应该限制孩子玩游戏的时间吗？为什么？', en: 'Do you think parents should limit the amount of time their children spend gaming? Why?' },
       },
