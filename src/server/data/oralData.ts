@@ -374,12 +374,18 @@ function makeVocab(words: string[]): OralVocabItem[] {
   }));
 }
 
-function makeQuestion(vq: VaultQuestion, keywords: string[]): OralQuestion {
+const STARTERS = [
+  { cn: '我在录像中看到……',  en: 'In the video, I saw…'          },  // Q1 observation
+  { cn: '我认为……',          en: 'I think…'                       },  // Q2 opinion
+  { cn: '记得有一次……',      en: 'I remember one time…'           },  // Q3 personal experience
+] as const;
+
+function makeQuestion(vq: VaultQuestion, keywords: string[], questionIndex: 0 | 1 | 2): OralQuestion {
   return {
     questionChinese:    vq.cn,
     questionEnglish:    vq.en,
-    starterChinese:     '我认为……',
-    starterEnglish:     'I think…',
+    starterChinese:     STARTERS[questionIndex].cn,
+    starterEnglish:     STARTERS[questionIndex].en,
     modelAnswerChinese: '',
     modelAnswerEnglish: '',
     keyPhrases:         keywords.slice(0, 3),
@@ -447,9 +453,9 @@ function transform(v: VaultSet): OralSet {
     psleYears: [v.yearLabel],
     vocab: makeVocab(v.reading.targetWords),
     questions: {
-      q1: makeQuestion(v.conversation.questions.q1, kw),
-      q2: makeQuestion(v.conversation.questions.q2, kw.slice(1)),
-      q3: makeQuestion(v.conversation.questions.q3, kw.slice(2)),
+      q1: makeQuestion(v.conversation.questions.q1, kw,           0),
+      q2: makeQuestion(v.conversation.questions.q2, kw.slice(1),  1),
+      q3: makeQuestion(v.conversation.questions.q3, kw.slice(2),  2),
       q3TipByLevel: {
         advanced: '用"不仅……而且……"连接两个观点，展示高层次的表达能力。',
         standard: '说出两个理由，用"第一……第二……"来组织你的回答。',
@@ -492,6 +498,7 @@ const RAW_VAULT: VaultSet[] = [
     },
     conversation: {
       storyboardDesc: 'Students queuing in the canteen. One student pushes others. Another helps a vendor clear trays.',
+      scenarioDescription: '录像里，几名小学生正在食堂排队购买午餐。其中一名同学不顾他人，用力推挤插队；而另一名同学却主动帮忙把散乱的碗碟收拾整齐，交给档口的阿姨。',
       questions: {
         q1: {
           cn: '描述图中同学们在食堂里的不同行为。',
@@ -588,6 +595,7 @@ const RAW_VAULT: VaultSet[] = [
     },
     conversation: {
       storyboardDesc: 'A bus stop where a student is talking loudly on the phone. Another person is giving up their seat to an elderly woman.',
+      scenarioDescription: '录像里，一群人正在巴士站候车。一名学生旁若无人地大声讲电话，引来旁人侧目；与此同时，一名乘客看到一位步履蹒跚的老奶奶站在旁边，便主动起身让座，轻声邀请她坐下。',
       questions: {
         q1: {
           cn: '请描述图中巴士站里人们的行为。',
@@ -600,16 +608,6 @@ const RAW_VAULT: VaultSet[] = [
           },
         },
         q2: {
-          cn: '在公共交通工具上，你会如何照顾有需要的人？',
-          en: 'How would you care for those in need on public transport?',
-          peelAnswer: {
-            point:       '在公共交通工具上，我会主动关注身边有需要的人，并尽力给予帮助。',
-            elaboration: '例如，若我看到老人、孕妇、带着幼儿的家长或行动不便的乘客站立，我会主动让出座位；如果有人提着重物上下车，我会帮忙扶一把；若发现有人感到不适，我会通知地铁或巴士工作人员，请他们提供协助。',
-            example:     '有一次，我乘地铁时看到一位老爷爷靠着柱子站着，神情疲倦。当时我刚好有座位，便立刻站起来对他说："爷爷，请坐。"他感激地笑了，那一刻让我感到非常满足，也明白了举手之劳对他人来说可以是莫大的帮助。',
-            link:        '我认为，在公共交通工具上照顾有需要的人，不仅是礼貌的体现，更是我们作为社会一份子应有的责任感。这种关怀让社会变得更温暖，也让乘车的体验对每个人来说都更加愉快。',
-          },
-        },
-        q3: {
           cn: '为什么在公共场所保持低声说话是一种公德心的表现？',
           en: 'Why is speaking softly in public places an act of civic-mindedness?',
           peelAnswer: {
@@ -617,6 +615,16 @@ const RAW_VAULT: VaultSet[] = [
             elaboration: '公共场所人来人往，大家有各自不同的需求：有些人在阅读或工作，需要安静的环境；有些老人或生病的人对噪音特别敏感；还有一些人只是希望在候车或休息时，享受片刻的宁静。若我们在公共场所大声喧哗，就会干扰到这些人，破坏公共空间的和谐气氛。',
             example:     '例如，在图书馆或地铁里，若有人讲电话声音洪亮，旁边试图阅读的人往往会感到烦躁，无法专心。相反，若大家都自觉地压低声音，整个环境就会令人感到舒适和平静。',
             link:        '因此，低声说话看似是一件小事，却能反映出一个人是否真正体谅他人、尊重公共空间。这种从小培养的习惯，正是新加坡公民素质和公德心的重要体现。',
+          },
+        },
+        q3: {
+          cn: '在公共交通工具上，你会如何照顾有需要的人？',
+          en: 'How would you care for those in need on public transport?',
+          peelAnswer: {
+            point:       '在公共交通工具上，我会主动关注身边有需要的人，并尽力给予帮助。',
+            elaboration: '例如，若我看到老人、孕妇、带着幼儿的家长或行动不便的乘客站立，我会主动让出座位；如果有人提着重物上下车，我会帮忙扶一把；若发现有人感到不适，我会通知地铁或巴士工作人员，请他们提供协助。',
+            example:     '有一次，我乘地铁时看到一位老爷爷靠着柱子站着，神情疲倦。当时我刚好有座位，便立刻站起来对他说："爷爷，请坐。"他感激地笑了，那一刻让我感到非常满足，也明白了举手之劳对他人来说可以是莫大的帮助。',
+            link:        '我认为，在公共交通工具上照顾有需要的人，不仅是礼貌的体现，更是我们作为社会一份子应有的责任感。这种关怀让社会变得更温暖，也让乘车的体验对每个人来说都更加愉快。',
           },
         },
       },
@@ -960,6 +968,7 @@ const RAW_VAULT: VaultSet[] = [
     },
     conversation: {
       storyboardDesc: 'A family dinner where everyone is on their phones instead of talking. The grandmother looks lonely.',
+      scenarioDescription: '录像里，一家人围坐在饭桌旁用餐。然而，爸爸、妈妈和孩子各自低着头，专心地盯着手中的手机，没有人互相交谈。坐在一旁的奶奶独自望着餐桌，神情显得十分孤独落寞，与周围沉浸在手机屏幕里的家人形成了鲜明的对比。',
       questions: {
         q1: {
           cn: '描述图中家庭聚餐时发生了什么问题？',
@@ -972,16 +981,6 @@ const RAW_VAULT: VaultSet[] = [
           },
         },
         q2: {
-          cn: '在你的家庭里，大家是如何平衡使用电子产品和家庭时间的？',
-          en: 'In your family, how do you balance using electronic devices and family time?' ,
-          peelAnswer: {
-            point:       '在我的家庭里，我们通过制定共同约定来平衡电子产品的使用和家庭时间，确保两者之间取得健康的平衡。',
-            elaboration: '爸爸妈妈规定，吃饭时间所有人必须把手机放在一边，专心用餐和交流；周末则会安排至少一项家庭活动，比如一起去公园散步或玩桌游。此外，平日里我也会在完成功课之后，才使用平板电脑作为奖励，而不是一回家就捧着屏幕。',
-            example:     '例如，上个月，爸爸提议我们举办"无屏幕晚餐"，每周五晚上一家人吃饭时完全不碰手机。那天的晚餐特别热闹，大家分享了各自一周内有趣的经历，气氛非常融洽。',
-            link:        '我认为，家庭之间的约定和互相监督，是平衡科技与家庭时间最有效的方法。这样既能让我们享受科技带来的便利，也不会忽略家人之间面对面交流的宝贵时光。',
-          },
-        },
-        q3: {
           cn: '你认为科技对人与人之间的关系有什么正面和负面的影响？',
           en: 'What positive and negative impacts do you think technology has on relationships between people?',
           peelAnswer: {
@@ -989,6 +988,16 @@ const RAW_VAULT: VaultSet[] = [
             elaboration: '从正面来看，科技让身处不同地方的家人和朋友能够随时保持联系，视频通话让异地亲情不再遥远；社交媒体也让人们更容易找到志同道合的朋友，分享彼此的生活。然而从负面来看，过度依赖电子产品会导致人们沉迷于虚拟世界，减少面对面的真实交流，进而削弱亲密感，甚至让家人在同一屋檐下却形同陌路。',
             example:     '例如，我的祖父母住在马来西亚，多亏了视频通话，我们每个星期都能见到彼此的脸庞，感受并不疏远；但与此同时，我也曾经历过和朋友出去游玩，大家却各自刷手机，彼此之间几乎没有真正交谈的尴尬时刻。',
             link:        '因此，科技本身并不是问题，问题在于我们的使用方式。只要我们懂得自律，在适当的时候放下手机、用心投入与身边人的互动，科技便能成为增进感情的工具，而不是阻隔人心的屏障。',
+          },
+        },
+        q3: {
+          cn: '在你的家庭里，大家是如何平衡使用电子产品和家庭时间的？',
+          en: 'In your family, how do you balance using electronic devices and family time?',
+          peelAnswer: {
+            point:       '在我的家庭里，我们通过制定共同约定来平衡电子产品的使用和家庭时间，确保两者之间取得健康的平衡。',
+            elaboration: '爸爸妈妈规定，吃饭时间所有人必须把手机放在一边，专心用餐和交流；周末则会安排至少一项家庭活动，比如一起去公园散步或玩桌游。此外，平日里我也会在完成功课之后，才使用平板电脑作为奖励，而不是一回家就捧着屏幕。',
+            example:     '例如，上个月，爸爸提议我们举办"无屏幕晚餐"，每周五晚上一家人吃饭时完全不碰手机。那天的晚餐特别热闹，大家分享了各自一周内有趣的经历，气氛非常融洽。',
+            link:        '我认为，家庭之间的约定和互相监督，是平衡科技与家庭时间最有效的方法。这样既能让我们享受科技带来的便利，也不会忽略家人之间面对面交流的宝贵时光。',
           },
         },
       },
