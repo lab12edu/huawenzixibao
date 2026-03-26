@@ -5914,3 +5914,60 @@ html { scrollbar-gutter: stable; }
   line-height: 1.65;
   color: #333;
 }
+
+/* ══════════════════════════════════════════════
+   Phase 3.2 — PEEL Model Answer Cards
+   ══════════════════════════════════════════════ */
+
+.oral-peel-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+.oral-peel-block {
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.oral-peel-block p {
+  margin: 4px 0 0;
+  color: inherit;
+}
+.oral-peel-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: block;
+}
+.oral-peel-point {
+  background: #E3F2FD;
+  color: #0D47A1;
+}
+.oral-peel-elaboration {
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+.oral-peel-example {
+  background: #FFF8E1;
+  color: #E65100;
+}
+.oral-peel-link {
+  background: #F3E5F5;
+  color: #4A148C;
+}
+.oral-model-answer-text {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--color-text);
+  margin: 6px 0 0;
+}
+.oral-q-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}

@@ -135,22 +135,22 @@ function QuestionCard({
       <Collapsible label="参考答案 Model Answer" defaultOpen={false}>
         {q.peelAnswer ? (
           /* ── PEEL structured answer ── */
-          <div className="oral-peel-box">
-            <div className="oral-peel-row">
-              <span className="oral-peel-label oral-peel-label--p">论点 Point</span>
-              <p className="oral-peel-text">{q.peelAnswer.point}</p>
+          <div className="oral-peel-answer">
+            <div className="oral-peel-block oral-peel-point">
+              <span className="oral-peel-label">论点 Point</span>
+              <p>{q.peelAnswer.point}</p>
             </div>
-            <div className="oral-peel-row">
-              <span className="oral-peel-label oral-peel-label--e">阐述 Elaboration</span>
-              <p className="oral-peel-text">{q.peelAnswer.elaboration}</p>
+            <div className="oral-peel-block oral-peel-elaboration">
+              <span className="oral-peel-label">阐述 Elaboration</span>
+              <p>{q.peelAnswer.elaboration}</p>
             </div>
-            <div className="oral-peel-row">
-              <span className="oral-peel-label oral-peel-label--ex">举例 Example</span>
-              <p className="oral-peel-text">{q.peelAnswer.example}</p>
+            <div className="oral-peel-block oral-peel-example">
+              <span className="oral-peel-label">举例 Example</span>
+              <p>{q.peelAnswer.example}</p>
             </div>
-            <div className="oral-peel-row">
-              <span className="oral-peel-label oral-peel-label--l">联系 Link</span>
-              <p className="oral-peel-text">{q.peelAnswer.link}</p>
+            <div className="oral-peel-block oral-peel-link">
+              <span className="oral-peel-label">联系 Link</span>
+              <p>{q.peelAnswer.link}</p>
             </div>
             {q.keyPhrases.length > 0 && (
               <div className="oral-key-phrases">
@@ -163,7 +163,9 @@ function QuestionCard({
         ) : q.modelAnswerChinese ? (
           /* ── Plain model answer fallback ── */
           <div className="oral-answer-box">
-            {highlightKeyPhrases(q.modelAnswerChinese, q.keyPhrases)}
+            <p className="oral-model-answer-text">
+              {highlightKeyPhrases(q.modelAnswerChinese, q.keyPhrases)}
+            </p>
             {q.modelAnswerEnglish && (
               <p className="oral-answer-en">{q.modelAnswerEnglish}</p>
             )}
