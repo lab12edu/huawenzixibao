@@ -6096,6 +6096,7 @@ html { scrollbar-gutter: stable; }
   transition: background 0.15s;
 }
 .oral-peel-tts:hover { background: rgba(0,0,0,0.06); }
+.oral-peel-tts:active { transform: scale(0.94); }
 
 /* English translation line under each PEEL block (parentMode) */
 .oral-peel-en {
