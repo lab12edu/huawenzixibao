@@ -9,27 +9,22 @@ const STANDARD_Q1      = '请谈谈你在录像中看到的一件事。';
 const STANDARD_Q1_HINT = '可以用：谁、做了什么、在哪里、为什么……';
 
 const Q_META = [
-  { label: '内容观察',  labelEn: 'Observation',          colour: '#1565C0' },  // blue
-  { label: '观点反思',  labelEn: 'Opinion & Reflection', colour: '#E65100' },  // amber
-  { label: '个人经历',  labelEn: 'Personal Experience',  colour: '#2E7D32' },  // green
+  { label: '内容观察',  labelEn: 'Observation',          colour: '#1565C0' },
+  { label: '观点反思',  labelEn: 'Opinion & Reflection', colour: '#E65100' },
+  { label: '个人经历',  labelEn: 'Personal Experience',  colour: '#2E7D32' },
 ] as const;
 
 // ─── Highlight key phrases inside answer text ─────────────────────────────────
 function highlightKeyPhrases(text: string, phrases: string[]): React.ReactNode {
   if (!phrases.length) return text;
-
-  // Build a regex that matches any key phrase (longest first to avoid partial matches)
   const sorted = [...phrases].sort((a, b) => b.length - a.length);
   const escaped = sorted.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const regex = new RegExp(`(${escaped.join('|')})`, 'g');
-
   const parts = text.split(regex);
   return (
     <>
       {parts.map((part, i) =>
-        phrases.includes(part)
-          ? <mark key={i}>{part}</mark>
-          : part
+        phrases.includes(part) ? <mark key={i}>{part}</mark> : part
       )}
     </>
   );
@@ -44,10 +39,7 @@ function Collapsible({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div>
-      <div
-        className="oral-collapsible-header"
-        onClick={() => setOpen(o => !o)}
-      >
+      <div className="oral-collapsible-header" onClick={() => setOpen(o => !o)}>
         <span>{label}</span>
         <i className={`fa-solid ${open ? 'fa-chevron-up' : 'fa-chevron-down'} oral-collapsible-chevron`} />
       </div>
@@ -66,92 +58,120 @@ function QuestionCard({
   questionOverride?: string;
   questionHint?:     string;
 }) {
-  const [copiedStarter, setCopiedStarter] = useState(false);
-
-  const copyStarter = () => {
-    navigator.clipboard.writeText(q.starterChinese).catch(() => {
-      // fallback for browsers without clipboard API
-      const el = document.createElement('textarea');
-      el.value = q.starterChinese;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-    });
-    setCopiedStarter(true);
-    setTimeout(() => setCopiedStarter(false), 1500);
-  };
-
   return (
     <div className="oral-q-card">
-      {/* Header */}
+
+      {/* ── Header: badge + TTS ── */}
       <div className="oral-q-header">
-        <span
-          className="oral-q-badge"
-          style={{ backgroundColor: meta.colour }}
-        >
+        <span className="oral-q-badge" style={{ backgroundColor: meta.colour }}>
           {meta.label} {meta.labelEn}
         </span>
         <button
           className="oral-q-tts"
           onClick={() => speak(questionOverride ?? q.questionChinese)}
-          title="Listen"
+          title="Listen to question"
         >
           <i className="fa-solid fa-volume-high" />
         </button>
       </div>
 
-      {/* Question text */}
+      {/* ── Question text ── */}
       <p className="oral-q-cn">{questionOverride ?? q.questionChinese}</p>
       {questionHint && (
         <span className="oral-card-sublabel oral-q-hint">{questionHint}</span>
       )}
-      <p className={`oral-q-en${parentMode ? '' : ' oral-hidden-en'}`}>
-        {q.questionEnglish}
-      </p>
+      {parentMode && (
+        <p className="oral-q-en">{q.questionEnglish}</p>
+      )}
 
-      {/* Sentence Starter — default open */}
+      {/* ── Sentence Starter: simplified — no copy/listen buttons ── */}
       <Collapsible label="句子开头 Sentence Starter" defaultOpen>
         <div className="oral-starter-box">
-          <p className="oral-starter-text">{q.starterChinese}</p>
-          <div className="oral-starter-actions">
-            <button className="oral-copy-btn" onClick={copyStarter}>
-              <i className="fa-solid fa-copy" />
-              {copiedStarter ? ' 已复制 ✓' : ' 复制 Copy'}
-            </button>
-            <button className="oral-copy-btn" onClick={() => speak(q.starterChinese)}>
-              <i className="fa-solid fa-volume-high" /> 听
-            </button>
-          </div>
+          <p className="oral-starter-text-only">{q.starterChinese}</p>
           {parentMode && (
-            <p className="oral-starter-hint">
-              {q.starterEnglish}
-            </p>
+            <p className="oral-starter-en-only">{q.starterEnglish}</p>
           )}
         </div>
       </Collapsible>
 
-      {/* Model Answer — always visible, default closed */}
+      {/* ── Model Answer ── */}
       <Collapsible label="参考答案 Model Answer" defaultOpen={false}>
         {q.peelAnswer ? (
-          /* ── PEEL structured answer ── */
           <div className="oral-peel-answer">
+
+            {/* Point */}
             <div className="oral-peel-block oral-peel-point">
-              <span className="oral-peel-label">论点 Point</span>
-              <p>{q.peelAnswer.point}</p>
+              <div className="oral-peel-block-header">
+                <span className="oral-peel-label">论点 Point</span>
+                <button
+                  className="oral-peel-tts"
+                  onClick={() => speak(q.peelAnswer!.point)}
+                  title="Listen"
+                >
+                  <i className="fa-solid fa-volume-high" />
+                </button>
+              </div>
+              <p>{highlightKeyPhrases(q.peelAnswer.point, q.keyPhrases)}</p>
+              {parentMode && q.peelAnswer.pointEn && (
+                <p className="oral-peel-en">{q.peelAnswer.pointEn}</p>
+              )}
             </div>
+
+            {/* Elaboration */}
             <div className="oral-peel-block oral-peel-elaboration">
-              <span className="oral-peel-label">阐述 Elaboration</span>
-              <p>{q.peelAnswer.elaboration}</p>
+              <div className="oral-peel-block-header">
+                <span className="oral-peel-label">阐述 Elaboration</span>
+                <button
+                  className="oral-peel-tts"
+                  onClick={() => speak(q.peelAnswer!.elaboration)}
+                  title="Listen"
+                >
+                  <i className="fa-solid fa-volume-high" />
+                </button>
+              </div>
+              <p>{highlightKeyPhrases(q.peelAnswer.elaboration, q.keyPhrases)}</p>
+              {parentMode && q.peelAnswer.elaborationEn && (
+                <p className="oral-peel-en">{q.peelAnswer.elaborationEn}</p>
+              )}
             </div>
+
+            {/* Example */}
             <div className="oral-peel-block oral-peel-example">
-              <span className="oral-peel-label">举例 Example</span>
-              <p>{q.peelAnswer.example}</p>
+              <div className="oral-peel-block-header">
+                <span className="oral-peel-label">举例 Example</span>
+                <button
+                  className="oral-peel-tts"
+                  onClick={() => speak(q.peelAnswer!.example)}
+                  title="Listen"
+                >
+                  <i className="fa-solid fa-volume-high" />
+                </button>
+              </div>
+              <p>{highlightKeyPhrases(q.peelAnswer.example, q.keyPhrases)}</p>
+              {parentMode && q.peelAnswer.exampleEn && (
+                <p className="oral-peel-en">{q.peelAnswer.exampleEn}</p>
+              )}
             </div>
+
+            {/* Link */}
             <div className="oral-peel-block oral-peel-link">
-              <span className="oral-peel-label">联系 Link</span>
-              <p>{q.peelAnswer.link}</p>
+              <div className="oral-peel-block-header">
+                <span className="oral-peel-label">联系 Link</span>
+                <button
+                  className="oral-peel-tts"
+                  onClick={() => speak(q.peelAnswer!.link)}
+                  title="Listen"
+                >
+                  <i className="fa-solid fa-volume-high" />
+                </button>
+              </div>
+              <p>{highlightKeyPhrases(q.peelAnswer.link, q.keyPhrases)}</p>
+              {parentMode && q.peelAnswer.linkEn && (
+                <p className="oral-peel-en">{q.peelAnswer.linkEn}</p>
+              )}
             </div>
+
+            {/* Key phrase chips */}
             {q.keyPhrases.length > 0 && (
               <div className="oral-key-phrases">
                 {q.keyPhrases.map((kp, i) => (
@@ -160,13 +180,24 @@ function QuestionCard({
               </div>
             )}
           </div>
+
         ) : q.modelAnswerChinese ? (
           /* ── Plain model answer fallback ── */
           <div className="oral-answer-box">
+            <div className="oral-peel-block-header" style={{ marginBottom: 6 }}>
+              <span />
+              <button
+                className="oral-peel-tts"
+                onClick={() => speak(q.modelAnswerChinese)}
+                title="Listen"
+              >
+                <i className="fa-solid fa-volume-high" />
+              </button>
+            </div>
             <p className="oral-model-answer-text">
               {highlightKeyPhrases(q.modelAnswerChinese, q.keyPhrases)}
             </p>
-            {q.modelAnswerEnglish && (
+            {parentMode && q.modelAnswerEnglish && (
               <p className="oral-answer-en">{q.modelAnswerEnglish}</p>
             )}
             {q.keyPhrases.length > 0 && (
@@ -177,6 +208,7 @@ function QuestionCard({
               </div>
             )}
           </div>
+
         ) : (
           /* ── Placeholder when no answer data yet ── */
           <p className="oral-card-sublabel" style={{ padding: '8px 12px' }}>
@@ -192,11 +224,9 @@ function QuestionCard({
 interface Props { set: OralSet; }
 
 const PictureStoryPanel: React.FC<Props> = ({ set }) => {
-  // Parent mode — persisted in localStorage
   const [parentMode, setParentMode] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('hwzxb_oral_parent_mode') === 'true';
-    } catch { return false; }
+    try { return localStorage.getItem('hwzxb_oral_parent_mode') === 'true'; }
+    catch { return false; }
   });
 
   const toggleParentMode = (val: boolean) => {
@@ -204,12 +234,10 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
     try { localStorage.setItem('hwzxb_oral_parent_mode', String(val)); } catch {}
   };
 
-  // Level-adaptive Q3 tip
   const { selectedLevel } = useApp();
   const baseLevel = selectedLevel.replace(/[AB]$/i, '');
-  const isUpper = baseLevel === 'P5' || baseLevel === 'P6';
-  // q3TipByLevel schema: { advanced: string; standard: string } — matches server data
-  const q3Tip = isUpper
+  const isUpper   = baseLevel === 'P5' || baseLevel === 'P6';
+  const q3Tip     = isUpper
     ? set.questions.q3TipByLevel.advanced
     : set.questions.q3TipByLevel.standard;
 
@@ -225,25 +253,29 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
       {/* ── Scenario Card ── */}
       <div className="oral-scenario-card" style={{ borderTopColor: set.accentColour }}>
 
-        {/* Instruction */}
         <div className="oral-scenario-instruction">
           <i className="fa-solid fa-film oral-tip-icon" />
           <span>
             练习时，仔细阅读以下情境描述，想象你正在看录像，然后回答三道问题。
-            <br />
-            <span className="oral-card-sublabel">
-              For practice, read the scenario carefully and imagine you are watching the video, then answer the three questions.
-            </span>
+            {parentMode && (
+              <>
+                <br />
+                <span className="oral-card-sublabel">
+                  For practice, read the scenario carefully and imagine you are watching the video, then answer the three questions.
+                </span>
+              </>
+            )}
           </span>
         </div>
 
-        {/* Scenario text */}
         <div className="oral-scenario-body">
           <p className="oral-scenario-label">情境 Scenario</p>
           <p className="oral-scenario-text">{set.pictureStory.scenarioDescription}</p>
+          {parentMode && set.scenarioDescriptionEn && (
+            <p className="oral-scenario-text-en">{set.scenarioDescriptionEn}</p>
+          )}
         </div>
 
-        {/* Thinking hints — collapsible, closed by default */}
         {set.guidingPointers && set.guidingPointers.length > 0 && (
           <Collapsible
             label="思考提示 Thinking Hints · 准备时参考 Use during preparation"
@@ -260,7 +292,6 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
           </Collapsible>
         )}
 
-        {/* News anchor — only rendered when present */}
         {set.newsAnchor && (
           <div className="oral-news-anchor">
             <i className="fa-solid fa-newspaper" />
@@ -271,7 +302,6 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
           </div>
         )}
 
-        {/* Moral reflection */}
         {set.moralReflection && (
           <div className="oral-moral-reflection">
             <i className="fa-solid fa-lightbulb oral-tip-icon" />
@@ -281,7 +311,7 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
 
       </div>
 
-      {/* D — Questions */}
+      {/* ── Questions ── */}
       {qs.map(([q, meta], idx) => (
         <React.Fragment key={idx}>
           <QuestionCard
@@ -290,7 +320,6 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
             parentMode={parentMode}
             {...(idx === 0 ? { questionOverride: STANDARD_Q1, questionHint: STANDARD_Q1_HINT } : {})}
           />
-          {/* E — Level-adaptive tip after Q3 */}
           {idx === 2 && (
             <div className="oral-level-tip">
               <i className="fa-solid fa-circle-info oral-tip-icon" />
@@ -300,7 +329,7 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
         </React.Fragment>
       ))}
 
-      {/* A — Parent Co-Practice toggle bar (fixed bottom) */}
+      {/* ── Parent Co-Practice toggle bar (fixed bottom) ── */}
       <div className="oral-parent-bar">
         <div className="oral-parent-label">
           家长陪练模式
@@ -308,7 +337,7 @@ const PictureStoryPanel: React.FC<Props> = ({ set }) => {
           <span className="oral-parent-instruction">
             {parentMode
               ? '✓ 已显示英文翻译 · English translations visible'
-              : '开启后显示三道问题的英文翻译 · Turn on to show English translations'}
+              : '开启后显示英文翻译 · Turn on to show English translations'}
           </span>
         </div>
         <label className="oral-toggle">

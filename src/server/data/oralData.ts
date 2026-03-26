@@ -14,10 +14,14 @@
 // ── Raw JSON vault types ──────────────────────────────────────────────────────
 
 interface PeelAnswer {
-  point:       string;
-  elaboration: string;
-  example:     string;
-  link:        string;
+  point:          string;
+  elaboration:    string;
+  example:        string;
+  link:           string;
+  pointEn?:       string;
+  elaborationEn?: string;
+  exampleEn?:     string;
+  linkEn?:        string;
 }
 
 interface VaultQuestion {
@@ -41,8 +45,9 @@ interface VaultSet {
   };
   conversation: {
     storyboardDesc:       string;
-    scenarioDescription?: string;  // if absent, falls back to storyboardDesc
-    questions:            { q1: VaultQuestion; q2: VaultQuestion; q3: VaultQuestion };
+    scenarioDescription?:   string;  // if absent, falls back to storyboardDesc
+    scenarioDescriptionEn?: string;  // English translation for parent mode
+    questions:              { q1: VaultQuestion; q2: VaultQuestion; q3: VaultQuestion };
     targetKeywords:       string[];
     guidingPointers?:     string[];
     newsAnchor?:          string;
@@ -61,10 +66,14 @@ export interface OralVocabItem {
 }
 
 export interface OralPeelAnswer {
-  point:       string;
-  elaboration: string;
-  example:     string;
-  link:        string;
+  point:          string;
+  elaboration:    string;
+  example:        string;
+  link:           string;
+  pointEn?:       string;
+  elaborationEn?: string;
+  exampleEn?:     string;
+  linkEn?:        string;
 }
 
 export interface OralQuestion {
@@ -98,7 +107,8 @@ export interface OralPictureStory {
   introEnglish:        string;
   narratorChinese:     string;
   narratorEnglish:     string;
-  scenarioDescription: string;  // examiner's verbal scenario prompt
+  scenarioDescription:   string;  // examiner's verbal scenario prompt (Chinese)
+  scenarioDescriptionEn: string;  // English translation for parent mode
   frames: [OralVideoFrame, OralVideoFrame, OralVideoFrame, OralVideoFrame]; // kept for backward compat — do not render in ConversationPanel ★
 }
 
@@ -129,8 +139,9 @@ export interface OralSet {
    *  File is served as a Cloudflare Pages static asset from public/audio/oral/.
    *  When the file is absent (404), SpeechButton falls back to speakPassage(). */
   audioUrl:         string;
-  scenarioAudioUrl?: string;   // set to `/audio/oral/${id}_scenario.mp3` once recorded
-  guidingPointers?:  string[];
+  scenarioAudioUrl?:      string;   // set to `/audio/oral/${id}_scenario.mp3` once recorded
+  scenarioDescriptionEn?: string;   // English translation of scenario for parent mode
+  guidingPointers?:       string[];
   newsAnchor?:       string;
   moralReflection?:  string;
 }
@@ -380,7 +391,25 @@ const STARTERS = [
   { cn: '记得有一次……',      en: 'I remember one time…'           },  // Q3 personal experience
 ] as const;
 
+// Conjunction / discourse markers worth highlighting for students
+const CONJUNCTION_PATTERNS = [
+  '不仅……而且……', '不仅……也……', '虽然……但是……', '虽然……却……',
+  '首先……其次……', '第一……第二……', '因此……', '由此可见……',
+  '相反……', '然而……', '例如……', '比如……', '于是……',
+];
+
+function extractConjunctions(peel?: PeelAnswer): string[] {
+  if (!peel) return [];
+  const allText = [peel.point, peel.elaboration, peel.example, peel.link].join('');
+  return CONJUNCTION_PATTERNS.filter(p => {
+    const core = p.replace(/……/g, '');
+    return allText.includes(core);
+  });
+}
+
 function makeQuestion(vq: VaultQuestion, keywords: string[], questionIndex: 0 | 1 | 2): OralQuestion {
+  const conjunctions = extractConjunctions(vq.peelAnswer);
+  const merged = [...new Set([...keywords.slice(0, 3), ...conjunctions.slice(0, 4)])];
   return {
     questionChinese:    vq.cn,
     questionEnglish:    vq.en,
@@ -388,7 +417,7 @@ function makeQuestion(vq: VaultQuestion, keywords: string[], questionIndex: 0 | 
     starterEnglish:     STARTERS[questionIndex].en,
     modelAnswerChinese: '',
     modelAnswerEnglish: '',
-    keyPhrases:         keywords.slice(0, 3),
+    keyPhrases:         merged,
     peelAnswer:         vq.peelAnswer,
   };
 }
@@ -461,9 +490,10 @@ function transform(v: VaultSet): OralSet {
         standard: '说出两个理由，用"第一……第二……"来组织你的回答。',
       },
     },
-    audioUrl:         `/audio/oral/${v.id}.mp3`,
-    scenarioAudioUrl: undefined,  // set to `/audio/oral/${v.id}_scenario.mp3` once recorded
-    guidingPointers:  v.conversation.guidingPointers,
+    audioUrl:             `/audio/oral/${v.id}.mp3`,
+    scenarioAudioUrl:     undefined,
+    scenarioDescriptionEn: v.conversation.scenarioDescriptionEn,
+    guidingPointers:      v.conversation.guidingPointers,
     newsAnchor:       v.conversation.newsAnchor,
     moralReflection:  v.conversation.moralReflection,
     passage: makePassage(v.reading.text),
@@ -474,7 +504,8 @@ function transform(v: VaultSet): OralSet {
       introEnglish:        `${v.yearLabel} Oral Theme: ${theme.titleEnglish}`,
       narratorChinese:     v.reading.text.slice(0, 40) + '……',
       narratorEnglish:     v.conversation.storyboardDesc,
-      scenarioDescription: v.conversation.scenarioDescription ?? v.conversation.storyboardDesc,
+      scenarioDescription:   v.conversation.scenarioDescription   ?? v.conversation.storyboardDesc,
+      scenarioDescriptionEn: v.conversation.scenarioDescriptionEn ?? v.conversation.storyboardDesc,
       frames: [
         makeFrame(0, frameTexts[0]),
         makeFrame(1, frameTexts[1]),
@@ -498,36 +529,49 @@ const RAW_VAULT: VaultSet[] = [
     },
     conversation: {
       storyboardDesc: 'Students queuing in the canteen. One student pushes others. Another helps a vendor clear trays.',
-      scenarioDescription: '录像里，几名小学生正在食堂排队购买午餐。其中一名同学不顾他人，用力推挤插队；而另一名同学却主动帮忙把散乱的碗碟收拾整齐，交给档口的阿姨。',
+      scenarioDescription:   '录像里，几名小学生正在食堂排队购买午餐。其中一名同学不顾他人，用力推挤插队；而另一名同学却主动帮忙把散乱的碗碟收拾整齐，交给档口的阿姨。',
+      scenarioDescriptionEn: 'In the video, several primary school students are queuing to buy lunch in the canteen. One student ignores others and pushes in aggressively, while another student proactively tidies up scattered bowls and plates, handing them back to the stall auntie.',
       questions: {
         q1: {
-          cn: '描述图中同学们在食堂里的不同行为。',
-          en: 'Describe the different behaviours of students in the canteen.',
+          cn: '请谈谈你在录像中看到的同学们在食堂里的不同行为。',
+          en: 'Describe the different behaviours of students in the canteen as seen in the video.',
           peelAnswer: {
-            point:       '图中同学们在食堂里表现出截然不同的行为。',
-            elaboration: '有些同学礼貌地排队等候，耐心地等待轮到自己；然而，有一名同学却不顾他人，推挤插队，还有同学吃完饭后主动帮忙收拾碗碟，协助阿姨保持食堂整洁。',
-            example:     '比如，图中一名同学在同伴推挤时，仍然冷静地站在队伍里，没有以牙还牙；而另一名同学则主动把散落的碗碟叠好，递给档口的阿姨。',
-            link:        '这些行为让我明白，食堂礼仪不只是个人修养的体现，更关系到大家共同用餐的环境，我们每个人都有责任维护一个和谐、整洁的公共空间。',
+            point:         '录像中的同学们在食堂里表现出截然不同的行为。',
+            pointEn:       'The students in the video displayed very different behaviours in the canteen.',
+            elaboration:   '有些同学礼貌地排队等候，耐心地等待轮到自己；然而，有一名同学却不顾他人，推挤插队，还有同学吃完饭后主动帮忙收拾碗碟，协助阿姨保持食堂整洁。',
+            elaborationEn: 'Some students queued politely and waited patiently for their turn; however, one student ignored others and pushed into the queue. Meanwhile, another student proactively helped tidy up the bowls and plates to keep the canteen clean.',
+            example:       '比如，录像里一名同学在同伴推挤时，仍然冷静地站在队伍里，没有以牙还牙；而另一名同学则主动把散落的碗碟叠好，递给档口的阿姨。',
+            exampleEn:     'For instance, one student in the video remained calm and stayed in line even when being pushed, refusing to retaliate; while another student proactively stacked the scattered bowls and handed them to the stall auntie.',
+            link:          '这些行为让我明白，食堂礼仪不只是个人修养的体现，更关系到大家共同用餐的环境，我们每个人都有责任维护一个和谐、整洁的公共空间。',
+            linkEn:        'These behaviours reminded me that canteen etiquette is not just about personal character — it also affects the dining environment we all share. Each of us has a responsibility to maintain a harmonious and clean public space.',
           },
         },
         q2: {
           cn: '在食堂排队时，你认为最重要的礼仪是什么？',
           en: 'What do you think is the most important etiquette when queuing in the canteen?',
           peelAnswer: {
-            point:       '我认为在食堂排队时，最重要的礼仪是自动自觉地排队，不推挤、不插队。',
-            elaboration: '食堂在午餐时段往往人潮汹涌，如果每个人都能自律地依次排队，不仅能保持秩序，也能让档口阿姨更快地服务每一位同学，减少大家等待的时间。相反，若有人插队，就会引起混乱，甚至让其他同学感到愤怒或委屈。',
-            example:     '有一次，我亲眼看见一名高年级的同学径直走到队伍前头，后面的同学都投以不满的眼神。那时我便明白，守秩序是对他人时间和感受的基本尊重。',
-            link:        '因此，自动自觉地遵守排队秩序，不仅体现了个人的公德心，也能营造一个让大家都感到舒适的用餐环境，值得我们每个人用行动去维护。',
+            point:         '我认为在食堂排队时，最重要的礼仪是自动自觉地排队，不推挤、不插队。',
+            pointEn:       'I think the most important etiquette when queuing in the canteen is to queue willingly and consciously, without pushing or cutting in.',
+            elaboration:   '食堂在午餐时段往往人潮汹涌，如果每个人都能自律地依次排队，不仅能保持秩序，也能让档口阿姨更快地服务每一位同学，减少大家等待的时间。相反，若有人插队，就会引起混乱，甚至让其他同学感到愤怒或委屈。',
+            elaborationEn: 'The canteen is often very crowded during lunchtime. If everyone queues in an orderly and self-disciplined manner, it not only maintains order but also allows the stall auntie to serve each student more quickly, reducing waiting time for everyone. On the contrary, queue-cutting causes chaos and may even make other students feel angry or upset.',
+            example:       '有一次，我亲眼看见一名高年级的同学径直走到队伍前头，后面的同学都投以不满的眼神。那时我便明白，守秩序是对他人时间和感受的基本尊重。',
+            exampleEn:     "Once, I witnessed a senior student walk straight to the front of the queue, and the students behind all gave him looks of displeasure. That moment made me realise that keeping order is a basic form of respect for others' time and feelings.",
+            link:          '因此，自动自觉地遵守排队秩序，不仅体现了个人的公德心，也能营造一个让大家都感到舒适的用餐环境，值得我们每个人用行动去维护。',
+            linkEn:        "Therefore, queuing in a self-disciplined manner not only reflects one's civic-mindedness but also creates a comfortable dining environment for everyone — something each of us should uphold through our actions.",
           },
         },
         q3: {
           cn: '学校应该如何鼓励学生保持食堂的整洁？',
           en: 'How should the school encourage students to keep the canteen clean?',
           peelAnswer: {
-            point:       '我认为学校可以从教育和奖励两个方面入手，鼓励学生共同保持食堂的整洁。',
-            elaboration: '首先，学校可以在食堂张贴生动的海报，提醒同学们用餐后要收拾碗碟、把剩余食物丢进垃圾桶，帮助大家养成良好习惯。其次，学校也可以设立"整洁达人"奖励制度，每月表扬在食堂表现突出的班级，用正面激励来强化学生的自律意识。',
-            example:     '例如，我们学校曾经举办过"光盘达人"活动，鼓励同学们把碗里的饭菜吃完，并在宣传栏上展示做得好的班级。那段期间，食堂的卫生情况明显改善，同学们也更加自觉了。',
-            link:        '由此可见，通过教育与激励相结合的方式，学校能有效地培养学生的公德心，让每个人都成为维护食堂整洁的小主人，共同创造一个舒适的用餐环境。',
+            point:         '我认为学校可以从教育和奖励两个方面入手，鼓励学生共同保持食堂的整洁。',
+            pointEn:       'I believe the school can encourage students to keep the canteen clean through both education and rewards.',
+            elaboration:   '首先，学校可以在食堂张贴生动的海报，提醒同学们用餐后要收拾碗碟、把剩余食物丢进垃圾桶，帮助大家养成良好习惯。其次，学校也可以设立"整洁达人"奖励制度，每月表扬在食堂表现突出的班级，用正面激励来强化学生的自律意识。',
+            elaborationEn: "Firstly, the school could display eye-catching posters in the canteen reminding students to clear their trays and dispose of leftover food after meals, helping everyone build good habits. Secondly, the school could set up a \"Cleanliness Champion\" reward system, praising the class with the best canteen behaviour each month, using positive reinforcement to strengthen students' sense of self-discipline.",
+            example:       '例如，我们学校曾经举办过"光盘达人"活动，鼓励同学们把碗里的饭菜吃完，并在宣传栏上展示做得好的班级。那段期间，食堂的卫生情况明显改善，同学们也更加自觉了。',
+            exampleEn:     "For example, our school once held a \"Clean Plate Champion\" campaign, encouraging students to finish all the food in their bowls, and displaying the best-performing classes on the notice board. During that period, the canteen's hygiene improved noticeably and students became much more conscientious.",
+            link:          '由此可见，通过教育与激励相结合的方式，学校能有效地培养学生的公德心，让每个人都成为维护食堂整洁的小主人，共同创造一个舒适的用餐环境。',
+            linkEn:        "This shows that by combining education with incentives, the school can effectively cultivate students' civic values, turning everyone into a responsible steward of the canteen and creating a comfortable dining environment together.",
           },
         },
       },
@@ -595,7 +639,8 @@ const RAW_VAULT: VaultSet[] = [
     },
     conversation: {
       storyboardDesc: 'A bus stop where a student is talking loudly on the phone. Another person is giving up their seat to an elderly woman.',
-      scenarioDescription: '录像里，一群人正在巴士站候车。一名学生旁若无人地大声讲电话，引来旁人侧目；与此同时，一名乘客看到一位步履蹒跚的老奶奶站在旁边，便主动起身让座，轻声邀请她坐下。',
+      scenarioDescription:   '录像里，一群人正在巴士站候车。一名学生旁若无人地大声讲电话，引来旁人侧目；与此同时，一名乘客看到一位步履蹒跚的老奶奶站在旁边，便主动起身让座，轻声邀请她坐下。',
+      scenarioDescriptionEn: 'In the video, a group of people are waiting at a bus stop. One student is talking loudly on the phone, drawing disapproving looks from those nearby; at the same time, a passenger notices an elderly woman who is unsteady on her feet standing beside him, and proactively stands up to offer his seat, quietly inviting her to sit down.',
       questions: {
         q1: {
           cn: '请描述图中巴士站里人们的行为。',
@@ -968,7 +1013,8 @@ const RAW_VAULT: VaultSet[] = [
     },
     conversation: {
       storyboardDesc: 'A family dinner where everyone is on their phones instead of talking. The grandmother looks lonely.',
-      scenarioDescription: '录像里，一家人围坐在饭桌旁用餐。然而，爸爸、妈妈和孩子各自低着头，专心地盯着手中的手机，没有人互相交谈。坐在一旁的奶奶独自望着餐桌，神情显得十分孤独落寞，与周围沉浸在手机屏幕里的家人形成了鲜明的对比。',
+      scenarioDescription:   '录像里，一家人围坐在饭桌旁用餐。然而，爸爸、妈妈和孩子各自低着头，专心地盯着手中的手机，没有人互相交谈。坐在一旁的奶奶独自望着餐桌，神情显得十分孤独落寞，与周围沉浸在手机屏幕里的家人形成了鲜明的对比。',
+      scenarioDescriptionEn: 'In the video, a family is seated around the dinner table for a meal. However, the father, mother and child are each looking down at their phones, and no one is talking to one another. The grandmother sits alone at the table looking very lonely and forlorn, in stark contrast to the family members who are all absorbed in their phone screens.',
       questions: {
         q1: {
           cn: '描述图中家庭聚餐时发生了什么问题？',
