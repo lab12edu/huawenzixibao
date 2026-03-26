@@ -643,12 +643,12 @@ const RAW_VAULT: VaultSet[] = [
       scenarioDescriptionEn: 'In the video, a group of people are waiting at a bus stop. One student is talking loudly on the phone, drawing disapproving looks from those nearby; at the same time, a passenger notices an elderly woman who is unsteady on her feet standing beside him, and proactively stands up to offer his seat, quietly inviting her to sit down.',
       questions: {
         q1: {
-          cn: '请描述图中巴士站里人们的行为。',
-          en: 'Please describe the behaviours of the people at the bus stop.',
+          cn: '请描述录像中巴士站里人们的行为。',
+          en: 'Please describe the behaviours of the people at the bus stop in the video.',
           peelAnswer: {
-            point:       '图中巴士站里，不同的人表现出截然不同的行为，体现了良好公德心与缺乏公德心的对比。',
+            point:       '录像中巴士站里，不同的人表现出截然不同的行为，体现了良好公德心与缺乏公德心的对比。',
             elaboration: '一方面，一名乘客主动让座给站在旁边的老奶奶，关心弱势群体，体现了体谅他人的精神；另一方面，一名学生却在候车时大声讲电话，完全忽视了周围人的感受，影响了公共环境的安宁。',
-            example:     '例如，图中那名主动让座的乘客，虽然自己也可能很疲惫，但看到老奶奶站立不稳，仍然毫不犹豫地站起来，轻声请老人坐下，这种举动令旁人都投以赞许的目光。',
+            example:     '例如，录像中那名主动让座的乘客，虽然自己也可能很疲惫，但看到老奶奶站立不稳，仍然毫不犹豫地站起来，轻声请老人坐下，这种举动令旁人都投以赞许的目光。',
             link:        '两种行为的对比提醒我们，在公共场所，我们的一言一行都会影响周围的人。只有每个人都学会体谅他人、自律守礼，才能共同维护和谐舒适的公共环境。',
           },
         },
@@ -1017,11 +1017,11 @@ const RAW_VAULT: VaultSet[] = [
       scenarioDescriptionEn: 'In the video, a family is seated around the dinner table for a meal. However, the father, mother and child are each looking down at their phones, and no one is talking to one another. The grandmother sits alone at the table looking very lonely and forlorn, in stark contrast to the family members who are all absorbed in their phone screens.',
       questions: {
         q1: {
-          cn: '描述图中家庭聚餐时发生了什么问题？',
-          en: 'Describe the problem that occurred during the family dinner in the picture.',
+          cn: '描述录像中家庭聚餐时发生了什么问题？',
+          en: 'Describe the problem that occurred during the family dinner in the video.',
           peelAnswer: {
-            point:       '图中家庭聚餐时发生了一个令人担忧的问题：家人各自低头玩手机，没有人与奶奶交谈，使她显得非常孤独。',
-            elaboration: '原本一家人坐在一起用餐应该是增进感情、分享生活的美好时光，然而图中的爸爸、妈妈和孩子都把注意力放在手机屏幕上，对旁边的奶奶视而不见。奶奶坐在桌旁，神情落寞，与周围忙于刷手机的家人形成了鲜明的对比。',
+            point:       '录像中家庭聚餐时发生了一个令人担忧的问题：家人各自低头玩手机，没有人与奶奶交谈，使她显得非常孤独。',
+            elaboration: '原本一家人坐在一起用餐应该是增进感情、分享生活的美好时光，然而录像中的爸爸、妈妈和孩子都把注意力放在手机屏幕上，对旁边的奶奶视而不见。奶奶坐在桌旁，神情落寞，与周围忙于刷手机的家人形成了鲜明的对比。',
             example:     '例如，即使饭桌上摆满了丰盛的菜肴，家人却没有任何一人向奶奶夹菜或询问她的近况，这让聚餐失去了温情与意义，沦为各自沉浸在虚拟世界里的"共处一室"。',
             link:        '这个情景提醒我们，电子产品若使用不当，会悄悄侵蚀家人之间珍贵的联系。我们应该学会在家庭时间里放下手机，用心陪伴身边的人，尤其是年长的家人，让他们感受到被珍视和关爱。',
           },
