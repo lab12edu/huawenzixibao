@@ -366,6 +366,32 @@ const PINYIN_MAP: Record<string, string> = {
   '未来技能': 'wèi lái jì néng', '适应': 'shì yìng', '创新': 'chuàng xīn',
   '时间管理': 'shí jiān guǎn lǐ', '自控': 'zì kòng',
   '游戏成瘾': 'yóu xì chéng yǐn', '学业': 'xué yè', '平衡': 'píng héng',
+  // civic / transport per-question keywords
+  '公德心': 'gōng dé xīn', '有秩序': 'yǒu zhì xù', '依次': 'yī cì',
+  '耐心等候': 'nài xīn děng hòu', '不插队': 'bù chā duì',
+  '公共礼仪': 'gōng gòng lǐ yí', '互相尊重': 'hù xiāng zūn zhòng',
+  '自觉排队': 'zì jué pái duì', '文明行为': 'wén míng xíng wéi',
+  '体现': 'tǐ xiàn', '素质': 'sù zhì', '低声交谈': 'dī shēng jiāo tán',
+  '言行举止': 'yán xíng jǔ zhǐ', '有助于': 'yǒu zhù yú',
+  '社会和谐': 'shè huì hé xié', '良好习惯': 'liáng hǎo xí guàn',
+  '尊重他人': 'zūn zhòng tā rén', '主动让座': 'zhǔ dòng ràng zuò',
+  '关爱': 'guān ài', '力所能及': 'lì suǒ néng jí',
+  '身体力行': 'shēn tǐ lì xíng', '从小培养': 'cóng xiǎo péi yǎng',
+  '奉献精神': 'fèng xiàn jīng shén',
+  // conjunction patterns (appear in keyPhrases chips)
+  '不仅……也……': 'bù jǐn…… yě……', '一方面……另一方面……': 'yī fāng miàn…… lìng yī fāng miàn……',
+  '既……又……': 'jì…… yòu……',
+  // family / tech t1 per-question keywords
+  '团聚': 'tuán jù', '长辈': 'zhǎng bèi', '晚辈': 'wǎn bèi',
+  '一家人': 'yī jiā rén', '饭桌礼仪': 'fàn zhuō lǐ yí',
+  '家庭凝聚力': 'jiā tíng níng jù lì', '尊老爱幼': 'zūn lǎo ài yòu',
+  '传统价值观': 'chuán tǒng jià zhí guān', '代代相传': 'dài dài xiāng chuán',
+  '家庭温暖': 'jiā tíng wēn nuǎn', '家庭教育': 'jiā tíng jiào yù',
+  '言传身教': 'yán chuán shēn jiào', '潜移默化': 'qián yí mò huà',
+  '难忘': 'nán wàng', '印象深刻': 'yìn xiàng shēn kè',
+  '温馨时光': 'wēn xīn shí guāng', '感情深厚': 'gǎn qíng shēn hòu',
+  '回味无穷': 'huí wèi wú qióng', '家人陪伴': 'jiā rén péi bàn',
+  '心怀感恩': 'xīn huái gǎn ēn', '倍感温暖': 'bèi gǎn wēn nuǎn',
 };
 
 const ENGLISH_MAP: Record<string, string> = {
@@ -481,6 +507,36 @@ const ENGLISH_MAP: Record<string, string> = {
   '未来技能': 'future skills', '适应': 'to adapt', '创新': 'innovation',
   '时间管理': 'time management', '自控': 'self-control',
   '游戏成瘾': 'gaming addiction', '学业': 'academic studies', '平衡': 'balance',
+  // civic / transport per-question keywords
+  '公德心': 'civic-mindedness/public morality', '有秩序': 'orderly',
+  '依次': 'in turn/one after another', '耐心等候': 'to wait patiently',
+  '不插队': 'not to queue-jump', '公共礼仪': 'public etiquette',
+  '互相尊重': 'mutual respect', '自觉排队': 'to queue consciously/willingly',
+  '文明行为': 'civilised behaviour', '体现': 'to reflect/embody',
+  '素质': 'quality/character/moral standards', '低声交谈': 'to speak softly',
+  '言行举止': 'words and actions/conduct', '有助于': 'helpful in/conducive to',
+  '社会和谐': 'social harmony', '良好习惯': 'good habits',
+  '尊重他人': 'to respect others', '主动让座': 'to proactively offer one\'s seat',
+  '关爱': 'care and love', '力所能及': 'within one\'s ability/as best one can',
+  '身体力行': 'to lead by example/practise what you preach',
+  '从小培养': 'to cultivate from young', '奉献精神': 'spirit of contribution/dedication',
+  // conjunction patterns
+  '不仅……也……': 'not only … but also …', '一方面……另一方面……': 'on one hand … on the other hand …',
+  '既……又……': 'both … and …',
+  // family / tech t1 per-question keywords
+  '团聚': 'family reunion', '长辈': 'elders/seniors (in family)',
+  '晚辈': 'younger generation', '一家人': 'the whole family',
+  '饭桌礼仪': 'dining table etiquette', '家庭凝聚力': 'family cohesion',
+  '尊老爱幼': 'to respect the elderly and cherish the young',
+  '传统价值观': 'traditional values', '代代相传': 'passed down from generation to generation',
+  '家庭温暖': 'family warmth', '家庭教育': 'family upbringing/home education',
+  '言传身教': 'to teach by word and example',
+  '潜移默化': 'imperceptible influence/subtle guidance',
+  '难忘': 'unforgettable', '印象深刻': 'deeply impressive/left a deep impression',
+  '温馨时光': 'warm and cosy moments', '感情深厚': 'deep affection/strong bond',
+  '回味无穷': 'to linger in the memory/endlessly savoured',
+  '家人陪伴': 'family companionship', '心怀感恩': 'to hold gratitude in one\'s heart',
+  '倍感温暖': 'to feel doubly warm/to feel especially warmly loved',
 };
 
 // ── Transform: VaultSet → OralSet ────────────────────────────────────────────
