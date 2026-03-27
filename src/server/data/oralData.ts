@@ -392,6 +392,49 @@ const PINYIN_MAP: Record<string, string> = {
   '温馨时光': 'wēn xīn shí guāng', '感情深厚': 'gǎn qíng shēn hòu',
   '回味无穷': 'huí wèi wú qióng', '家人陪伴': 'jiā rén péi bàn',
   '心怀感恩': 'xīn huái gǎn ēn', '倍感温暖': 'bèi gǎn wēn nuǎn',
+  // p3 weekend leisure
+  '紧张': 'jǐn zhāng', '期待': 'qī dài', '篮球场': 'lán qiú chǎng',
+  '家务': 'jiā wù', '有规律': 'yǒu guī lǜ', '精神充沛': 'jīng shén chōng pèi',
+  // p4 diary
+  '感受': 'gǎn shòu', '反省': 'fǎn xǐng', '成熟': 'chéng shú',
+  '珍贵': 'zhēn guì', '瞬间': 'shùn jiān',
+  // a1 road safety
+  '交通灯': 'jiāo tōng dēng', '虚线': 'xū xiàn', '十字路口': 'shí zì lù kǒu',
+  '逃过一劫': 'táo guò yī jié', '交通规则': 'jiāo tōng guī zé',
+  '斑马线': 'bān mǎ xiàn', '疏忽大意': 'shū hū dà yì',
+  '后果不堪设想': 'hòu guǒ bù kān shè xiǎng', '过马路': 'guò mǎ lù',
+  // a2 electrical safety
+  '电器用品': 'diàn qì yòng pǐn', '火灾': 'huǒ zāi', '插座': 'chā zuò',
+  '过载': 'guò zài', '短路': 'duǎn lù', '预防措施': 'yù fáng cuò shī',
+  '个人隐私': 'gè rén yǐn sī', '网络安全': 'wǎng luò ān quán', '提高警惕': 'tí gāo jǐng tì',
+  // a3 fire drill
+  '演习': 'yǎn xí', '警铃': 'jǐng líng', '疏散': 'shū sàn',
+  '操场': 'cāo chǎng', '消防员': 'xiāo fáng yuán', '灭火器': 'miè huǒ qì',
+  '应对技能': 'yìng duì jì néng', '攀爬': 'pān pá', '跌倒': 'diē dǎo',
+  '受伤': 'shòu shāng', '小心翼翼': 'xiǎo xīn yì yì',
+  // a4 scam prevention
+  '骗子': 'piàn zi', '假装': 'jiǎ zhuāng', '信任': 'xìn rèn',
+  '钱财': 'qián cái', '可疑': 'kě yí', '透露': 'tòu lù',
+  '防范意识': 'fáng fàn yì shí', '医务室': 'yī wù shì',
+  // t1 smartphones
+  '智能手机': 'zhì néng shǒu jī', '联系': 'lián xì', '查询': 'chá xún',
+  '过度依赖': 'guò dù yī lài', '学习效率': 'xué xí xiào lǜ',
+  '合理安排': 'hé lǐ ān pái', '绊脚石': 'bàn jiǎo shí',
+  '互动': 'hù dòng', '生动有趣': 'shēng dòng yǒu qù', '多媒体': 'duō méi tǐ',
+  '自主学习': 'zì zhǔ xué xí', '效率': 'xiào lǜ',
+  // t2 online learning
+  '网络学习': 'wǎng luò xué xí', '普及': 'pǔ jí', '灵活': 'líng huó',
+  '自律能力': 'zì lǜ néng lì', '监督': 'jiān dū', '意志力': 'yì zhì lì',
+  '优势': 'yōu shì', '耐心': 'nài xīn', '手忙脚乱': 'shǒu máng jiǎo luàn',
+  '包容': 'bāo róng', '时代接轨': 'shí dài jiē guǐ',
+  // t3 social media & privacy
+  '网络欺凌': 'wǎng luò qī líng', '风雨无阻': 'fēng yǔ wú zǔ',
+  '外卖': 'wài mài', '辛苦': 'xīn kǔ',
+  // t4 AI
+  '智能机器人': 'zhì néng jī qì rén', '诊断': 'zhěn duàn', '组装': 'zǔ zhuāng',
+  '取代': 'qǔ dài', '提升': 'tí shēng', '共同进步': 'gòng tóng jìn bù',
+  '日新月异': 'rì xīn yuè yì', '辅助工具': 'fǔ zhù gōng jù',
+  '灵活应用': 'líng huó yìng yòng', '掌握': 'zhǎng wò',
 };
 
 const ENGLISH_MAP: Record<string, string> = {
@@ -537,6 +580,50 @@ const ENGLISH_MAP: Record<string, string> = {
   '回味无穷': 'to linger in the memory/endlessly savoured',
   '家人陪伴': 'family companionship', '心怀感恩': 'to hold gratitude in one\'s heart',
   '倍感温暖': 'to feel doubly warm/to feel especially warmly loved',
+  // p3 weekend leisure
+  '紧张': 'intense/stressful', '期待': 'to look forward to', '篮球场': 'basketball court',
+  '家务': 'household chores', '有规律': 'regular/with a routine', '精神充沛': 'full of energy/refreshed',
+  // p4 diary
+  '感受': 'feelings/impression', '反省': 'to reflect/self-examine', '成熟': 'mature/grown-up',
+  '珍贵': 'precious/valuable', '瞬间': 'moment/instant',
+  // a1 road safety
+  '交通灯': 'traffic light', '虚线': 'dotted/blinking signal line', '十字路口': 'crossroads/junction',
+  '逃过一劫': 'to narrowly escape danger', '交通规则': 'traffic rules',
+  '斑马线': 'zebra crossing/pedestrian crossing', '疏忽大意': 'careless/negligent',
+  '后果不堪设想': 'the consequences would be unthinkable', '过马路': 'to cross the road',
+  // a2 electrical safety
+  '电器用品': 'electrical appliances', '火灾': 'fire/fire hazard', '插座': 'power socket/outlet',
+  '过载': 'overload', '短路': 'short circuit', '预防措施': 'preventive measures',
+  '个人隐私': 'personal privacy', '网络安全': 'internet/cyber safety', '提高警惕': 'to heighten vigilance/be alert',
+  // a3 fire drill
+  '演习': 'drill/exercise', '警铃': 'alarm bell', '疏散': 'to evacuate',
+  '操场': 'school field/playground', '消防员': 'firefighter', '灭火器': 'fire extinguisher',
+  '应对技能': 'response skills/coping skills', '攀爬': 'to climb', '跌倒': 'to fall down',
+  '受伤': 'to be injured', '小心翼翼': 'very carefully/cautiously',
+  // a4 scam prevention
+  '骗子': 'scammer/cheat', '假装': 'to pretend/disguise', '信任': 'trust',
+  '钱财': 'money/wealth', '可疑': 'suspicious', '透露': 'to reveal/disclose',
+  '防范意识': 'vigilance/awareness of dangers', '医务室': 'sick bay/medical room',
+  // t1 smartphones
+  '智能手机': 'smartphone', '联系': 'to contact/keep in touch', '查询': 'to look up/enquire',
+  '过度依赖': 'over-reliance/excessive dependence', '学习效率': 'learning efficiency/study productivity',
+  '合理安排': 'to arrange reasonably/plan sensibly', '绊脚石': 'stumbling block/obstacle',
+  '互动': 'interaction/interactive', '生动有趣': 'lively and interesting', '多媒体': 'multimedia',
+  '自主学习': 'independent/self-directed learning', '效率': 'efficiency',
+  // t2 online learning
+  '网络学习': 'online learning', '普及': 'to become widespread/popularise', '灵活': 'flexible',
+  '自律能力': 'ability to self-discipline', '监督': 'to supervise/monitor', '意志力': 'willpower',
+  '优势': 'advantage/strength', '耐心': 'patience/patient',
+  '手忙脚乱': 'flustered/in a panic',
+  '包容': 'inclusive/tolerant', '时代接轨': 'to keep up with the times',
+  // t3 social media & privacy
+  '网络欺凌': 'cyberbullying', '风雨无阻': 'rain or shine/undeterred by any weather',
+  '外卖': 'food delivery/takeaway', '辛苦': 'hard work/toil',
+  // t4 AI
+  '智能机器人': 'intelligent robot', '诊断': 'to diagnose/diagnosis', '组装': 'to assemble',
+  '取代': 'to replace/take the place of', '提升': 'to improve/enhance', '共同进步': 'to progress together',
+  '日新月异': 'changing rapidly/new every day', '辅助工具': 'auxiliary/assistive tool',
+  '灵活应用': 'flexible application', '掌握': 'to master/grasp',
 };
 
 // ── Transform: VaultSet → OralSet ────────────────────────────────────────────
@@ -1110,10 +1197,10 @@ const RAW_VAULT: VaultSet[] = [
   },
   {
     id: 'p3', yearLabel: '2021 Day 2', themeId: 'personal',
-    subThemeCn: '均衡饮食健康', subThemeEn: 'Healthy & Balanced Diet', focusSkill: 'Vocab',
+    subThemeCn: '周末休闲活动', subThemeEn: 'Weekend Leisure', focusSkill: 'Phonetic',
     reading: {
-      text: '健康的生活方式从饮食开始。我们应该多吃蔬菜和水果，少吃高糖和多油的食物。虽然快餐和零食很有吸引力，但过度食用会损害我们的身体健康。除了合理饮食，充足的睡觉时间和定期的运动也同样重要。只有拥有强健的身体，我们才能充满精力地面对学习中的挑战。让我们从今天起，做一个注重健康的好少年。',
-      targetWords: ['饮食', '摄入', '吸引力', '损害', '合理', '精力', '注重'],
+      text: '经过一周的紧张学习，我总是期待周末的到来。周六上午，我通常会跟好友一起去篮球场打球，享受运动的快乐。下午，我会帮妈妈做家务，也会花时间看自己喜爱的书。晚上，我喜欢和家人一起看电视节目，大家说说笑笑，非常温馨。这种有规律的休息方式，让我在新的一周里精神充沛。',
+      targetWords: ['紧张', '期待', '篮球场', '家务', '温馨', '有规律', '精神充沛'],
     },
     conversation: {
       storyboardDesc: 'A school tuckshop stall serving healthy meals with brown rice and fruit. A group of students is choosing these options.',
@@ -1122,15 +1209,15 @@ const RAW_VAULT: VaultSet[] = [
         q2: { cn: '在日常生活中，你和家人是如何保持均衡饮食的？', en: 'In your daily life, how do you and your family maintain a balanced diet?' },
         q3: { cn: '你认为学校应该如何通过活动来提高学生的健康意识？', en: 'How do you think schools should raise students\' health awareness through activities?' },
       },
-      targetKeywords: ['均衡饮食', '营养', '强身健体', '病从口入', '毅力'],
+      targetKeywords: ['有规律', '精神充沛', '温馨', '家务', '放松'],
     },
   },
   {
     id: 'p4', yearLabel: '2015 Day 1', themeId: 'personal',
-    subThemeCn: '家务与自理', subThemeEn: 'Chores & Independence', focusSkill: 'Phonetic',
+    subThemeCn: '写日记的习惯', subThemeEn: 'Diary Writing Habit', focusSkill: 'Vocabulary',
     reading: {
-      text: '学会独立生活是成长的必经之路。在家里，我们应该主动帮父母分担家务，比如收拾房间、洗碗或者扫地。这些看似简单的小事，其实能锻炼我们的坚持，培养我们的责任感。当我看到原本乱糟糟的房间在我的努力下变得整洁有序时，我心里充满了自豪。分担家务不仅减轻了父母的负担，也让我们懂得了体贴和体谅。',
-      targetWords: ['必经之路', '毅力', '责任感', '整洁有序', '成就感', '体贴', '感谢'],
+      text: '每天睡觉前，我都会花五分钟写下当天的感受和经历。这个小习惯是老师建议我养成的，它让我有机会反省自己。通过这些记录，我发现自己逐渐变得更加成熟和懂事。日记不仅是字迹的积累，更是我成长路上珍贵的回忆。我希望能一直坚持下去，记录生活的美好瞬间。',
+      targetWords: ['感受', '经历', '反省', '成熟', '懂事', '珍贵', '瞬间'],
     },
     conversation: {
       storyboardDesc: 'A child tidying their own room without being told. The parents look happy and give a thumbs up.',
@@ -1139,85 +1226,85 @@ const RAW_VAULT: VaultSet[] = [
         q2: { cn: '除了收拾房间，你还会做哪些家务来分担父母的压力？', en: 'Besides tidying your room, what other chores do you do to ease your parents\' stress?' },
         q3: { cn: '你认为从小培养自理能力对孩子的未来有什么好处？', en: 'What are the benefits of fostering self-care skills in children from a young age?' },
       },
-      targetKeywords: ['自理能力', '分担家务', '感恩', '责任', '独立'],
+      targetKeywords: ['自动自觉', '分担家务', '自理能力', '整洁', '懂事'],
     },
   },
   // ── Safety (a1–a4) ───────────────────────────────────────────
   {
     id: 'a1', yearLabel: '2020 Day 2', themeId: 'safety',
-    subThemeCn: '道路交通安全', subThemeEn: 'Road Traffic Safety', focusSkill: 'Narrative',
+    subThemeCn: '交通安全意识', subThemeEn: 'Road Safety Awareness', focusSkill: 'Narrative',
     reading: {
-      text: '放学的路上，我和同学小明并肩走着。走到马路口时，小明想要抢在红灯时过马路，我赶紧拉住他说："要等绿灯才能过！"小明有些不耐烦，但还是停下来等待。就在这时，一辆货车飞快地驶过。小明吓得倒退了几步，脸色大变。他感激地向我道谢。我告诉他，遵守交通规则是保护自己生命安全的最基本方法。',
-      targetWords: ['安全', '危险', '注意', '保障', '谨慎', '事故', '预防'],
+      text: '上周末，妈妈带我去超市购物。到了交通灯处，虚线亮起，大家都停下来耐心等待。突然，一辆摩托车闯红灯飞快地冲过十字路口，几乎撞倒一位正在过马路的老人。幸好这位老人反应迅速，才逃过一劫。这件事让我明白，遵守交通规则不仅是保护自己，也是尊重他人生命的表现。',
+      targetWords: ['交通灯', '虚线', '闯红灯', '十字路口', '逃过一劫', '遵守', '交通规则'],
     },
     conversation: {
-      storyboardDesc: 'Students crossing the road. One student looks at his phone while crossing. Another pulls him back from an oncoming car.',
+      storyboardDesc: 'A student crossing the road while wearing headphones and looking at their phone. A car is approaching and the driver is honking.',
       questions: {
-        q1: { cn: '描述录像中发生的危险情况及同学的反应。', en: 'Describe the dangerous situation and the classmate\'s reaction in the video.' },
-        q2: { cn: '你平时如何注意过马路时的安全？', en: 'How do you usually pay attention to road safety when crossing the street?' },
-        q3: { cn: '为什么在路上使用手机非常危险？我们应该如何改变这个习惯？', en: 'Why is using your phone on the road very dangerous? How should we change this habit?' },
+        q1: { cn: '描述录像中发生的危险马路行为。', en: 'Describe the dangerous road behaviour shown in the video.' },
+        q2: { cn: '如果你看到同学在过马路时玩手机，你会怎么做？', en: 'What would you do if you saw a classmate playing with their phone while crossing the road?' },
+        q3: { cn: '除了马路安全，你认为学校还应该加强哪些方面的安全教育？', en: 'Besides road safety, what other aspects of safety education should the school strengthen?' },
       },
-      targetKeywords: ['闯红灯', '专注', '安全意识', '后果', '保护自己'],
+      targetKeywords: ['交通规则', '斑马线', '疏忽大意', '后果不堪设想', '过马路'],
     },
   },
   {
     id: 'a2', yearLabel: '2012 Day 1', themeId: 'safety',
-    subThemeCn: '安全骑车须知', subThemeEn: 'Safe Cycling Practices', focusSkill: 'Phonetic',
+    subThemeCn: '家居用电安全', subThemeEn: 'Home Electrical Safety', focusSkill: 'Vocabulary',
     reading: {
-      text: '骑脚踏车是一种健康又环保的出行方式。但在骑车时，我们必须时刻注意安全。骑车者应该戴上头盔，遵守交通规则，不在马路上骑得太快，也不应该在人行道上横冲直撞。记得在骑车前检查好车灯和刹车是否正常运作。只有做好这些安全措施，我们才能真正享受骑车带来的乐趣，同时保护好自己和他人。',
-      targetWords: ['安全意识', '交通', '规则', '谨慎', '保护自己', '骑车', '预防'],
+      text: '在家中，电器用品给我们的生活带来了很大的方便，但如果使用不当，却会引发火灾等危险。爸爸经常提醒我，不要同时在同一插座使用过多电器，因为过载可能导致短路甚至起火。此外，离家前，我们必须关掉所有电源开关，确保安全。这些预防措施虽然简单，但对保障家人的平安十分重要。',
+      targetWords: ['电器用品', '火灾', '插座', '过载', '短路', '预防措施', '保障'],
     },
     conversation: {
-      storyboardDesc: 'Children cycling in a park. One child is wearing a helmet and signalling. Another is cycling recklessly without safety gear.',
+      storyboardDesc: 'A child receiving a suspicious friend request online. The child decides to ask their father about it.',
       questions: {
-        q1: { cn: '比较录像中两名小朋友骑车方式的不同。', en: 'Compare the different cycling behaviours of the two children in the video.' },
-        q2: { cn: '你骑脚踏车时会注意哪些安全事项？', en: 'What safety precautions do you take when cycling?' },
-        q3: { cn: '学校或社区应该如何推广安全骑车的知识？', en: 'How should schools or communities promote knowledge of safe cycling?' },
+        q1: { cn: '描述录像中孩子在面对网络社交时的反应。', en: "Describe the child's reaction when facing online social networking in the video." },
+        q2: { cn: '你平时是如何管理自己的上网时间并确保安全的？', en: 'How do you usually manage your internet time and ensure safety?' },
+        q3: { cn: '你认为家长在引导孩子正确使用网络方面应该扮演什么角色？', en: 'What role do you think parents should play in guiding children to use the internet correctly?' },
       },
-      targetKeywords: ['头盔', '刹车', '安全措施', '遵守规则', '负责任'],
+      targetKeywords: ['个人隐私', '网络安全', '谨慎', '陌生人', '提高警惕'],
     },
   },
   {
     id: 'a3', yearLabel: '2014 Day 2', themeId: 'safety',
-    subThemeCn: '网络安全意识', subThemeEn: 'Cyber Safety Awareness', focusSkill: 'Opinion',
+    subThemeCn: '防火演习', subThemeEn: 'Fire Drill', focusSkill: 'Phonetic',
     reading: {
-      text: '互联网给我们的生活带来了许多便利，但同时也带来了新的安全挑战。在网上，我们必须保护好自己的个人资料，不随意透露姓名、地址或学校名称给陌生人。如果遇到网络霸凌，要勇敢地向父母或老师求助，不要独自承受。网络安全是每个人的责任，我们要学会辨别网络上的虚假信息，培养良好的上网习惯。',
-      targetWords: ['网络', '陌生人', '自我保护', '求助', '紧急', '规则', '遵守规则'],
+      text: '上个月，我们学校举办了一场防火演习。警铃一响，同学们立刻停下手中的一切活动，有秩序地按照老师的指示迅速疏散到操场。在这次活动中，消防员叔叔还为我们示范了如何使用灭火器。虽然我希望永远不会遇到真正的火灾，但掌握这些应对技能，能让我在关键时刻保护自己和他人。',
+      targetWords: ['演习', '警铃', '疏散', '操场', '消防员', '灭火器', '应对技能'],
     },
     conversation: {
-      storyboardDesc: 'A child receiving a suspicious friend request online. A parent comes over and guides them on internet safety.',
+      storyboardDesc: 'A child trying to reach a high cabinet in the kitchen by climbing on a shaky chair. An adult walks in and stops them.',
       questions: {
-        q1: { cn: '描述录像中小孩遇到的网络安全问题及家长的处理方式。', en: 'Describe the internet safety issue faced by the child and how the parent handled it in the video.' },
-        q2: { cn: '你在上网时会如何保护自己的个人资料？', en: 'How do you protect your personal information when using the internet?' },
-        q3: { cn: '你认为学校应该如何教导学生安全上网？', en: 'How do you think schools should teach students about safe internet use?' },
+        q1: { cn: '描述录像中发生的居家不安全行为。', en: 'Describe the unsafe home behaviour occurring in the video.' },
+        q2: { cn: '当你在家独自一人时，你会注意哪些安全事项？', en: 'When you are home alone, what safety matters do you pay attention to?' },
+        q3: { cn: '为什么通过角色扮演来学习安全知识对小学生很有效？', en: 'Why is learning safety knowledge through role-playing effective for primary students?' },
       },
-      targetKeywords: ['网络霸凌', '隐私', '求助', '辨别', '安全上网'],
+      targetKeywords: ['攀爬', '危险', '跌倒', '受伤', '小心翼翼'],
     },
   },
   {
     id: 'a4', yearLabel: '2016 Day 1', themeId: 'safety',
-    subThemeCn: '遵守学校规则', subThemeEn: 'Following School Rules', focusSkill: 'Vocab',
+    subThemeCn: '防范诈骗', subThemeEn: 'Scam Prevention', focusSkill: 'Opinion',
     reading: {
-      text: '炎热的下午，操场上一片寂静。几名同学在没有老师在场的情况下，擅自攀爬围栏，十分危险。幸好，值班老师及时发现并制止了他们。老师耐心地讲解了在学校里遵守安全规则的重要性。我们明白了，安全规则是为了保护每个人，遵守这些规则是每个同学的责任，也是对自己和他人生命的尊重。',
-      targetWords: ['安全', '危险', '规则', '保障', '责任', '紧急', '后果'],
+      text: '上周，学校邀请了一位警察叔叔来为我们讲解防范骗子的知识。他告诉我们，骗子经常会假装成银行或政府工作人员，通过电话骗取他人的信任和钱财。因此，遇到可疑的情况，我们应该先跟父母或老师商量，不要随便透露个人资料。提高防范意识，能有效减少受骗的风险，保护好自己和家人的财产安全。',
+      targetWords: ['骗子', '假装', '信任', '钱财', '可疑', '透露', '防范意识'],
     },
     conversation: {
-      storyboardDesc: 'School playground. Students climbing forbidden structures while a teacher rushes to intervene.',
+      storyboardDesc: 'Students running down a staircase at school. One student slips and falls, hurting their knee.',
       questions: {
-        q1: { cn: '描述录像中发生的安全事件及老师的应对方式。', en: 'Describe the safety incident and how the teacher responded in the video.' },
-        q2: { cn: '在学校里，你会如何遵守安全规则来保护自己和同学？', en: 'At school, how do you follow safety rules to protect yourself and your classmates?' },
-        q3: { cn: '你认为为什么有些同学会故意违反学校的安全规则？我们应该如何改变这种行为？', en: 'Why do you think some students deliberately break school safety rules? How should we change this behaviour?' },
+        q1: { cn: '描述录像中楼梯间发生的意外过程。', en: 'Describe the process of the accident in the staircase in the video.' },
+        q2: { cn: '你在学校里见过类似的不安全行为吗？你是如何处理的？', en: 'Have you seen similar unsafe behaviour at school? How did you handle it?' },
+        q3: { cn: '你认为学生纠察员在维护校园安全方面起到了什么作用？', en: 'What role do you think student prefects play in maintaining school safety?' },
       },
-      targetKeywords: ['违规', '制止', '以身作则', '后果', '安全意识'],
+      targetKeywords: ['推挤', '受伤', '医务室', '遵守规则', '跌倒'],
     },
   },
   // ── Tech (t1–t4) ─────────────────────────────────────────────
   {
     id: 't1', yearLabel: '2019 Day 2', themeId: 'tech',
-    subThemeCn: '电子产品与家庭', subThemeEn: 'Devices & Family Bonds', focusSkill: 'Opinion',
+    subThemeCn: '智能手机的利弊', subThemeEn: 'Pros and Cons of Smartphones', focusSkill: 'Opinion',
     reading: {
-      text: '随着科技的飞速发展，电子产品已经成为我们日常生活中不可缺少的一部分。平板电脑和手机让我们随时随地都可以获取信息和娱乐。然而，如果我们过度依赖这些设备，长期盯着屏幕会对眼睛造成伤害，也会减少我们与家人朋友面对面交流的机会。因此，我们必须学会合理使用电子产品，做到自律，保持健康的生活方式。',
-      targetWords: ['科技', '电子产品', '上网', '成瘾', '影响', '合理使用', '自律'],
+      text: '智能手机已经成为我们日常生活中不可缺少的工具。它不仅让我们能随时联系亲友，还能帮助我们快速查询资料和学习知识。然而，如果过度依赖手机，就可能影响学习效率和身体健康。我觉得，我们应该合理安排使用电子产品的时间，不要让它成为干扰生活的绊脚石。',
+      targetWords: ['智能手机', '联系', '查询', '过度依赖', '学习效率', '合理安排', '绊脚石'],
     },
     conversation: {
       storyboardDesc: 'A family dinner where everyone is on their phones instead of talking. The grandmother looks lonely.',
@@ -1270,60 +1357,61 @@ const RAW_VAULT: VaultSet[] = [
           },
         },
       },
-      targetKeywords: ['沉迷', '家庭关系', '面对面交流', '自律', '健康使用'],
+      targetKeywords: ['互动', '生动有趣', '多媒体', '自主学习', '效率'],
     },
   },
   {
     id: 't2', yearLabel: '2022 Day 2', themeId: 'tech',
-    subThemeCn: '社交媒体与假信息', subThemeEn: 'Social Media & Misinformation', focusSkill: 'Vocab',
+    subThemeCn: '网络学习平台', subThemeEn: 'Online Learning Platforms', focusSkill: 'Narrative',
     reading: {
-      text: '社交媒体让我们能够随时与朋友和家人保持联系，也方便我们分享生活中的点滴。但是，网络上充斥着各种虚假信息，如果我们不加以辨别，很容易被误导。我们在转发或分享信息之前，必须先核实来源，确保信息的真实性。保护个人隐私也非常重要，不要随意在社交媒体上透露个人的资料和行踪。',
-      targetWords: ['社交媒体', '虚假信息', '辨别', '隐私', '依赖', '节制', '责任'],
+      text: '随着科技的进步，网络学习平台逐渐普及。在疫情期间，许多学校开始采用网上教学的方式。这种学习模式虽然方便灵活，但也对我们的自律能力提出了要求。没有老师在身边监督，我们必须靠自己的意志力保持专心。我认为，只有养成良好的学习习惯，才能充分发挥网络教育的优势。',
+      targetWords: ['网络学习', '普及', '灵活', '自律能力', '监督', '意志力', '优势'],
     },
     conversation: {
-      storyboardDesc: 'A student sharing fake news on a group chat. Friends are pointing out the information is false.',
+      storyboardDesc: 'An elderly man is confused at a self-checkout kiosk in a supermarket. A young person steps up to show him how to use it.',
       questions: {
-        q1: { cn: '描述录像中同学在群组里分享信息时遇到的问题。', en: 'Describe the problem the student encountered when sharing information in the group chat in the video.' },
-        q2: { cn: '在转发一则信息之前，你会怎么做？', en: 'What do you do before forwarding a piece of information?' },
-        q3: { cn: '你认为社交媒体对青少年有哪些正面和负面的影响？', en: 'What positive and negative impacts do you think social media has on teenagers?' },
+        q1: { cn: '描述录像中乐龄人士面对新科技时的困惑以及年轻人的帮助。', en: "Describe the senior's confusion facing new technology and the young person's help in the video." },
+        q2: { cn: '你曾教过家里的长辈使用过智能手机的功能吗？分享你的经历。', en: 'Have you ever taught your elders how to use smartphone functions? Share your experience.' },
+        q3: { cn: '如何能让新加坡成为一个更具包容性的"智慧国"？', en: 'How can Singapore become a more inclusive "Smart Nation"?' },
       },
-      targetKeywords: ['核实', '虚假信息', '误导', '负责任', '谨慎'],
+      targetKeywords: ['耐心', '手忙脚乱', '包容', '时代接轨', '教导'],
     },
   },
   {
     id: 't3', yearLabel: '2023 Day 2', themeId: 'tech',
-    subThemeCn: '人工智能与编程', subThemeEn: 'AI & Coding Skills', focusSkill: 'Narrative',
+    subThemeCn: '社交媒体与隐私', subThemeEn: 'Social Media and Privacy', focusSkill: 'Expression',
     reading: {
-      text: '人工智能正在改变我们的世界。从自动驾驶汽车到智能医疗，人工智能的应用越来越广泛。在新加坡，许多学校已经开始教导学生学习编程和人工智能的基础知识。这些技能将在未来变得越来越重要。我们应该积极学习，掌握这些新兴技术，才能在未来的社会中立于不败之地，为国家的发展作出贡献。',
-      targetWords: ['人工智能', '方便', '科技', '合理使用', '影响', '自律', '贡献'],
+      text: '社交媒体让我们能轻易地与朋友保持联系，分享生活的点滴。然而，在享受便利的同时，我们也应该注意保护自己的隐私。上周，我在网上看到一个同龄的孩子因为透露个人资料而遭到网络欺凌。这件事提醒了我，在发布任何内容前，都要先想一想可能产生的后果。学会谨慎使用社交媒体，是保护自己的重要一步。',
+      targetWords: ['社交媒体', '隐私', '透露', '网络欺凌', '后果', '谨慎', '保护自己'],
     },
     conversation: {
-      storyboardDesc: 'Students learning to code in a computer lab. A robot assistant is helping one student with their programme.',
+      storyboardDesc: 'A food delivery rider cycling through a neighbourhood in the rain to deliver food to a family.',
       questions: {
-        q1: { cn: '描述录像中同学们在学习编程时与机器人互动的情景。', en: 'Describe the scene of students interacting with a robot while learning to code in the video.' },
-        q2: { cn: '你认为学习编程和人工智能对你的未来有什么帮助？', en: 'How do you think learning coding and AI will help your future?' },
-        q3: { cn: '随着人工智能的发展，人类的工作会受到什么影响？我们应该如何应对？', en: 'How will human jobs be affected by the development of AI? How should we respond?' },
+        q1: { cn: '描述录像中送餐员辛勤工作的情景。', en: 'Describe the scene of the food delivery rider working hard in the video.' },
+        q2: { cn: '你家经常叫外卖吗？你对送餐服务的便利性有什么看法？', en: 'Does your family order food delivery often? What are your views on its convenience?' },
+        q3: { cn: '我们应该如何对这些在烈日或风雨中工作的服务人员表示尊重和体谅？', en: 'How should we show respect and empathy for these service workers who work in the sun or rain?' },
       },
-      targetKeywords: ['编程', '人机合作', '未来技能', '适应', '创新'],
+      targetKeywords: ['体谅', '风雨无阻', '外卖', '辛苦', '礼貌'],
     },
   },
   {
     id: 't4', yearLabel: '2024 Day 2', themeId: 'tech',
-    subThemeCn: '游戏成瘾与自律', subThemeEn: 'Gaming Addiction & Self-Control', focusSkill: 'Phonetic',
+    subThemeCn: '人工智能的影响', subThemeEn: 'Impact of Artificial Intelligence', focusSkill: 'Vocabulary',
     reading: {
-      text: '网络游戏已经成为许多青少年最喜爱的消遣方式之一。适度的游戏可以帮助我们放松心情，锻炼反应能力，甚至培养团队合作精神。然而，如果我们沉迷其中，花费大量时间在游戏上，就会影响学业和健康。我们必须学会自律，合理安排时间，确保游戏不会影响到我们的日常学习和家庭生活，这才是对自己负责任的态度。',
-      targetWords: ['成瘾', '沉迷', '节制', '依赖', '自律', '合理使用', '影响'],
+      text: '人工智能正在改变我们的生活。如今，智能机器人能帮助医生进行诊断，也能在工厂里完成复杂的组装工作。虽然这些科技让生活更加便利，但也有人担心机器人会取代人类的工作。我认为，只要我们不断学习新知识，提升自己的能力，就能与科技共同进步，创造更美好的未来。',
+      targetWords: ['人工智能', '智能机器人', '诊断', '组装', '取代', '提升', '共同进步'],
     },
     conversation: {
-      storyboardDesc: 'A student staying up late playing online games. His schoolwork is piling up. A parent sets a timer to limit gaming time.',
+      storyboardDesc: 'Students using an AI chat interface to brainstorm ideas for a class project, while the teacher observes and guides them.',
       questions: {
-        q1: { cn: '描述录像中学生沉迷游戏对学业造成的影响。', en: 'Describe the impact of the student\'s gaming addiction on their schoolwork in the video.' },
-        q2: { cn: '你如何在玩游戏和完成学业之间取得平衡？', en: 'How do you balance gaming and completing your schoolwork?' },
-        q3: { cn: '你认为父母应该限制孩子玩游戏的时间吗？为什么？', en: 'Do you think parents should limit the amount of time their children spend gaming? Why?' },
+        q1: { cn: '描述录像中学生们如何利用AI辅助学习。', en: 'Describe how the students use AI to assist their learning in the video.' },
+        q2: { cn: '你认为AI能取代老师吗？为什么？', en: 'Do you think AI can replace teachers? Why?' },
+        q3: { cn: '面对快速发展的科技，小学生应该具备什么样的学习态度？', en: 'Facing fast-developing technology, what kind of learning attitude should primary students have?' },
       },
-      targetKeywords: ['时间管理', '自控', '游戏成瘾', '学业', '平衡'],
+      targetKeywords: ['日新月异', '思考', '辅助工具', '灵活应用', '掌握'],
     },
   },
+
 ];
 
 // ── Build final oralSets array ────────────────────────────────────────────────
